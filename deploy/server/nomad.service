@@ -1,0 +1,12 @@
+[Unit]
+Description=Nomad Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/nomad agent -config=/home/ec2-user/nomad-server.hcl
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

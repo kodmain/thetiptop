@@ -1,0 +1,24 @@
+apiVersion: 1
+
+dashboards:
+  providers:
+  - name: 'default'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false
+
+datasources:
+- name: Metrics
+  type: prometheus
+  access: proxy
+  url: https://prometheus.kodmain.run
+- name: CloudWatch
+  type: cloudwatch
+  jsonData:
+    authType: default
+    defaultRegion: 'eu-west-3'
