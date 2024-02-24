@@ -1,0 +1,9 @@
+{
+	"files.exclude": {
+		".github": false,
+		"vendor": true,
+		".maker": false,
+		"deploy/server/*terraform*": true,
+		".vscode": false
+	}
+}

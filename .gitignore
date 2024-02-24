@@ -1,0 +1,5 @@
+vendor
+.build
+terraform*
+.terraform*
+token.env
