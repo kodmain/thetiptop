@@ -15,14 +15,24 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22.x
-          
-      - name: Setup gotestsum
-        uses: autero1/action-gotestsum@v2.0.0
-        with:
-          gotestsum_version: 1.11.0
 
       - name: Checkout code
         uses: actions/checkout@v4
+          
+      - name: Cache Go Modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/go/bin
+            ~/go.sum
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+              
+      - name: Setup gotestsum
+        run: go install gotest.tools/gotestsum@latest
+
 
       - name: Run all the tests and code checks
         run:  make test units
