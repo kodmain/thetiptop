@@ -45,7 +45,7 @@ jobs:
         with:
           if-no-files-found: error
           name: go-coverage
-          path: coverage.out
+          path: .
 
   sonarcloud:
     name: SonarCloud
