@@ -7,8 +7,13 @@ on:
     branches:
       - master
 
+permissions:
+  pull-requests: read
+  contents: read
+
 jobs:
   test:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
@@ -29,10 +34,40 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-              
+
       - name: Setup gotestsum
         run: go install gotest.tools/gotestsum@latest
 
-
       - name: Run all the tests and code checks
-        run:  make test units
+        run: make test units
+
+      - name: Upload coverage to Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: go-coverage
+          path: coverage.out
+
+  sonarcloud:
+    name: SonarCloud
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download coverage from Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: go-coverage
+          path: .
+
+      - name: Analyze with SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args:
+            -Dsonar.projectKey=kodmain_thetiptop
+            -Dsonar.organization=kodmain
+            -Dsonar.go.coverage.reportPaths=coverage.out
