@@ -42,11 +42,11 @@ jobs:
       - name: Run all the tests and code checks
         run: make test units
 
-      - name: Upload coverage to Artifacts
+      - name: Upload project to Artifacts
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          name: go-coverage
+          name: project
           path: .
 
   sonarcloud:
@@ -54,10 +54,10 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Download coverage from Artifacts
+      - name: Download project from Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: go-coverage
+          name: project
           path: .
 
       - name: Analyze with SonarCloud
@@ -70,3 +70,42 @@ jobs:
             -Dsonar.projectKey=kodmain_thetiptop
             -Dsonar.organization=kodmain
             -Dsonar.go.coverage.reportPaths=coverage.out
+  
+  build:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Build
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download project from Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: project
+          path: .
+
+      - name: Get next version
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        with:
+          token: ${{ github.token }}
+          branch: main
+          skipInvalidTags: true
+
+      - name: Build the release
+        env:
+          VERSION: ${{ steps.semver.outputs.next }}
+        run: make build binaries
+        
+      - name: Upload release
+        uses: ncipollo/release-action@v1
+        with:
+          name: TheTipTop Release
+          makeLatest: true
+          tag: ${{ steps.semver.outputs.next }}
+          artifacts: ".build/bin/*"
+          allowUpdates: true
+          replacesArtifacts: true
+          removeArtifacts: true
+          token: ${{ secrets.GITHUB_TOKEN }}
