@@ -11,10 +11,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Go
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: 1.22.x
+          
+      - name: Setup gotestsum
+        uses: autero1/action-gotestsum@v2
 
       - name: Checkout code
         uses: actions/checkout@v4
