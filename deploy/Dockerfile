@@ -6,7 +6,7 @@ COPY . .
 
 RUN echo "nobody:x:65534:65534:Nobody:/:" > .build/passwd
 RUN make build certificate
-RUN make build binary
+RUN make build binaries
 
 FROM scratch AS runner
 

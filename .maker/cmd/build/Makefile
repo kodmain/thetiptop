@@ -8,11 +8,20 @@ include $(CURDIR)/../../lib/default.mk
 
 include $(GWD)/deploy/token.env
 
-binary: ## Build project
-	echo "Building binary thetiptop in .build/bin"
+OS := linux darwin
+ARCH := amd64 arm64
+
+binaries:
+	echo "Building binaries thetiptop in .build/bin"
 	rm -rf $(GWD)/.build/bin/*
-	env CGO_ENABLED=0 go build -o $(GWD)/.build/bin/thetiptop $(GWD)/project/cmd/main.go
-	if [ -f $(GWD)/.build/bin/thetiptop ]; then echo "Binary created"; else echo "Binary not created"; fi
+	for os in $(OS); do \
+		for arch in $(ARCH); do \
+			ldflags="-s -w -X github.com/kodmain/thetiptop/project/config/config.BUILD_VERSION=$$VERSION -X github.com/kodmain/thetiptop/project/config/config.BUILD_COMMIT=$$(git rev-parse --short HEAD)"; \
+			CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -buildvcs=false -ldflags="$$ldflags" \
+			-o $(GWD)/.build/bin/thetiptop-$$os-$$arch $(GWD)/project/cmd/main.go; \
+			chmod +x $(GWD)/.build/bin/thetiptop-$$os-$$arch; \
+		done; \
+	done
 
 docker: ## Build docker images
 	docker build -t thetiptop -f $(GWD)/deploy/Dockerfile $(GWD)/.
