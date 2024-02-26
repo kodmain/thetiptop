@@ -116,7 +116,6 @@ jobs:
           allowUpdates: true
           skipIfReleaseExists: true
           replacesArtifacts: true
-          removeArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
   docker:
