@@ -108,8 +108,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          name: thetiptop-${{ matrix.arch }}
-          path: .build/bin
+          name: thetiptop
+          path: .build/bin/thetiptop-linux-${{ matrix.arch }}
   
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -125,7 +125,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: thetiptop
-          path: .
+          path: .build/bin
+          merge-multiple: true
+
+      - name: Display structure of downloaded files
+        run: ls -R .
+      - name: Display structure of downloaded files
+        run: ls -R .build
+      - name: Display structure of downloaded files
+        run: ls -R .build/bin
 
       - name: Upload release
         uses: ncipollo/release-action@v1
