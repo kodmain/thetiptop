@@ -114,6 +114,7 @@ jobs:
           tag: ${{ steps.semver.outputs.next }}
           artifacts: ".build/bin/*"
           allowUpdates: true
+          skipIfReleaseExists: true
           replacesArtifacts: true
           removeArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
