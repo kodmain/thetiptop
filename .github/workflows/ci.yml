@@ -156,7 +156,5 @@ jobs:
             BINARY_VERSION=${{ needs.binaries.outputs.version }}
             BINARY_OS=linux
             BINARY_ARCH=${{ matrix.arch }}
-          tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
+          tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }},ghcr.io/${{ github.repository }}:${{ matrix.arch }}
           
