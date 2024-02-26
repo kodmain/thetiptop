@@ -9,7 +9,7 @@ dashboards:
     disableDeletion: false
     editable: true
     options:
-      path: /etc/grafana/provisioning/dashboards
+      path: /etc/grafana/provisioning/dashboards/aws.json
       foldersFromFilesStructure: false
 
 datasources:
