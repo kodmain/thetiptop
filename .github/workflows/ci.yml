@@ -141,7 +141,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    needs: binaries
+    needs: publish
     strategy:
       matrix:
         arch: [amd64, arm64]
