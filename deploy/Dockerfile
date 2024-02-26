@@ -9,3 +9,6 @@ ENV BINARY_ARCH=$BINARY_ARCH
 
 WORKDIR /project
 ADD https://github.com/kodmain/thetiptop/releases/download/$BINARY_VERSION/thetiptop-$BINARY_OS-$BINARY_ARCH /project/service
+RUN chmod +x /project/service
+
+ENTRYPOINT [ "/project/service" ]
