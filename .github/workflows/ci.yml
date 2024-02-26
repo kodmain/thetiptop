@@ -81,8 +81,6 @@ jobs:
     strategy:
       matrix:
         arch: [amd64, arm64]
-    permissions:
-      contents: write
     steps:
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
@@ -106,13 +104,36 @@ jobs:
           VERSION: ${{ steps.semver.outputs.next }}
           GWD: ${{ github.workspace }}
   
+      - name: Upload project to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: thetiptop-${{ matrix.arch }}
+          path: .build/bin
+  
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Publish Binaries
+    needs: binaries
+    outputs:
+      version: ${{ needs.binaries.outputs.version }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download project from Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: thetiptop
+          path: .
+
       - name: Upload release
         uses: ncipollo/release-action@v1
         with:
-          name: TheTipTop ${{ steps.semver.outputs.next }}
+          name: TheTipTop ${{ needs.binaries.outputs.version }}
           makeLatest: true
-          tag: ${{ steps.semver.outputs.next }}
-          artifacts: ".build/bin/*"
+          tag: ${{ needs.binaries.outputs.version }}
+          artifacts: .
           allowUpdates: true
           skipIfReleaseExists: true
           replacesArtifacts: true
