@@ -159,6 +159,8 @@ jobs:
       - name: Check vulnerabilities
         uses: docker/scout-action@v1
         with:
+          dockerhub-user: ${{secrets.DOCKERHUB_USERNAME}}
+          dockerhub-password: ${{secrets.DOCKERHUB_TOKEN}}
           command: cves,recommendations,compare
           image: ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
           to-latest: true
