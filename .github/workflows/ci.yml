@@ -155,7 +155,13 @@ jobs:
             BINARY_VERSION=${{ needs.binaries.outputs.version }}
             BINARY_OS=linux
           tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
-          
+
+      - name: Authenticate to Docker
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Check vulnerabilities
         uses: docker/scout-action@v1
         with:
@@ -168,5 +174,4 @@ jobs:
           ignore-unchanged: true
           only-fixed: true
           summary: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           write-comment: true
