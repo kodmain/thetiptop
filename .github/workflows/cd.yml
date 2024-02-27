@@ -1,8 +1,8 @@
-name: Réaction aux événements de package
+name: CD
 
 on:
   registry_package:
-    types: [published]
+    types: [published, updated]
 
 jobs:
   deploy:
