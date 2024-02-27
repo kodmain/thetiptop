@@ -53,7 +53,7 @@ resource "aws_instance" "free_tier_arm_instance" {
     nomad acl policy apply -description "Deployment" deploy /home/ec2-user/nomad-policy.hcl
     nomad acl token create -name="github" -policy="deploy" > /home/ec2-user/github.token
     export GITHUB_NOMAD_TOKEN=$(cat /home/ec2-user/github.token | grep "Secret" |awk '{print $4}')
-    gh secret set GITHUB_NOMAD_TOKEN -b"$GITHUB_NOMAD_TOKEN" --repo kodmain/thetiptop
+    gh secret set NOMAD_TOKEN -b"$GITHUB_NOMAD_TOKEN" --repo kodmain/thetiptop
     sed -i 's/NOMADTOKEN/'"$NOMAD_TOKEN"'/g' /home/ec2-user/services/admin.hcl
     nomad job run -token=$NOMAD_TOKEN /home/ec2-user/services/admin.hcl
     nomad job run -token=$NOMAD_TOKEN /home/ec2-user/services/monitoring.hcl
