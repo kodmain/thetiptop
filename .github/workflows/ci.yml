@@ -150,6 +150,7 @@ jobs:
           context: .
           platforms: linux/arm64, linux/amd64
           push: true
+          provenance: false
           build-args: |
             BINARY_VERSION=${{ needs.binaries.outputs.version }}
             BINARY_OS=linux
