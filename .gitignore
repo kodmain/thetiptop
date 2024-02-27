@@ -3,3 +3,5 @@ vendor
 terraform*
 .terraform*
 token.env
+.DS_Store
+coverage.out
