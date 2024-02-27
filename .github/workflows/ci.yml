@@ -156,3 +156,12 @@ jobs:
             BINARY_OS=linux
           tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
           
+      - name: Check vulnerabilities
+        uses: docker/scout-action@v1
+        with:
+          command: cves,recommendations,compare
+          image: ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
+          to-latest: true
+          ignore-base: true
+          ignore-unchanged: true
+          only-fixed: true
