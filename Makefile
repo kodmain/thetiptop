@@ -11,6 +11,9 @@ build: ## Display all builds actions
 test: ## Display all tests actions
 	make -C $(CURDIR)/.maker/cmd/test $(ARGS)
 
+server: ## Display all servers actions
+	make -C $(CURDIR)/.maker/cmd/server $(ARGS)
+
 doctor: ## Display all doctor actions
 	make -C $(CURDIR)/.maker/cmd/doctor $(ARGS)
 

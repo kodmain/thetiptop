@@ -1,23 +1,23 @@
-FROM alpine:edge AS builder
-RUN apk add --no-cache go ca-certificates make git alpine-sdk
+FROM --platform=$BUILDPLATFORM alpine:edge AS builder
+
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
+ARG BINARY_VERSION
+
+ENV BUILDPLATFORM=$BUILDPLATFORM
+ENV TARGETPLATFORM=$TARGETPLATFORM
+ENV TARGETOS=$TARGETOS
+ENV TARGETARCH=$TARGETARCH
+ENV BINARY_VERSION=$BINARY_VERSION
 
 WORKDIR /project
-COPY . .
+ADD https://github.com/kodmain/thetiptop/releases/download/$BINARY_VERSION/thetiptop-linux-$TARGETARCH /project/service
+RUN chmod +x /project/service
 
-RUN echo "nobody:x:65534:65534:Nobody:/:" > .build/passwd
-RUN make build certificate
-RUN make build binary
+LABEL org.opencontainers.image.source="https://github.com/kodmain/thetiptop"
+LABEL VERSION=$BINARY_VERSION
+EXPOSE 80
 
-FROM scratch AS runner
-
-WORKDIR /var/run
-COPY --from=builder --chown=nobody:nobody /project/.build/bin/thetiptop /var/run/service
-COPY --from=builder --chown=nobody:nobody /project/.build/passwd 	    /etc/passwd
-COPY --from=builder --chown=nobody:nobody /project/.build/certs 	    /etc/ssl/certs
-USER nobody
-
-HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/api/v1/status/healthcheck || exit 1
-EXPOSE 80 443
-
-ENTRYPOINT [ "/var/run/service" ]
-CMD [ "--enable-https" ]
+ENTRYPOINT [ "/project/service" ]
