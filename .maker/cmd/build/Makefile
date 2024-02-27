@@ -9,21 +9,14 @@ include $(CURDIR)/../../lib/default.mk
 OS := linux darwin
 ARCH := amd64 arm64
 
-binaries:
+binary: ## Build binary
 	echo "Building binaries thetiptop in .build/bin"
 	rm -rf $(GWD)/.build/bin/*
-	for os in $(OS); do \
-		for arch in $(ARCH); do \
-			ldflags="-s -w -X github.com/kodmain/thetiptop/project/config/config.BUILD_VERSION=$$VERSION -X github.com/kodmain/thetiptop/project/config/config.BUILD_COMMIT=$$(git rev-parse --short HEAD)"; \
-			CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -buildvcs=false -ldflags="$$ldflags" \
-			-o $(GWD)/.build/bin/thetiptop-$$os-$$arch $(GWD)/project/cmd/main.go; \
-			chmod +x $(GWD)/.build/bin/thetiptop-$$os-$$arch; \
-		done; \
-	done
+	ldflags="-s -w -X github.com/kodmain/thetiptop/project/config/config.BUILD_VERSION=dev -X github.com/kodmain/thetiptop/project/config/config.BUILD_COMMIT=$$(git rev-parse --short HEAD)"; \
+	CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -buildvcs=false -ldflags="$$ldflags" -o $(GWD)/.build/bin/thetiptop $(GWD)/project/cmd/main.go && chmod +x $(GWD)/.build/bin/thetiptop;
 
 docker: ## Build docker images
-	docker build -t thetiptop -f $(GWD)/deploy/Dockerfile $(GWD)/.
-
+	docker build --build-arg BINARY_VERSION=dev -t ghcr.io/kodmain/thetiptop:dev -f $(GWD)/deploy/Dockerfile $(GWD)/.
 
 certificate: ## Generate ssl certificate
 	if [ ! -f $(GWD)/.build/certs/server.key ] || [ ! -f $(GWD)/.build/certs/server.crt ]; then \
