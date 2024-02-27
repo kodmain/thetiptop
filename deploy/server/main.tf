@@ -32,17 +32,20 @@ resource "aws_instance" "free_tier_arm_instance" {
     sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
     sudo yum-config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
     sudo yum -y install nomad docker gh cni-plugins httpd-tools
-    mkdir -p /home/ec2-user/services/{monitoring,admin,project}
-    echo "${local.nomad_server}"              | base64 --decode > /home/ec2-user/nomad-server.hcl
-    echo "${local.nomad_policy}"              | base64 --decode > /home/ec2-user/nomad-policy.hcl
-    echo "${local.nomad_service}"             | base64 --decode > /etc/systemd/system/nomad.service
-    echo "${local.service_monitoring}"        | base64 --decode > /home/ec2-user/services/monitoring/monitoring.hcl
-    echo "${local.service_admin}"             | base64 --decode > /home/ec2-user/services/admin/admin.hcl
-    echo "${local.service_project}"           | base64 --decode > /home/ec2-user/services/project/project.hcl
+    mkdir -p /home/ec2-user/services
+    sleep 1
+    echo "${local.nomad_server}"       | base64 --decode > /home/ec2-user/nomad-server.hcl
+    echo "${local.nomad_policy}"       | base64 --decode > /home/ec2-user/nomad-policy.hcl
+    echo "${local.nomad_service}"      | base64 --decode > /etc/systemd/system/nomad.service
+    echo "${local.service_monitoring}" | base64 --decode > /home/ec2-user/services/monitoring.hcl
+    echo "${local.service_admin}"      | base64 --decode > /home/ec2-user/services/admin.hcl
+    echo "${local.service_project}"    | base64 --decode > /home/ec2-user/services/project.hcl
+    sleep 1
     systemctl enable nomad 
     systemctl enable docker
-    systemctl start nomad
     systemctl start docker
+    systemctl start nomad
+    sleep 1
     nomad acl bootstrap > /home/ec2-user/bootstrap.token
     export NOMAD_TOKEN=$(cat /home/ec2-user/bootstrap.token | grep "Secret" |awk '{print $4}')
     echo "export NOMAD_TOKEN=$NOMAD_TOKEN" >> /home/ec2-user/.bashrc
@@ -53,6 +56,7 @@ resource "aws_instance" "free_tier_arm_instance" {
     gh secret set GITHUB_NOMAD_TOKEN -b"$GITHUB_NOMAD_TOKEN" --repo kodmain/thetiptop
     sed -i 's/NOMADTOKEN/'"$NOMAD_TOKEN"'/g' /home/ec2-user/services/admin.hcl
     nomad job run -token=$NOMAD_TOKEN /home/ec2-user/services/admin.hcl
+    nomad job run -token=$NOMAD_TOKEN /home/ec2-user/services/monitoring.hcl
   EOF
 
   iam_instance_profile = aws_iam_instance_profile.traefik_instance_profile.name

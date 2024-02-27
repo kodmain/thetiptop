@@ -18,15 +18,15 @@ job "monitoring" {
       }
 
       artifact {
-        source = "https://github.com/kodmain/thetiptop/deploy/jobs/monitoring/prometheus/configuration.yml"
-        destination = "local/datasource.yaml"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/prometheus/configuration.yml"
+        destination = "local/prometheus"
       }
 
       config {
         image = "prom/prometheus:latest"
         ports = ["http"]
         volumes = [
-          "local/prometheus.yml:/etc/prometheus/prometheus.yml",
+          "local/prometheus/configuration.yml:/etc/prometheus/prometheus.yml",
         ]
       }
 
@@ -128,30 +128,28 @@ job "monitoring" {
       }
 
       artifact {
-        source = "https://github.com/kodmain/thetiptop/deploy/jobs/monitoring/grafana/datasource.yml"
-        destination = "local/datasource.yaml"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/datasource.yml"
+        destination = "local/datasource"
       }
       artifact {
-        source = "https://github.com/kodmain/thetiptop/deploy/jobs/monitoring/grafana/aws.json"
-        destination = "local/aws.json"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard/aws.json"
+        destination = "local/dashboard"
       }
       artifact {
-        source = "https://github.com/kodmain/thetiptop/deploy/jobs/monitoring/grafana/node.json"
-        destination = "local/node.json"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard/node.json"
+        destination = "local/dashboard"
       }
       artifact {
-        source = "https://github.com/kodmain/thetiptop/deploy/jobs/monitoring/grafana/nomad.json"
-        destination = "local/nomad.json"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard/nomad.json"
+        destination = "local/dashboard"
       }
 
       config {
         image = "grafana/grafana:latest"
         ports = ["http"]
         volumes = [
-          "local/datasource.yaml:/etc/grafana/provisioning/datasources/default.yaml",
-          "local/aws.json:/etc/grafana/provisioning/dashboards/aws.json",
-          "local/node.json:/etc/grafana/provisioning/dashboards/node.json",
-          "local/nomad.json:/etc/grafana/provisioning/dashboards/nomad.json"
+          "local/datasource:/etc/grafana/provisioning/datasources",
+          "local/dashboard:/etc/grafana/provisioning/dashboards",
         ]
       }
 
