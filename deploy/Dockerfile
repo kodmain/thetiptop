@@ -10,10 +10,10 @@ ENV BINARY_OS=$BINARY_OS
 ENV BINARY_ARCH=$BINARY_ARCH
 
 RUN if [ -n "$TARGETPLATFORM" ]; then \
-        PLATFORM=$(echo "$TARGETPLATFORM" | cut -f2 -d '/'); \
+        BINARY_ARCH=$(echo "$TARGETPLATFORM" | cut -f2 -d '/'); \
     else \
-        PLATFORM=$(echo "$BUILDPLATFORM" | cut -f2 -d '/'); \
-    fi && BINARY_ARCH="$PLATFORM" && echo "Building for $BINARY_ARCH";
+        BINARY_ARCH=$(echo "$BUILDPLATFORM" | cut -f2 -d '/'); \
+    fi && echo "Building for $BINARY_ARCH";
 
 LABEL org.opencontainers.image.source="https://github.com/kodmain/thetiptop"
 LABEL VERSION=$BINARY_VERSION
