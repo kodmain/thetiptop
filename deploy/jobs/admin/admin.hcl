@@ -111,7 +111,8 @@ job "admin" {
           "--certificatesresolvers.le.acme.email=contact@kodmain.io",
           "--certificatesresolvers.le.acme.storage=/home/ec2-user/acme.json",
           "--certificatesresolvers.le.acme.dnschallenge=true",
-          "--certificatesresolvers.le.acme.dnschallenge.provider=route53"
+          "--certificatesresolvers.le.acme.dnschallenge.provider=route53",
+          "--log.level=DEBUG",
         ]
       }
     }
