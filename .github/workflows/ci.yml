@@ -117,7 +117,7 @@ jobs:
           artifacts: ".build/bin/*"
           allowUpdates: true
           skipIfReleaseExists: false
-          replacesArtifacts: false
+          replacesArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
   docker:
