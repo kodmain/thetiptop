@@ -4,8 +4,12 @@ on:
   registry_package:
     types: [published, updated]
 
+permissions:
+  packages: read
+  
 jobs:
   deploy:
+    if: ${{ github.event.registry_package.package_version.container_metadata.tag.name != 'latest' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
