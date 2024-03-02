@@ -25,16 +25,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22.x
-          
-      - name: Cache Go Modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/go/bin
-            ~/go.sum
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
 
       - name: Setup gotestsum
         run: go install gotest.tools/gotestsum@latest
@@ -141,7 +131,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.PAT_TOKEN }}
 
       - name: Build and Push Image
         uses: docker/build-push-action@v5
