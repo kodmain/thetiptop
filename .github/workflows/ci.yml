@@ -88,6 +88,7 @@ jobs:
           token: ${{ github.token }}
           branch: main
           skipInvalidTags: true
+          noNewCommitBehavior: 'current'
   
       - name: Build binaries for each OS and ARCH
         run: |
