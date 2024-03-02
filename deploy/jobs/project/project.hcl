@@ -16,7 +16,7 @@ job "project" {
 
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.whoami.rule=Host(`whoami.kodmain.run`)",
+        "traefik.http.routers.whoami.rule=Host(`api.kodmain.run`)",
         "traefik.http.routers.whoami.entrypoints=https",
         "traefik.http.routers.whoami.service=whoami",
       ]
