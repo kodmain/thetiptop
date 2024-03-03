@@ -16,20 +16,6 @@ variable "environment" {
   default     = "sandbox"
 }
 
-function defineTask(string name, string image) {
-  return {
-    driver = "docker"
-    resources {
-      cpu    = 1000 
-      memory = 128  
-    }
-    config {
-      image = image
-      ports = ["http"]
-    }
-  }
-}
-
 job "${var.environment}" {
   assert(in(var.environment, ["sandbox", "staging", "production"]), "Environnement invalide.")
 
@@ -50,12 +36,23 @@ job "${var.environment}" {
 
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.api.rule=Host(`${var.url}`)",
-        "traefik.http.routers.api.entrypoints=https",
-        "traefik.http.routers.api.service=api",
+        "traefik.http.routers.project-${var.environment}.rule=Host(`${var.url}`)",
+        "traefik.http.routers.project-${var.environment}.entrypoints=https",
+        "traefik.http.routers.project-${var.environment}.service=project",
       ]
     }
 
-    task "api" = defineTask("api", var.image)
+    task "project-${var.environment}" {
+      driver = "docker"
+      resources {
+        cpu    = 1000 
+        memory = 128  
+      }
+      config {
+        image = var.image
+        ports = ["http"]
+      }
+    }
+
   }
 }
