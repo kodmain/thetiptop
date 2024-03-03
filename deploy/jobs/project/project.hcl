@@ -22,6 +22,7 @@ variable "environment" {
 }
 
 job "project" {
+  name = "project-${var.environment}"
   datacenters = ["eu-west-3"]
   type = "service"
 
