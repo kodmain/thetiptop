@@ -7,7 +7,7 @@ variable "url" {
 variable "image" {
   description = "Application to deploy"
   type        = string
-  default     = "ghcr.io/kodmain/thetiptop"
+  default     = "ghcr.io/kodmain/thetiptop:latest"
 }
 
 variable "environment" {
@@ -30,6 +30,13 @@ job "project" {
 
     network {
       port "http" { to = 80 }
+    }
+
+    restart {
+      attempts = 3
+      interval = "30m"
+      delay    = "15s"
+      mode     = "fail"
     }
 
     service {
