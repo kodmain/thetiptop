@@ -16,7 +16,7 @@ variable "environment" {
   default     = "sandbox"
 }
 
-job "${var.environment}" {
+job "project" {
   assert(in(var.environment, ["sandbox", "staging", "production"]), "Environnement invalide.")
 
   datacenters = ["eu-west-3"]
