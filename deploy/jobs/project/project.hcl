@@ -1,8 +1,42 @@
-job "project" {
+variable "url" {
+  description = "URL to preview the front"
+  type        = string
+  default     = "https://api.kodmain.run"
+}
+
+variable "image" {
+  description = "Application to deploy"
+  type        = string
+  default     = "ghcr.io/kodmain/thetiptop"
+}
+
+variable "environment" {
+  description = "Environment to use (sandbox, staging, production)"
+  type        = string
+  default     = "sandbox"
+}
+
+function defineTask(string name, string image) {
+  return {
+    driver = "docker"
+    resources {
+      cpu    = 1000 
+      memory = 128  
+    }
+    config {
+      image = image
+      ports = ["http"]
+    }
+  }
+}
+
+job "${var.environment}" {
+  assert(in(var.environment, ["sandbox", "staging", "production"]), "Environnement invalide.")
+
   datacenters = ["eu-west-3"]
   type = "service"
 
-  group "whoami" {
+  group "project" {
     count = 1
 
     network {
@@ -10,28 +44,18 @@ job "project" {
     }
 
     service {
-      name = "whoami"
+      name = "project"
       port = "http"
       provider = "nomad"
 
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.whoami.rule=Host(`api.kodmain.run`)",
-        "traefik.http.routers.whoami.entrypoints=https",
-        "traefik.http.routers.whoami.service=whoami",
+        "traefik.http.routers.api.rule=Host(`${var.url}`)",
+        "traefik.http.routers.api.entrypoints=https",
+        "traefik.http.routers.api.service=api",
       ]
     }
 
-    task "whoami" {
-      driver = "docker"
-      resources {
-        cpu    = 1000
-        memory = 10
-      }
-      config {
-        image = "traefik/whoami:latest"
-        ports = ["http"]
-      }
-    }
+    task "api" = defineTask("api", var.image)
   }
 }
