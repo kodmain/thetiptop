@@ -21,12 +21,12 @@ variable "environment" {
   }
 }
 
-job "project" {
+job "environment" {
   name = "${var.environment}"
   datacenters = ["eu-west-3"]
   type = "service"
 
-  group "project" {
+  group "thetiptop" {
     count = 1
 
     network {
