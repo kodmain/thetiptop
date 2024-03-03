@@ -22,7 +22,7 @@ update: ## Install/Update vendor
 	go get -u $(GWD)/...
 	go mod vendor
 
-run: ## Run the project localy
+run: ## RUN api without build
 	make build certificate > /dev/null
-	make build swagger > /dev/null
-	go run project/cmd/main.go -t $(GWD)/.build/certs
+	make build swagger 	   > /dev/null
+	go run $(GWD)/api/cmd/main.go -t $(GWD)/.build/certs

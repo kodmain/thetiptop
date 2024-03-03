@@ -82,7 +82,7 @@ job "monitoring" {
 
       resources {
         cpu    = 100
-        memory = 128
+        memory = 64
       }
 
       service {
