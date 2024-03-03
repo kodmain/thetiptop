@@ -48,7 +48,7 @@ job "project" {
         "traefik.enable=true",
         "traefik.http.routers.project-${var.environment}.rule=Host(`${var.url}`)",
         "traefik.http.routers.project-${var.environment}.entrypoints=https",
-        "traefik.http.routers.project-${var.environment}.service=project",
+        "traefik.http.routers.project-${var.environment}.service=project-${var.environment}",
       ]
     }
 
