@@ -67,4 +67,4 @@ jobs:
         env:
           NOMAD_ADDR: ${{ secrets.NOMAD_ADDR }}
           NOMAD_TOKEN: ${{ secrets.NOMAD_TOKEN }}
-        run: nomad job run -var="url=${{ vars.URL }}" -var="image=kodmain/thetiptop:${{ env.VERSION }}" -var="environment=${{ github.event.inputs.environment }}" deploy/jobs/project/project.hcl 
+        run: nomad job run -var="url=${{ vars.URL }}" -var="image=ghcr.io/kodmain/thetiptop:${{ env.VERSION }}" -var="environment=${{ github.event.inputs.environment }}" deploy/jobs/project/project.hcl 
