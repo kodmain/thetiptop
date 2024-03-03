@@ -93,7 +93,7 @@ jobs:
       - name: Build binaries for each OS and ARCH
         run: |
           ldflags="-s -w -X github.com/kodmain/thetiptop/project/config/config.BUILD_VERSION=${{ steps.semver.outputs.next }} -X github.com/kodmain/thetiptop/project/config/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
-          CGO_ENABLED=0 GOOS=linux GOARCH=${{ matrix.arch }} go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/bin/thetiptop-linux-${{ matrix.arch }} project/cmd/main.go
+          CGO_ENABLED=0 GOOS=linux GOARCH=${{ matrix.arch }} go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/project/thetiptop-linux-${{ matrix.arch }} project/cmd/main.go
         env:
           VERSION: ${{ steps.semver.outputs.next }}
           GWD: ${{ github.workspace }}
@@ -104,7 +104,7 @@ jobs:
           name: TheTipTop ${{ steps.semver.outputs.next }}
           makeLatest: true
           tag: ${{ steps.semver.outputs.next }}
-          artifacts: ".build/bin/*"
+          artifacts: ".build/project/*"
           allowUpdates: true
           skipIfReleaseExists: false
           replacesArtifacts: true
