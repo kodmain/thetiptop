@@ -22,7 +22,7 @@ variable "environment" {
 }
 
 job "project" {
-  name = "project-${var.environment}"
+  name = "${var.environment}"
   datacenters = ["eu-west-3"]
   type = "service"
 
@@ -41,15 +41,15 @@ job "project" {
     }
 
     service {
-      name = "project-${var.environment}"
+      name = "${var.environment}"
       port = "http"
       provider = "nomad"
 
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.project-${var.environment}.rule=Host(`${var.url}`)",
-        "traefik.http.routers.project-${var.environment}.entrypoints=https",
-        "traefik.http.routers.project-${var.environment}.service=project-${var.environment}",
+        "traefik.http.routers.${var.environment}.rule=Host(`${var.url}`)",
+        "traefik.http.routers.${var.environment}.entrypoints=https",
+        "traefik.http.routers.${var.environment}.service=${var.environment}",
       ]
     }
 
