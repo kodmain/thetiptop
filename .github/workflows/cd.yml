@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: staging
-      url: ${{ vars.URL }}
+      url: https://${{ vars.URL }}
 
     steps:
       - name: Install Dependencies
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: ${{ github.event.inputs.environment }}
-      url: ${{ vars.URL }}
+      url: https://${{ vars.URL }}
 
     steps:
       - name: Install Dependencies
