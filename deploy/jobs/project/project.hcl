@@ -14,11 +14,14 @@ variable "environment" {
   description = "Environment to use (sandbox, staging, production)"
   type        = string
   default     = "sandbox"
+
+  validation {
+    condition     = contains(["sandbox", "staging", "production"], var.environment)
+    error_message = "The environment must be one of: sandbox, staging, production."
+  }
 }
 
 job "project" {
-  assert(in(var.environment, ["sandbox", "staging", "production"]), "Environnement invalide.")
-
   datacenters = ["eu-west-3"]
   type = "service"
 
@@ -30,7 +33,7 @@ job "project" {
     }
 
     service {
-      name = "project"
+      name = "project-${var.environment}"
       port = "http"
       provider = "nomad"
 
@@ -42,7 +45,7 @@ job "project" {
       ]
     }
 
-    task "project-${var.environment}" {
+    task "api" {
       driver = "docker"
       resources {
         cpu    = 1000 
