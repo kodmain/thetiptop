@@ -1,13 +1,13 @@
-job "monitoring" {
+job "middlewares" {
   datacenters = ["eu-west-3"]
   type = "service"
 
-  group "monitoring" {
+  group "metrics" {
     count = 1
 
     network {
-      port "prometheus" { static = 9090 }
       port "node-exporter" { to = 9100 }
+      port "prometheus" { static = 9090 }
       port "grafana" { static = 3000 }
     }
 
