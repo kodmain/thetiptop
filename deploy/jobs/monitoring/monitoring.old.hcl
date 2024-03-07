@@ -2,13 +2,12 @@ job "monitoring" {
   datacenters = ["eu-west-3"]
   type = "service"
 
-  group "monitoring" {
+  // Groupe pour Prometheus
+  group "prometheus" {
     count = 1
 
     network {
-      port "prometheus" { static = 9090 }
-      port "node-exporter" { to = 9100 }
-      port "grafana" { static = 3000 }
+      port "http" { static = 9090 }
     }
 
     task "prometheus" {
@@ -25,7 +24,7 @@ job "monitoring" {
 
       config {
         image = "prom/prometheus:latest"
-        ports = ["prometheus"]
+        ports = ["http"]
         volumes = [
           "local/prometheus/configuration.yml:/etc/prometheus/prometheus.yml",
         ]
@@ -33,7 +32,7 @@ job "monitoring" {
 
       service {
         name = "prometheus"
-        port = "prometheus"
+        port = "http"
         provider = "nomad"
         tags = [
             "traefik.enable=true",
@@ -44,6 +43,16 @@ job "monitoring" {
         ]
       }
     }
+  }
+
+  group "node-exporter" {
+    count = 1
+
+    network {
+      port "http" {
+        to = 9100
+      }
+    }
 
     task "node-exporter" {
       driver = "docker"
@@ -51,14 +60,19 @@ job "monitoring" {
       config {
         image = "prom/node-exporter:latest"
         network_mode = "host"
-        ports = ["node-exporter"]
+        ports = ["http"]
 
+        // Activer le mode privilégié
+        privileged = false
+
+        // Monter les volumes nécessaires pour accéder aux métriques système
         volumes = [
           "/proc:/host/proc:ro",
           "/sys:/host/sys:ro",
           "/:/rootfs:ro"
         ]
 
+        // Passer des paramètres supplémentaires à Node Exporter
         args = [
           "--path.procfs", "/host/proc",
           "--path.sysfs", "/host/sys",
@@ -73,7 +87,7 @@ job "monitoring" {
 
       service {
         name = "node-exporter"
-        port = "node-exporter"
+        port = "http"
         provider = "nomad"
 
         tags = [
@@ -84,6 +98,16 @@ job "monitoring" {
           "traefik.http.services.node-exporter.loadbalancer.server.port=9100",
         ]
       }
+    }
+
+  }
+
+  // Groupe pour Grafana
+  group "grafana" {
+    count = 1
+
+    network {
+      port "http" { static = 3000 }
     }
 
     task "grafana" {
@@ -122,7 +146,7 @@ job "monitoring" {
 
       config {
         image = "grafana/grafana:latest"
-        ports = ["grafana"]
+        ports = ["http"]
         volumes = [
           "local/datasource:/etc/grafana/provisioning/datasources",
           "local/dashboard:/etc/grafana/provisioning/dashboards",
@@ -131,7 +155,7 @@ job "monitoring" {
 
       service {
         name = "grafana"
-        port = "grafana"  
+        port = "http"  
         provider = "nomad"
 
         tags = [
