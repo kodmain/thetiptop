@@ -12,7 +12,9 @@ scrape_configs:
     params:
         format: ['prometheus']
     static_configs:
-      - targets: [nomad]
+      - targets: 
+        - ${nomad}
   - job_name: 'node-exporter'
     static_configs:
-      - targets: [node]
+      - targets: 
+        - ${node}
