@@ -7,15 +7,6 @@ variable "github_token" {
   description = "GitHub token"
 }
 
-locals {
-  nomad_server              = base64encode(file("${path.module}/nomad-server.hcl"))
-  nomad_policy              = base64encode(file("${path.module}/nomad-policy.hcl"))
-  nomad_service             = base64encode(file("${path.module}/nomad.service"))
-  service_admin             = base64encode(file("${path.module}/../jobs/admin/admin.hcl"))
-  service_project           = base64encode(file("${path.module}/../jobs/project/project.hcl"))
-  service_monitoring        = base64encode(file("${path.module}/../jobs/monitoring/monitoring.hcl"))
-}
-
 resource "aws_instance" "free_tier_arm_instance" {
   # X86 ami-089c89a80285075f7 t2.micro  Amazon Linux 2 # WORKING
   # ARM ami-0ddd50b03e7b395c4 t4g.micro Amazon Linux 2 # NOT WORKING (fixed by client.cpu_total_compute in nomad-server.hcl)
@@ -32,31 +23,23 @@ resource "aws_instance" "free_tier_arm_instance" {
     sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
     sudo yum-config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
     sudo yum -y install nomad docker gh cni-plugins httpd-tools
-    mkdir -p /home/ec2-user/services
-    sleep 1
-    echo "${local.nomad_server}"       | base64 --decode > /home/ec2-user/nomad-server.hcl
-    echo "${local.nomad_policy}"       | base64 --decode > /home/ec2-user/nomad-policy.hcl
-    echo "${local.nomad_service}"      | base64 --decode > /etc/systemd/system/nomad.service
-    echo "${local.service_monitoring}" | base64 --decode > /home/ec2-user/services/monitoring.hcl
-    echo "${local.service_admin}"      | base64 --decode > /home/ec2-user/services/admin.hcl
-    echo "${local.service_project}"    | base64 --decode > /home/ec2-user/services/project.hcl
-    sleep 1
+    git clone https://github.com/kodmain/thetiptop /home/ec2-user/thetiptop
+    cp /home/ec2-user/thetiptop/deploy/server/nomad.service /etc/systemd/system/nomad.service
     systemctl enable nomad 
     systemctl enable docker
     systemctl start docker
     systemctl start nomad
-    sleep 1
     nomad acl bootstrap > /home/ec2-user/bootstrap.token
     export NOMAD_TOKEN=$(cat /home/ec2-user/bootstrap.token | grep "Secret" |awk '{print $4}')
     echo "export NOMAD_TOKEN=$NOMAD_TOKEN" >> /home/ec2-user/.bashrc
     echo "export GH_TOKEN=${var.github_token}" >> /home/ec2-user/.bashrc
-    nomad acl policy apply -description "Deployment" deploy /home/ec2-user/nomad-policy.hcl
+    nomad acl policy apply -description "Deployment" deploy /home/ec2-user/thetiptop/deploy/server/nomad-policy.hcl
     nomad acl token create -name="github" -policy="deploy" > /home/ec2-user/github.token
     export GITHUB_NOMAD_TOKEN=$(cat /home/ec2-user/github.token | grep "Secret" |awk '{print $4}')
     gh secret set NOMAD_TOKEN -b"$GITHUB_NOMAD_TOKEN" --repo kodmain/thetiptop
-    sed -i 's/NOMADTOKEN/'"$NOMAD_TOKEN"'/g' /home/ec2-user/services/admin.hcl
-    nomad job run -token=$NOMAD_TOKEN /home/ec2-user/services/admin.hcl
-    nomad job run -token=$NOMAD_TOKEN /home/ec2-user/services/monitoring.hcl
+    sed -i 's/NOMADTOKEN/'"$NOMAD_TOKEN"'/g' /home/ec2-user/thetiptop/deploy/jobs/server.hcl
+    nomad job run -token=$NOMAD_TOKEN /home/ec2-user/thetiptop/deploy/jobs/server.hcl
+    nomad job run -token=$NOMAD_TOKEN /home/ec2-user/thetiptop/deploy/jobs/middlewares.hcl
   EOF
 
   iam_instance_profile = aws_iam_instance_profile.traefik_instance_profile.name
@@ -79,23 +62,21 @@ resource "aws_security_group" "nomad" {
   name        = "nomad"
   description = "Security Group for Nomad Server"
 
-  /* Disable use nomad.kodmain.run 
+  /* Disable use nomad.kodmain.run */
   ingress {
     from_port   = 4646
     to_port     = 4646
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  */
 
-  /* Disable use traefik.kodmain.run
+  /* Disable use traefik.kodmain.run */
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  */
 
   ingress {
     from_port   = 80

@@ -1,50 +1,13 @@
-job "admin" {
+job "server" {
   datacenters = ["eu-west-3"]
   type = "service"
 
-  group "unavailable" {
-    count = 1
-
-    network {
-      port "http" { to = 80 }
-    }
-
-    service {
-      name = "unavailable"
-      port = "http"
-      provider = "nomad"
-
-      tags = [
-        "traefik.enable=true",
-        "traefik.http.routers.unavailable.rule=HostRegexp(`{host:.+}`)",
-        "traefik.http.routers.unavailable.entrypoints=https",
-        "traefik.http.routers.unavailable.priority=1",
-      ]
-    }
-
-    task "unavailable" {
-      driver = "docker"
-      resources {
-        cpu    = 100
-        memory = 10
-      }
-      config {
-        image = "hashicorp/http-echo:latest"
-        ports = ["http"]
-        args = [
-            "-text=<h1>503 Service Unavailable</h1>",
-            "-listen=:80",
-            "-status-code=503"
-        ]
-      }
-    }
-  }
-
-  group "traefik" {
+  group "reverse-proxy" {
     count = 1
 
     network {
       port "http" { static = 80 }
+      port "unavailable" { to = 80 }
       port "https" { static = 443 }
       port "traefik" { static = 8080 }
     }
@@ -72,6 +35,36 @@ job "admin" {
         "traefik.http.routers.nomad.service=nomad",
         "traefik.http.services.nomad.loadbalancer.server.port=4646",
       ]
+    }
+
+    task "unavailable" {
+      driver = "docker"
+      resources {
+        cpu    = 100
+        memory = 10
+      }
+
+      service {
+        name = "unavailable"
+        port = "unavailable"
+        provider = "nomad"
+        tags = [
+            "traefik.enable=true",
+            "traefik.http.routers.unavailable.rule=HostRegexp(`{host:.+}`)",
+            "traefik.http.routers.unavailable.entrypoints=https",
+            "traefik.http.routers.unavailable.priority=1",
+        ]
+      }
+      
+      config {
+        image = "hashicorp/http-echo:latest"
+        ports = ["unavailable"]
+        args = [
+            "-text=<h1>503 Service Unavailable</h1>",
+            "-listen=:80",
+            "-status-code=503"
+        ]
+      }
     }
 
     task "traefik" {
