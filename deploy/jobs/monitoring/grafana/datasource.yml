@@ -16,7 +16,7 @@ datasources:
 - name: Metrics
   type: prometheus
   access: proxy
-  url: ${NOMAD_HOST_ADDR_prometheus}
+  url: http://${NOMAD_HOST_ADDR_prometheus}
 - name: CloudWatch
   type: cloudwatch
   jsonData:
