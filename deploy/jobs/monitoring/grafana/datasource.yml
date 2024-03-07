@@ -16,7 +16,7 @@ datasources:
 - name: Metrics
   type: prometheus
   access: proxy
-  url: https://prometheus.kodmain.run
+  url: ${NOMAD_HOST_ADDR_prometheus}
 - name: CloudWatch
   type: cloudwatch
   jsonData:
