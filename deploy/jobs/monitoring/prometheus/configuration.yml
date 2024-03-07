@@ -9,7 +9,7 @@ scrape_configs:
     params:
         format: ['prometheus']
     static_configs:
-      - targets: ['nomad.kodmain.run']
+      - targets: ["${NOMAD_HOST_ADDR_nomad}"]
   - job_name: 'node-exporter'
     static_configs:
-      - targets: ['node-exporter.kodmain.run']
+      - targets: ["${NOMAD_HOST_ADDR_node-exporter}"]
