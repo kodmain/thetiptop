@@ -12,9 +12,18 @@ scrape_configs:
     params:
         format: ['prometheus']
     static_configs:
-      - targets: 
-        - ${nomad}
+      - targets: ['dummy_nomad:1234'] # Cible fictive
+    relabel_configs:
+      - source_labels: [__address__, nomad]
+        regex: 'dummy_nomad:1234;(.*)'
+        target_label: __address__
+        replacement: '${1}'
+
   - job_name: 'node-exporter'
     static_configs:
-      - targets: 
-        - ${node}
+      - targets: ['dummy_node:1234'] # Cible fictive
+    relabel_configs:
+      - source_labels: [__address__, node]
+        regex: 'dummy_node:1234;(.*)'
+        target_label: __address__
+        replacement: '${1}'
