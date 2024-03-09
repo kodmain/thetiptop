@@ -8,7 +8,7 @@ global:
 scrape_configs:
   - job_name: 'nomad-tasks'
     nomad_sd_configs:
-      - server: 'http://nomad.kodmain.run:4646'
+      - server: 'http://nomad.kodmain.run'
   - job_name: 'nomad'
     metrics_path: '/v1/metrics'
     scheme: https  # Utilisation de HTTPS pour la sécurité
