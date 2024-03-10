@@ -11,31 +11,6 @@ job "server" {
       port "https" { static = 443 }
       port "traefik" { static = 8080 }
     }
-    
-    service {
-      name = "traefik"
-      provider = "nomad" # or "consul"
-      
-      tags = [
-        # Common
-        "traefik.enable=true",
-        "traefik.http.routers.traefik.tls.certresolver=le",
-        "traefik.http.routers.traefik.tls.domains[0].main=kodmain.run",
-        "traefik.http.routers.traefik.tls.domains[0].sans=*.kodmain.run",
-
-        # Traefik
-        "traefik.http.routers.traefik.rule=Host(`traefik.kodmain.run`)",
-        "traefik.http.routers.traefik.entrypoints=https",
-        "traefik.http.routers.traefik.service=traefik",
-        "traefik.http.services.traefik.loadbalancer.server.port=8080",
-
-        # Nomad
-        "traefik.http.routers.nomad.rule=Host(`nomad.kodmain.run`)",
-        "traefik.http.routers.nomad.entrypoints=https",
-        "traefik.http.routers.nomad.service=nomad",
-        "traefik.http.services.nomad.loadbalancer.server.port=4646",
-      ]
-    }
 
     task "unavailable" {
       driver = "docker"
@@ -73,6 +48,33 @@ job "server" {
         cpu    = 250
         memory = 128
       }
+
+      service {
+        name = "traefik"
+        port = "http"
+        provider = "nomad" # or "consul"
+        
+        tags = [
+          # Common
+          "traefik.enable=true",
+          "traefik.http.routers.traefik.tls.certresolver=le",
+          "traefik.http.routers.traefik.tls.domains[0].main=kodmain.run",
+          "traefik.http.routers.traefik.tls.domains[0].sans=*.kodmain.run",
+
+          # Traefik
+          "traefik.http.routers.traefik.rule=Host(`traefik.kodmain.run`)",
+          "traefik.http.routers.traefik.entrypoints=https",
+          "traefik.http.routers.traefik.service=traefik",
+          "traefik.http.services.traefik.loadbalancer.server.port=8080",
+
+          # Nomad
+          "traefik.http.routers.nomad.rule=Host(`nomad.kodmain.run`)",
+          "traefik.http.routers.nomad.entrypoints=https",
+          "traefik.http.routers.nomad.service=nomad",
+          "traefik.http.services.nomad.loadbalancer.server.port=4646",
+        ]
+      }
+      
       config {
         image = "traefik:latest"
         ports = ["http", "https", "traefik"]
@@ -87,7 +89,7 @@ job "server" {
           # Nomad
           "--providers.nomad=true",
           "--providers.nomad.endpoint.address=http://172.17.0.1:4646",
-          "--providers.nomad.endpoint.token=NOMADTOKEN",
+          "--providers.nomad.endpoint.token=8a385870-1281-8a5b-8607-2d5a116326bc",
           "--providers.nomad.exposedByDefault=false",
 
           # Entrypoints

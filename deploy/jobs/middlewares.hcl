@@ -1,21 +1,31 @@
+variable "grafana_admin_user" {
+  description = "Admin username for Grafana"
+  type        = string
+  default     = "admin" 
+}
+
+variable "grafana_admin_password" {
+  description = "Admin password for Grafana"
+  type        = string
+}
+
 job "middlewares" {
   datacenters = ["eu-west-3"]
   type = "service"
 
-  group "metrics" {
+  group "private" {
     count = 1
 
     network {
-      port "node-exporter" { to = 9100 }
+      port "node-exporter" { static = 9100 }
       port "prometheus" { static = 9090 }
-      port "grafana" { static = 3000 }
     }
 
     task "prometheus" {
       driver = "docker"
       resources {
         cpu    = 100
-        memory = 128
+        memory = 127
       }
 
       artifact {
@@ -26,6 +36,11 @@ job "middlewares" {
       config {
         image = "prom/prometheus:latest"
         ports = ["prometheus"]
+        args = [ 
+          "--config.file=/etc/prometheus/prometheus.yml",
+          "--web.external-url=https://internal.kodmain.run/prometheus",
+          "--web.route-prefix=/prometheus"
+        ]
         volumes = [
           "local/prometheus/configuration.yml:/etc/prometheus/prometheus.yml",
         ]
@@ -37,7 +52,7 @@ job "middlewares" {
         provider = "nomad"
         tags = [
             "traefik.enable=true",
-            "traefik.http.routers.prometheus.rule=Host(`prometheus.kodmain.run`)",
+            "traefik.http.routers.prometheus.rule=Host(`internal.kodmain.run`) && PathPrefix(`/prometheus`)",
             "traefik.http.routers.prometheus.entrypoints=https",
             "traefik.http.routers.prometheus.service=prometheus",
             "traefik.http.services.prometheus.loadbalancer.server.port=9090",
@@ -50,7 +65,6 @@ job "middlewares" {
 
       config {
         image = "prom/node-exporter:latest"
-        network_mode = "host"
         ports = ["node-exporter"]
 
         volumes = [
@@ -78,12 +92,22 @@ job "middlewares" {
 
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.node-exporter.rule=Host(`node-exporter.kodmain.run`)",
-          "traefik.http.routers.node-exporter.entrypoints=https",
-          "traefik.http.routers.node-exporter.service=node-exporter",
-          "traefik.http.services.node-exporter.loadbalancer.server.port=9100",
+          "traefik.http.routers.node-exporter-internal.rule=Host(`internal.kodmain.run`) && PathPrefix(`/node-exporter`)",
+          "traefik.http.routers.node-exporter-internal.entrypoints=https",
+          "traefik.http.routers.node-exporter-internal.middlewares=node-exporter-stripprefix",
+          "traefik.http.middlewares.node-exporter-stripprefix.stripprefix.prefixes=/node-exporter",
+          "traefik.http.services.node-exporter.loadbalancer.server.port=9100" 
         ]
       }
+    }
+
+  }
+
+  group "public" {
+    count = 1
+
+    network {
+      port "grafana" { static = 3000 }
     }
 
     task "grafana" {
@@ -94,8 +118,11 @@ job "middlewares" {
         GF_AUTH_ANONYMOUS_ORG_NAME = "Main Org."
         GF_AUTH_ANONYMOUS_ORG_ROLE = "Viewer"
 
-        GF_SECURITY_ADMIN_USER = "admin"
-        GF_SECURITY_ADMIN_PASSWORD = "admin"
+        GF_SECURITY_ADMIN_USER = "${var.grafana_admin_user}"
+        GF_SECURITY_ADMIN_PASSWORD = "${var.grafana_admin_password}"
+        GF_LOG_MODE="console"
+        GF_PATHS_PROVISIONING="/etc/grafana/provisioning"
+        GF_DEFAULT_HOME_DASHBOARD_PATH="/var/lib/grafana/dashboards/mixed.json"
       }
 
       resources {
@@ -107,17 +134,15 @@ job "middlewares" {
         source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/datasource.yml"
         destination = "local/datasource"
       }
+
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard/aws.json"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard.yml"
         destination = "local/dashboard"
       }
+
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard/node.json"
-        destination = "local/dashboard"
-      }
-      artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard/nomad.json"
-        destination = "local/dashboard"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard/mixed.json"
+        destination = "local/template"
       }
 
       config {
@@ -126,6 +151,7 @@ job "middlewares" {
         volumes = [
           "local/datasource:/etc/grafana/provisioning/datasources",
           "local/dashboard:/etc/grafana/provisioning/dashboards",
+          "local/template:/var/lib/grafana/dashboards"
         ]
       }
 
