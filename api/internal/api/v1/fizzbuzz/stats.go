@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/project/internal/model/fizzbuzz"
+	"github.com/kodmain/thetiptop/api/internal/model/fizzbuzz"
 )
 
 var statistics = make(map[fizzbuzz.Request]uint)

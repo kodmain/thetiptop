@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/project/internal/model/fizzbuzz"
+	"github.com/kodmain/thetiptop/api/internal/model/fizzbuzz"
 )
 
 // FizzBuzz generates a FizzBuzz sequence based on the values of `Int1`, `Int2`, `Limit`, `Str1`, and `Str2`

@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/project/config"
-	"github.com/kodmain/thetiptop/project/internal/api"
-	"github.com/kodmain/thetiptop/project/internal/lib"
+	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/internal/api"
+	"github.com/kodmain/thetiptop/api/internal/lib"
 )
 
 // Server is a struct that represents a Fiber server instance with an underlying `fiber.App`, `fiber.Router` for the API endpoints, and a map of `fiber.Router` instances for different API versions.

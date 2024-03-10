@@ -2,10 +2,10 @@
 package main
 
 import (
-	"github.com/kodmain/thetiptop/project/config"
-	v1 "github.com/kodmain/thetiptop/project/internal/api/v1"
-	"github.com/kodmain/thetiptop/project/internal/lib"
-	"github.com/kodmain/thetiptop/project/pkg/server"
+	"github.com/kodmain/thetiptop/api/config"
+	v1 "github.com/kodmain/thetiptop/api/internal/api/v1"
+	"github.com/kodmain/thetiptop/api/internal/lib"
+	"github.com/kodmain/thetiptop/api/pkg/server"
 	"github.com/spf13/cobra"
 )
 
