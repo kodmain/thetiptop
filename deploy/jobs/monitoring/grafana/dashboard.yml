@@ -2,9 +2,9 @@ apiVersion: 1
 
 dashboards:
   providers:
-  - name: Default
+  - name: TheTipTop
     orgId: 1
-    folder: ''
+    folder: Dashboards
     type: file
     disableDeletion: false
     updateIntervalSeconds: 5
