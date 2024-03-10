@@ -7,7 +7,7 @@ include $(CURDIR)/../../lib/default.mk
 ###########################
 
 project: ## Display project documentation
-	glow $(GWD)/project/README.md
+	glow $(GWD)/api/README.md
 
 deploy: ## Display deploy documentation
 	glow $(GWD)/deploy/README.md

@@ -3,9 +3,9 @@ package v1
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/project/internal/api"
-	"github.com/kodmain/thetiptop/project/internal/api/v1/fizzbuzz"
-	"github.com/kodmain/thetiptop/project/internal/api/v1/status"
+	"github.com/kodmain/thetiptop/api/internal/api"
+	"github.com/kodmain/thetiptop/api/internal/api/v1/fizzbuzz"
+	"github.com/kodmain/thetiptop/api/internal/api/v1/status"
 )
 
 var (

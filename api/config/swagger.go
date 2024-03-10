@@ -1,7 +1,7 @@
 // Package config provides functions/var/const for loading and accessing configuration settings for the application.
 package config
 
-import "github.com/kodmain/thetiptop/project/internal/docs"
+import "github.com/kodmain/thetiptop/api/internal/docs"
 
 // Initialize SwaggerInfo
 func init() {
