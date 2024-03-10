@@ -52,8 +52,10 @@ resource "aws_instance" "free_tier_arm_instance" {
     nomad acl bootstrap > /home/ec2-user/bootstrap.token
     export NOMAD_TOKEN=$(cat /home/ec2-user/bootstrap.token | grep "Secret" |awk '{print $4}')
     export GH_TOKEN=${var.github_token}
+    export GF_ADMIN_PASSWORD=${random_password.password.result}
     echo "export NOMAD_TOKEN=$NOMAD_TOKEN" >> /home/ec2-user/.bashrc
     echo "export GH_TOKEN=${var.github_token}" >> /home/ec2-user/.bashrc
+    echo "export GF_ADMIN_PASSWORD=$GF_ADMIN_PASSWORD" >> /home/ec2-user/.bashrc
     nomad acl policy apply -description "Deployment" deploy /home/ec2-user/thetiptop/deploy/server/nomad-policy.hcl
     nomad acl token create -name="github" -policy="deploy" > /home/ec2-user/github.token
     export GITHUB_NOMAD_TOKEN=$(cat /home/ec2-user/github.token | grep "Secret" |awk '{print $4}')
