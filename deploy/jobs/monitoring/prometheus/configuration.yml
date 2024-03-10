@@ -1,32 +1,16 @@
 global:
-  scrape_interval:     5s  # Intervalle pour récupérer les métriques
-  evaluation_interval: 5s  # Intervalle pour évaluer les règles d'alerte
-  external_labels:
-    nomad: ${NOMAD_HOST_ADDR_nomad} # Label externe pour les métriques de Nomad
-    node: ${NOMAD_HOST_ADDR_node-exporter} # Label externe pour les métriques du node-exporter
+  scrape_interval:     5s
+  evaluation_interval: 5s
 
 scrape_configs:
-  - job_name: 'nomad-tasks'
-    nomad_sd_configs:
-      - server: 'http://nomad.kodmain.run:80'
   - job_name: 'nomad'
     metrics_path: '/v1/metrics'
-    scheme: https  # Utilisation de HTTPS pour la sécurité
+    scheme: https
     params:
-      format: ['prometheus']
+        format: ['prometheus']
     static_configs:
-      - targets: ['dummy_nomad:1234'] # Cible fictive pour le test
-    relabel_configs:
-      - source_labels: [__address__, nomad]
-        regex: 'dummy_nomad:1234;(.*)'
-        target_label: __address__
-        replacement: '${1}'
-
+      - targets: ['nomad.kodmain.run']
   - job_name: 'node-exporter'
+    metrics_path: '/node-exporter/metrics'
     static_configs:
-      - targets: ['dummy_node:1234'] # Cible fictive pour le test
-    relabel_configs:
-      - source_labels: [__address__, node]
-        regex: 'dummy_node:1234;(.*)'
-        target_label: __address__
-        replacement: '${1}'
+      - targets: ['internal.kodmain.run']
