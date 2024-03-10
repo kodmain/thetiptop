@@ -9,7 +9,7 @@ dashboards:
     disableDeletion: false
     editable: true
     options:
-      path: /etc/grafana/provisioning/dashboards/aws.json
+      path: /home/ec2-user/thetiptop/deploy/jobs/monitoring/grafana/dashboard/aws.json
       foldersFromFilesStructure: false
 
 datasources:
