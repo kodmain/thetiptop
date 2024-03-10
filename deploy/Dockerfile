@@ -13,11 +13,11 @@ ENV TARGETARCH=$TARGETARCH
 ENV BINARY_VERSION=$BINARY_VERSION
 
 WORKDIR /project
-ADD https://github.com/kodmain/thetiptop/releases/download/$BINARY_VERSION/thetiptop-linux-$TARGETARCH /project/service
-RUN chmod +x /project/service
+ADD https://github.com/kodmain/thetiptop/releases/download/$BINARY_VERSION/thetiptop-linux-$TARGETARCH /api/service
+RUN chmod +x /api/service
 
 LABEL org.opencontainers.image.source="https://github.com/kodmain/thetiptop"
 LABEL VERSION=$BINARY_VERSION
 EXPOSE 80
 
-ENTRYPOINT [ "/project/service" ]
+ENTRYPOINT [ "/api/service" ]
