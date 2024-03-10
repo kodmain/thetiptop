@@ -89,7 +89,7 @@ job "server" {
           # Nomad
           "--providers.nomad=true",
           "--providers.nomad.endpoint.address=http://172.17.0.1:4646",
-          "--providers.nomad.endpoint.token=8a385870-1281-8a5b-8607-2d5a116326bc",
+          "--providers.nomad.endpoint.token=NOMADTOKEN",
           "--providers.nomad.exposedByDefault=false",
 
           # Entrypoints
