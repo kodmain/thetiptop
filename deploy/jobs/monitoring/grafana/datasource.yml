@@ -1,22 +1,10 @@
 apiVersion: 1
 
-dashboards:
-  providers:
-  - name: 'default'
-    orgId: 1
-    folder: ''
-    type: file
-    disableDeletion: false
-    editable: true
-    options:
-      path: /etc/grafana/provisioning/dashboards/aws.json
-      foldersFromFilesStructure: false
-
 datasources:
 - name: Metrics
   type: prometheus
   access: proxy
-  url: https://prometheus.kodmain.run
+  url: http://internal.kodmain.run/prometheus
 - name: CloudWatch
   type: cloudwatch
   jsonData:

@@ -1,3 +1,16 @@
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "5.37.0"
+    }
+    random = {
+      source = "hashicorp/random"
+      version = "3.6.0"
+    }
+  }
+}
+
 provider "aws" {
   region = "eu-west-3"
   profile = "kodmain"
@@ -5,6 +18,12 @@ provider "aws" {
 
 variable "github_token" {
   description = "GitHub token"
+}
+
+resource "random_password" "password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 resource "aws_instance" "free_tier_arm_instance" {
@@ -29,8 +48,10 @@ resource "aws_instance" "free_tier_arm_instance" {
     systemctl enable docker
     systemctl start docker
     systemctl start nomad
+    sleep 1
     nomad acl bootstrap > /home/ec2-user/bootstrap.token
     export NOMAD_TOKEN=$(cat /home/ec2-user/bootstrap.token | grep "Secret" |awk '{print $4}')
+    export GH_TOKEN=${var.github_token}
     echo "export NOMAD_TOKEN=$NOMAD_TOKEN" >> /home/ec2-user/.bashrc
     echo "export GH_TOKEN=${var.github_token}" >> /home/ec2-user/.bashrc
     nomad acl policy apply -description "Deployment" deploy /home/ec2-user/thetiptop/deploy/server/nomad-policy.hcl
@@ -39,7 +60,7 @@ resource "aws_instance" "free_tier_arm_instance" {
     gh secret set NOMAD_TOKEN -b"$GITHUB_NOMAD_TOKEN" --repo kodmain/thetiptop
     sed -i 's/NOMADTOKEN/'"$NOMAD_TOKEN"'/g' /home/ec2-user/thetiptop/deploy/jobs/server.hcl
     nomad job run -token=$NOMAD_TOKEN /home/ec2-user/thetiptop/deploy/jobs/server.hcl
-    nomad job run -token=$NOMAD_TOKEN /home/ec2-user/thetiptop/deploy/jobs/middlewares.hcl
+    nomad job run -token=$NOMAD_TOKEN -var='grafana_admin_password=${random_password.password.result}' /home/ec2-user/thetiptop/deploy/jobs/middlewares.hcl
   EOF
 
   iam_instance_profile = aws_iam_instance_profile.traefik_instance_profile.name
@@ -62,21 +83,23 @@ resource "aws_security_group" "nomad" {
   name        = "nomad"
   description = "Security Group for Nomad Server"
 
-  /* Disable use nomad.kodmain.run */
+  /* Disable use nomad.kodmain.run
   ingress {
     from_port   = 4646
     to_port     = 4646
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  */
 
-  /* Disable use traefik.kodmain.run */
+  /* Disable use traefik.kodmain.run
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  */
 
   ingress {
     from_port   = 80
@@ -179,7 +202,7 @@ resource "aws_route53_record" "kodmain" {
 
   name    = "kodmain.run"  # Nom de domaine à rediriger
   type    = "A"
-  ttl     = 300
+  ttl     = 10
   records = [aws_instance.free_tier_arm_instance.public_ip]
 
   allow_overwrite = true
@@ -190,8 +213,19 @@ resource "aws_route53_record" "kodmain_wildcard" {
 
   name    = "*.kodmain.run"  # Enregistrement wildcard pour tous les sous-domaines
   type    = "A"
-  ttl     = 300
+  ttl     = 10
   records = [aws_instance.free_tier_arm_instance.public_ip]
+
+  allow_overwrite = true
+}
+
+resource "aws_route53_record" "kodmain_internal" {
+  zone_id = "Z10052173VRSYMBUSS942"
+
+  name    = "internal.kodmain.run"  # Enregistrement wildcard pour tous les sous-domaines
+  type    = "A"
+  ttl     = 10
+  records = [aws_instance.free_tier_arm_instance.private_ip]
 
   allow_overwrite = true
 }
