@@ -9,8 +9,8 @@ include $(CURDIR)/../../lib/default.mk
 api: ## Build api
 	echo "Building binaries thetiptop in .build/bin"
 	rm -rf $(GWD)/.build/api/*
-	ldflags="-s -w -X github.com/kodmain/thetiptop/api/config/config.BUILD_VERSION=dev -X github.com/kodmain/thetiptop/api/config/config.BUILD_COMMIT=$$(git rev-parse --short HEAD)"; \
-	CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -trimpath -buildvcs=false -ldflags="$$ldflags" -o $(GWD)/.build/api/thetiptop $(GWD)/api/cmd/main.go && chmod +x $(GWD)/.build/api/thetiptop;
+	ldflags="-s -w -X github.com/kodmain/thetiptop/api/config.BUILD_VERSION=dev -X github.com/kodmain/thetiptop/api/config.BUILD_COMMIT=$$(git rev-parse --short HEAD)"; \
+	CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags="$$ldflags" -o $(GWD)/.build/api/thetiptop $(GWD)/api/cmd/main.go && chmod +x $(GWD)/.build/api/thetiptop;
 
 certificate: ## Generate ssl certificate
 	if [ ! -f $(GWD)/.build/certs/server.key ] || [ ! -f $(GWD)/.build/certs/server.crt ]; then \
