@@ -1,7 +1,9 @@
 // Package status implementation all handler for Status API
 package status
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+)
 
 // HealthCheck is an HTTP handler function that returns a "No Content" response to indicate that the
 // API is running and healthy. It is typically used as a "health check" endpoint that can be polled by
@@ -14,9 +16,22 @@ import "github.com/gofiber/fiber/v2"
 // @Description	get the status of server.
 // @Tags		Status
 // @Accept		*/*
-// @Produce		json
+// @Produce		application/json
 // @Success		204	{object}	nil
-// @Router		/api/v1/status/healthcheck [get]
+// @Router		/status/healthcheck [get]
+// @Id	        status.HealthCheck
 func HealthCheck(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusNoContent).SendString("")
+}
+
+// @Summary		Show the ip of user.
+// @Description	get the ip of user.
+// @Tags		Status
+// @Accept		*/*
+// @Produce		application/json
+// @Success		200	{object}	nil
+// @Router		/status/ip [get]
+// @Id	        status.IP
+func IP(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).SendString(c.IP())
 }

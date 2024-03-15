@@ -7,6 +7,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
+	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/internal/docs"
 )
 
 var server *Server
@@ -15,27 +17,31 @@ var server *Server
 // Pattern Singleton
 func Create() *Server {
 	if server == nil {
-		config := fiber.Config{
-			Prefork: true, // Multithreading
+		cfg := fiber.Config{
+			AppName:               config.APP_NAME,
+			Prefork:               true, // Multithreading
+			DisableStartupMessage: true, // Disable startup message
 		}
 
 		if os.Getppid() <= 1 {
 			fmt.Println("WARNING: fiber in downgrade mode please use docker run --pid=host")
-			config.Prefork = false // Disable to prevent bug in container
+			cfg.Prefork = false // Disable to prevent bug in container
 		}
 
-		app := fiber.New(config)
+		app := fiber.New(cfg)
 
 		server = &Server{
-			app:      app,
-			api:      app.Group("api"),
-			versions: make(map[string]fiber.Router),
+			app: app,
+			api: app.Group("api", setRedirectOnEntryPointAPI), // entrypoint of the API but display we need to documentation
 		}
 
-		server.app.Use(setGoToDoc)                           // register middleware setGoToDoc
-		server.app.Use(setSecurityHeaders)                   // register middleware setSecurityHeaders
-		server.app.Get("/docs/*", swagger.HandlerDefault)    // register middleware for documentation
-		server.app.Group("/api", setRedirectOnEntryPointAPI) // entrypoint of the API but display we need to documentation
+		server.app.Use(setGoToDoc)         // register middleware setGoToDoc
+		server.app.Use(setSecurityHeaders) // register middleware setSecurityHeaders
+		server.app.Get("/docs/*", swagger.New(swagger.Config{
+			Title:        config.APP_NAME,
+			Layout:       "BaseLayout",
+			DocExpansion: "list",
+		})) // register middleware for documentation
 	}
 
 	return server
@@ -68,6 +74,8 @@ func setSecurityHeaders(c *fiber.Ctx) error {
 	c.Set("Access-Control-Allow-Methods", "GET,POST,HEAD,PUT,DELETE,PATCH")
 	c.Set("Access-Control-Allow-Headers", "*")
 	c.Set("Access-Control-Allow-Credentials", "true")
+
+	docs.SwaggerInfo.Host = c.Hostname()
 
 	return c.Next()
 }

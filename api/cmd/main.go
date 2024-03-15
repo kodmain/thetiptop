@@ -1,9 +1,12 @@
 // Package main is the entry point for the application.
 package main
 
+//go:generate go run ../components/api/gen.go
+//go:generate go fmt ../../api/internal/api/api.gen.go
+
 import (
 	"github.com/kodmain/thetiptop/api/config"
-	v1 "github.com/kodmain/thetiptop/api/internal/api/v1"
+	"github.com/kodmain/thetiptop/api/internal/api"
 	"github.com/kodmain/thetiptop/api/internal/lib"
 	"github.com/kodmain/thetiptop/api/pkg/server"
 	"github.com/spf13/cobra"
@@ -12,8 +15,7 @@ import (
 func main() {
 	config.Helper.Run = func(cmd *cobra.Command, args []string) {
 		srv := server.Create()
-		srv.API(v1.Status)
-		srv.API(v1.Fizzbuzz)
+		srv.Register(api.Endpoints)
 		srv.Start()
 	}
 
