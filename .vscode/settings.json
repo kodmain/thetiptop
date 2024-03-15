@@ -5,5 +5,9 @@
 		".maker": false,
 		"deploy/server/*terraform*": true,
 		".vscode": false
-	}
+	},
+    "sonarlint.connectedMode.project": {
+        "connectionId": "kodmain",
+        "projectKey": "kodmain_thetiptop"
+    }
 }

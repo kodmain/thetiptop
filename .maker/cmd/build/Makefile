@@ -6,7 +6,7 @@ include $(CURDIR)/../../lib/default.mk
 #╚════════════════╝#
 ####################
 
-api: ## Build api
+api: swagger generate ## Build api
 	echo "Building binaries thetiptop in .build/bin"
 	rm -rf $(GWD)/.build/api/*
 	ldflags="-s -w -X github.com/kodmain/thetiptop/api/config.BUILD_VERSION=dev -X github.com/kodmain/thetiptop/api/config.BUILD_COMMIT=$$(git rev-parse --short HEAD)"; \
@@ -25,3 +25,6 @@ swagger: ## Generate swagger documentation
 	echo "Generating swagger documentation"
 	swag init -d $(GWD)/api -g cmd/main.go -o $(GWD)/api/internal/docs
 	chmod -R 644 $(GWD)/api/internal/docs/*
+
+generate: ## Generate code
+	go generate $(GWD)/...
