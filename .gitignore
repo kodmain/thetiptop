@@ -6,4 +6,3 @@ token.env
 .DS_Store
 coverage.out
 tfplan
-*.gen.go
