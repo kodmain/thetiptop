@@ -1,120 +1,32 @@
-definitions:
-  fizzbuzz.Request:
-    properties:
-      int1:
-        description: Int1 is the first integer to be used as a divisor.
-        type: integer
-      int2:
-        description: Int2 is the second integer to be used as a divisor.
-        type: integer
-      limit:
-        description: Limit is the maximum number of iterations to perform.
-        type: integer
-      str1:
-        description: Str1 is the string to print when the current iteration is divisible
-          by Int1.
-        type: string
-      str2:
-        description: Str2 is the string to print when the current iteration is divisible
-          by Int2.
-        type: string
-    type: object
-  fizzbuzz.Stats:
-    properties:
-      hits:
-        description: Hits is the number of times the Request has been made.
-        type: integer
-      request:
-        allOf:
-        - $ref: '#/definitions/fizzbuzz.Request'
-        description: Request is the Request object associated with these statistics.
-    type: object
 info:
   contact: {}
 paths:
-  /api/v1/fizzbuzz/:int1/:int2/:limit/:str1/:str2:
-    get:
-      consumes:
-      - '*/*'
-      description: 'Returns a list of strings with numbers from 1 to limit, where:
-        \n all multiples of int1 are replaced by str1, all multiples of int2 are replaced
-        by str2, all multiples of int1 and int2 are replaced by str1str2.'
-      parameters:
-      - default: 3
-        description: Give the first number
-        in: path
-        name: int1
-        required: true
-        type: integer
-      - default: 5
-        description: Give the second number
-        in: path
-        name: int2
-        required: true
-        type: integer
-      - default: 100
-        description: Give limit of fizzbuzz
-        in: path
-        name: limit
-        required: true
-        type: integer
-      - default: fizz
-        description: Give the first word
-        in: path
-        name: str1
-        required: true
-        type: string
-      - default: buzz
-        description: Give the second word
-        in: path
-        name: str2
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: string
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            items:
-              type: string
-            type: array
-      summary: Return FizzBuzz result.
-      tags:
-      - FizzBuzz
-  /api/v1/fizzbuzz/stats:
-    get:
-      consumes:
-      - '*/*'
-      description: Return the parameters corresponding to the most used request, as
-        well as the number of hits for this request.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/fizzbuzz.Stats'
-      summary: Return FizzBuzz statistics.
-      tags:
-      - FizzBuzz
-  /api/v1/status/healthcheck:
+  /status/healthcheck:
     get:
       consumes:
       - '*/*'
       description: get the status of server.
+      operationId: status.HealthCheck
       produces:
       - application/json
       responses:
         "204":
           description: No Content
       summary: Show the status of server.
+      tags:
+      - Status
+  /status/ip:
+    get:
+      consumes:
+      - '*/*'
+      description: get the ip of user.
+      operationId: status.IP
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Show the ip of user.
       tags:
       - Status
 swagger: "2.0"
