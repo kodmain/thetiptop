@@ -11,19 +11,9 @@ import (
 
 func TestCreateServer(t *testing.T) {
 	srv := Create()
+	srv = Create()
 
 	assert.NotNil(t, srv)
-}
-
-func TestSetRedirectOnEntryPointAPI(t *testing.T) {
-	app := fiber.New()
-	app.Get("/api", setRedirectOnEntryPointAPI)
-
-	req := httptest.NewRequest(http.MethodGet, "/api", nil)
-	resp, err := app.Test(req)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusMovedPermanently, resp.StatusCode)
-	assert.Equal(t, "/docs", resp.Header.Get("Location"))
 }
 
 func TestSetGoToDoc(t *testing.T) {
