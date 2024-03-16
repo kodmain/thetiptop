@@ -60,6 +60,12 @@ jobs:
             -Dsonar.projectKey=kodmain_thetiptop
             -Dsonar.organization=kodmain
             -Dsonar.go.coverage.reportPaths=coverage.out
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: kodmain/thetiptop
   
   binaries:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
