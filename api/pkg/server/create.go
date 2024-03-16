@@ -11,38 +11,48 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/docs"
 )
 
-var server *Server
+var servers map[string]*Server = make(map[string]*Server)
+
+func getConfig(cfgs ...fiber.Config) fiber.Config {
+	if len(cfgs) > 0 {
+		return cfgs[0]
+	}
+
+	cfg := fiber.Config{
+		AppName:               config.APP_NAME,
+		Prefork:               true, // Multithreading
+		DisableStartupMessage: true, // Disable startup message
+	}
+
+	if os.Getppid() <= 1 {
+		fmt.Println("WARNING: fiber in downgrade mode please use docker run --pid=host")
+		cfg.Prefork = false // Disable to prevent bug in container
+	}
+
+	return cfg
+}
 
 // Create return a instance os Server
 // Pattern Singleton
-func Create() *Server {
-	if server == nil {
-		cfg := fiber.Config{
-			AppName:               config.APP_NAME,
-			Prefork:               true, // Multithreading
-			DisableStartupMessage: true, // Disable startup message
-		}
-
-		if os.Getppid() <= 1 {
-			fmt.Println("WARNING: fiber in downgrade mode please use docker run --pid=host")
-			cfg.Prefork = false // Disable to prevent bug in container
-		}
-
-		app := fiber.New(cfg)
-
-		server = &Server{
-			app: app,
-			api: app.Group("api", setRedirectOnEntryPointAPI), // entrypoint of the API but display we need to documentation
-		}
-
-		server.app.Use(setGoToDoc)         // register middleware setGoToDoc
-		server.app.Use(setSecurityHeaders) // register middleware setSecurityHeaders
-		server.app.Get("/docs/*", swagger.New(swagger.Config{
-			Title:        config.APP_NAME,
-			Layout:       "BaseLayout",
-			DocExpansion: "list",
-		})) // register middleware for documentation
+func Create(cfgs ...fiber.Config) *Server {
+	cfg := getConfig(cfgs...)
+	if server, exists := servers[cfg.AppName]; exists {
+		return server
 	}
+
+	server := &Server{
+		app: fiber.New(cfg),
+	}
+
+	server.app.Use(setGoToDoc)         // register middleware setGoToDoc
+	server.app.Use(setSecurityHeaders) // register middleware setSecurityHeaders
+	server.app.Get("/docs/*", swagger.New(swagger.Config{
+		Title:        config.APP_NAME,
+		Layout:       "BaseLayout",
+		DocExpansion: "list",
+	})) // register middleware for documentation
+
+	servers[cfg.AppName] = server
 
 	return server
 }
@@ -50,14 +60,6 @@ func Create() *Server {
 // setGoToDoc is a middleware that redirect to /docs url path is like /
 func setGoToDoc(c *fiber.Ctx) error {
 	if c.Path() == "/index.html" || c.Path() == "/" {
-		return c.Redirect("/docs", 301)
-	}
-	return c.Next()
-}
-
-// setRedirectOnEntryPointAPI is a middleware that redirect to /docs url path is like /api(?/)
-func setRedirectOnEntryPointAPI(c *fiber.Ctx) error {
-	if c.Path() == "/api" || c.Path() == "/api/" {
 		return c.Redirect("/docs", 301)
 	}
 	return c.Next()
