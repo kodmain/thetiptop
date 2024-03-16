@@ -24,15 +24,15 @@ job "production" {
     }
 
     service {
-      name = "staging"
+      name = "production"
       port = "http"
       provider = "nomad"
 
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.staging.rule=Host(`https://api.kodmain.run`)",
-        "traefik.http.routers.staging.entrypoints=https",
-        "traefik.http.routers.staging.service=staging",
+        "traefik.http.routers.production.rule=Host(`api.kodmain.run`)",
+        "traefik.http.routers.production.entrypoints=https",
+        "traefik.http.routers.production.service=production",
       ]
     }
 
