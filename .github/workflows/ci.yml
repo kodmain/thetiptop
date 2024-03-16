@@ -61,10 +61,11 @@ jobs:
             -Dsonar.organization=kodmain
             -Dsonar.go.coverage.reportPaths=coverage.out
             -Dsonar.go.coverage.exclusions=**/*_test.go,**/cmd/**,**/api/config/**,**/*.gen.go
+            -Dsonar.go.tests.include=**/*_test.go
   
   binaries:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    name: Build binaries
+    name: Build binaries for ${{ matrix.arch }}
     needs: test
     outputs:
       version: ${{ steps.semver.outputs.next }}
@@ -82,7 +83,7 @@ jobs:
           name: project
           path: .
 
-      - name: Get next version
+      - name: Get Version
         id: semver
         uses: ietf-tools/semver-action@v1
         with:
@@ -91,14 +92,14 @@ jobs:
           skipInvalidTags: true
           noNewCommitBehavior: 'current'
   
-      - name: Build binaries for each OS and ARCH
+      - name: Build
         run: |
           ldflags="-s -w -X github.com/kodmain/thetiptop/api/config/config.BUILD_VERSION=${{ steps.semver.outputs.next }} -X github.com/kodmain/thetiptop/api/config/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
           CGO_ENABLED=0 GOOS=linux GOARCH=${{ matrix.arch }} go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-linux-${{ matrix.arch }} api/cmd/main.go
         env:
           VERSION: ${{ steps.semver.outputs.next }}
           GWD: ${{ github.workspace }}
-  
+
       - name: Upload release
         uses: ncipollo/release-action@v1
         with:
