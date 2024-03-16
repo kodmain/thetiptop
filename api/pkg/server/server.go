@@ -17,8 +17,6 @@ var methods = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
 type Server struct {
 	// `app` is an instance of the `fiber.App` structure that represents the underlying Fiber server instance.
 	app *fiber.App
-	// `api` is an instance of the `fiber.Router` structure that represents the API endpoint router for the default API version.
-	api fiber.Router
 }
 
 // Start is a method of the `Server` struct that starts the server and listens for incoming HTTP and/or HTTPS requests, depending on the `config` settings.
@@ -40,7 +38,7 @@ func (server *Server) Register(handlers map[string]fiber.Handler) {
 		for _, method := range methods {
 			if isMethodDefined(pathItem, method) {
 				if handler, exists := handlers[pathItem.Get.OperationID]; exists {
-					server.api.Add(method, url, handler)
+					server.app.Add(method, url, handler)
 					fmt.Println("Add handler", pathItem.Get.OperationID, method, url)
 				} else {
 					fmt.Println("Handler not found", pathItem.Get.OperationID)

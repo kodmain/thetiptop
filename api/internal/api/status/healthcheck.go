@@ -21,17 +21,5 @@ import (
 // @Router		/status/healthcheck [get]
 // @Id	        status.HealthCheck
 func HealthCheck(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusNoContent).SendString("")
-}
-
-// @Summary		Show the ip of user.
-// @Description	get the ip of user.
-// @Tags		Status
-// @Accept		*/*
-// @Produce		application/json
-// @Success		200	{object}	nil
-// @Router		/status/ip [get]
-// @Id	        status.IP
-func IP(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusOK).SendString(c.IP())
+	return c.Status(fiber.StatusNoContent).Send(nil)
 }
