@@ -31,7 +31,7 @@ job "staging" {
       tags = [
         "traefik.enable=true",
         "traefik.http.routers.staging.rule=Host(`staging.api.kodmain.run`)",
-        "traefik.http.routers.staging.tls.domains[0].sans=staging.api.kodmain.run",
+        "traefik.http.routers.staging.tls.certresolver=le",
         "traefik.http.routers.staging.entrypoints=https",
         "traefik.http.routers.staging.service=staging",
       ]
@@ -50,3 +50,5 @@ job "staging" {
     }
   }
 }
+
+// c6ae4a56-8a5f-8be2-7527-1bad7495928e
