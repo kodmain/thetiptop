@@ -63,6 +63,7 @@ jobs:
             -Dsonar.organization=kodmain
             -Dsonar.go.coverage.reportPaths=coverage.out
             -Dsonar.go.coverage.exclusions=**/*_test.go,**/cmd/**,**/api/config/**,**/*.gen.go
+            -Dsonar.coverage.exclusions=**/*_test.go,**/cmd/**,**/api/config/**,**/*.gen.go
             -Dsonar.go.tests.include=**/*_test.go
   
   binaries:
