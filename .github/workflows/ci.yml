@@ -70,7 +70,7 @@ jobs:
   Binaries:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Build binaries for ${{ matrix.arch }}
-    needs: Tests
+    needs: [Tests, Analyze]
     outputs:
       version: ${{ steps.semver.outputs.next }}
       prev_version: ${{ steps.semver.outputs.current }}

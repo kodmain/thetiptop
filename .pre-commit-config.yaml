@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: semver-commit-message
+        name: 'SemVer Commit Message Check'
+        entry: bash -c 'grep -E "^(feat|fix|chore|docs|style|refactor|perf|test|revert|BREAKING CHANGE):" $(git rev-parse --git-dir)/COMMIT_EDITMSG'
+        language: system
+        stages: [commit-msg]
