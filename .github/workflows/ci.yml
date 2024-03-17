@@ -41,8 +41,8 @@ jobs:
           name: project
           path: .
 
-  analyze:
-    name: Analyze code quality
+  Analyze:
+    name: Analyze
     needs: test
     runs-on: ubuntu-latest
     steps:
