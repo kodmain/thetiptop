@@ -16,7 +16,7 @@ permissions:
   packages: read
   
 jobs:
-  auto:
+  Auto:
     if: ${{ github.event_name != 'workflow_dispatch' && github.event.registry_package.package_version.container_metadata.tag.name == 'latest' }}
     name: Deploy to staging
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
           NOMAD_TOKEN: ${{ secrets.NOMAD_TOKEN }}
         run: nomad job run -var="image=ghcr.io/kodmain/thetiptop:latest" deploy/jobs/project/staging.hcl 
 
-  manuel:
+  Manuel:
     if: ${{ github.event_name == 'workflow_dispatch' && contains(github.ref, 'refs/tags/') }}
     name: Deploy to production
     runs-on: ubuntu-latest
