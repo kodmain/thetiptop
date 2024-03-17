@@ -14,7 +14,7 @@ permissions:
   packages: write
 
 jobs:
-  test:
+  Tests:
     name: Tests
     runs-on: ubuntu-latest
     steps:
@@ -43,7 +43,7 @@ jobs:
 
   Analyze:
     name: Analyze
-    needs: test
+    needs: Tests
     runs-on: ubuntu-latest
     steps:
       - name: Download project from Artifacts
@@ -67,10 +67,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   
-  binaries:
+  Binaries:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Build binaries for ${{ matrix.arch }}
-    needs: test
+    needs: Tests
     outputs:
       version: ${{ steps.semver.outputs.next }}
       prev_version: ${{ steps.semver.outputs.current }}
@@ -116,10 +116,10 @@ jobs:
           replacesArtifacts: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  docker:
+  Docker:
     name: Build docker image
     runs-on: ubuntu-latest
-    needs: binaries
+    needs: Binaries
     steps:
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
