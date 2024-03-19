@@ -43,7 +43,7 @@ jobs:
         run: nomad job run -var="image=ghcr.io/kodmain/thetiptop:latest" deploy/jobs/project/staging.hcl 
 
   Manuel:
-    if: ${{ github.event_name == 'workflow_dispatch' && contains(github.ref, 'refs/tags/') }}
+    if: ${{ github.event_name == 'workflow_dispatch' && (contains(github.ref, 'refs/tags/') || contains(github.ref, 'refs/heads/main')) }}
     name: Deploy to production
     runs-on: ubuntu-latest
     environment: 
