@@ -21,6 +21,7 @@ update: ## Install/Update vendor
 	echo "Update all dependencies"
 	go get -u $(GWD)/...
 	go mod vendor
+	cd $(GWD)/app && flutter pub outdated && flutter pub get
 
 run: ## RUN api without build
 	make build certificate > /dev/null
