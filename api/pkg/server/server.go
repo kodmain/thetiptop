@@ -9,14 +9,16 @@ import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/api"
 	"github.com/kodmain/thetiptop/api/internal/lib"
+	"github.com/kodmain/thetiptop/api/internal/model/database"
 )
 
-var methods = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
+var methods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"}
 
 // Server is a struct that represents a Fiber server instance with an underlying `fiber.App`, `fiber.Router` for the API endpoints, and a map of `fiber.Router` instances for different API versions.
 type Server struct {
 	// `app` is an instance of the `fiber.App` structure that represents the underlying Fiber server instance.
 	app *fiber.App
+	db  *database.Database
 }
 
 // Start is a method of the `Server` struct that starts the server and listens for incoming HTTP and/or HTTPS requests, depending on the `config` settings.
@@ -36,32 +38,50 @@ func (server *Server) Start() {
 func (server *Server) Register(handlers map[string]fiber.Handler) {
 	for url, pathItem := range api.Mapping.Paths {
 		for _, method := range methods {
-			if isMethodDefined(pathItem, method) {
-				if handler, exists := handlers[pathItem.Get.OperationID]; exists {
+			if operationID, exist := getOperationID(pathItem, method); exist {
+				if handler, exists := handlers[operationID]; exists {
 					server.app.Add(method, url, handler)
-					fmt.Println("Add handler", pathItem.Get.OperationID, method, url)
+					fmt.Println("Add handler", operationID, method, url)
 				} else {
-					fmt.Println("Handler not found", pathItem.Get.OperationID)
+					fmt.Println("Handler not found", operationID)
 				}
 			}
 		}
 	}
 }
 
-func isMethodDefined(pathItem *api.PathItem, method string) bool {
+func getOperationID(pathItem *api.PathItem, method string) (string, bool) {
 	switch method {
 	case "GET":
-		return pathItem.Get != nil
+		if pathItem.Get != nil {
+			return pathItem.Get.OperationID, true
+		}
 	case "POST":
-		return pathItem.Post != nil
+		if pathItem.Post != nil {
+			return pathItem.Post.OperationID, true
+		}
 	case "PUT":
-		return pathItem.Put != nil
-	case "PATCH":
-		return pathItem.Patch != nil
+		if pathItem.Put != nil {
+			return pathItem.Put.OperationID, true
+		}
 	case "DELETE":
-		return pathItem.Delete != nil
+		if pathItem.Delete != nil {
+			return pathItem.Delete.OperationID, true
+		}
+	case "PATCH":
+		if pathItem.Patch != nil {
+			return pathItem.Patch.OperationID, true
+		}
+	case "OPTIONS":
+		if pathItem.Options != nil {
+			return pathItem.Options.OperationID, true
+		}
+	case "HEAD":
+		if pathItem.Head != nil {
+			return pathItem.Head.OperationID, true
+		}
 	}
-	return false
+	return "", false
 }
 
 func (server *Server) http() {

@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/swagger"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/docs"
+	"github.com/kodmain/thetiptop/api/internal/model/database"
 )
 
 var servers map[string]*Server = make(map[string]*Server)
@@ -39,17 +40,24 @@ func Create(cfgs ...fiber.Config) *Server {
 	if server, exists := servers[cfg.AppName]; exists {
 		return server
 	}
+	db, err := database.New(config.DB_DSN)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	server := &Server{
 		app: fiber.New(cfg),
+		db:  db,
 	}
 
 	server.app.Use(setGoToDoc)         // register middleware setGoToDoc
 	server.app.Use(setSecurityHeaders) // register middleware setSecurityHeaders
 	server.app.Get("/docs/*", swagger.New(swagger.Config{
-		Title:        config.APP_NAME,
-		Layout:       "BaseLayout",
-		DocExpansion: "list",
+		Title:                    config.APP_NAME,
+		Layout:                   "BaseLayout",
+		DocExpansion:             "list",
+		DefaultModelsExpandDepth: 2,
 	})) // register middleware for documentation
 
 	servers[cfg.AppName] = server

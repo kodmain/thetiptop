@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      version = "5.37.0"
+      version = "5.41.0"
     }
     random = {
       source = "hashicorp/random"
@@ -12,9 +12,159 @@ terraform {
 }
 
 provider "aws" {
+  region = "us-east-1"
+  alias  = "global"
+  profile = "kodmain"
+}
+
+provider "aws" {
   region = "eu-west-3"
   profile = "kodmain"
 }
+
+resource "aws_s3_bucket" "project_bucket" {
+  bucket = "kodmain"
+  force_destroy = true
+}
+
+resource "aws_s3_access_point" "kodmain_access_point" {
+  name         = "kodmain"
+  bucket       = aws_s3_bucket.project_bucket.id
+
+  public_access_block_configuration {
+    block_public_acls       = true
+    block_public_policy     = true
+    ignore_public_acls      = true
+    restrict_public_buckets = true
+  }
+}
+
+resource "aws_acm_certificate" "cert" {
+  provider          = aws.global
+  domain_name       = "kodmain.run"
+  validation_method = "DNS"
+
+  tags = {
+    Environment = "production"
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_cloudfront_distribution" "s3_distribution" {
+  origin {
+    domain_name = aws_s3_bucket.project_bucket.bucket_domain_name
+    origin_id   = "S3-${aws_s3_bucket.project_bucket.id}"
+  }
+
+  enabled             = true
+  is_ipv6_enabled     = true
+  default_root_object = "index.html"
+
+  tags = {
+    Environment = "production"
+  }
+
+  aliases = ["kodmain.run"]
+
+  default_cache_behavior {
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD", "OPTIONS"]
+    target_origin_id = "S3-${aws_s3_bucket.project_bucket.id}"
+    compress         = true
+
+    forwarded_values {
+      query_string = true
+      cookies {
+        forward = "all"
+      }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+  }
+
+  viewer_certificate {
+    acm_certificate_arn            = aws_acm_certificate.cert.arn
+    ssl_support_method             = "sni-only"
+    minimum_protocol_version       = "TLSv1.2_2019"
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "bucket_policy" {
+  bucket = aws_s3_bucket.project_bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Id      = "AllowGetObjects",
+    Statement = [
+      {
+        Sid       = "AllowPublic",
+        Effect    = "Allow",
+        Principal = "*",
+        Action    = "s3:GetObject",
+        Resource  = "${aws_s3_bucket.project_bucket.arn}/*"
+      },
+    ]
+  })
+}
+
+resource "aws_s3_bucket_website_configuration" "project_website" {
+  bucket = aws_s3_bucket.project_bucket.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "error.html"
+  }
+}
+
+resource "aws_route53_record" "kodmain_cloudfront" {
+  zone_id = "Z10052173VRSYMBUSS942"  # Remplacez par l'ID de votre zone Route 53
+  name    = "kodmain.run"
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.s3_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.s3_distribution.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# Attendez la validation du certificat avant de créer la distribution CloudFront
+resource "aws_acm_certificate_validation" "cert_validation" {
+  provider        = aws.global
+  certificate_arn = aws_acm_certificate.cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
+}
+
+resource "aws_route53_record" "cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      type   = dvo.resource_record_type
+      record = dvo.resource_record_value
+    }
+  }
+
+  zone_id = "Z10052173VRSYMBUSS942"
+  name    = each.value.name
+  type    = each.value.type
+  records = [each.value.record]
+  ttl     = 60
+}
+
 
 variable "github_token" {
   description = "GitHub token"
@@ -197,17 +347,6 @@ resource "aws_iam_role_policy" "traefik_route53_policy" {
 resource "aws_iam_instance_profile" "traefik_instance_profile" {
   name = "TraefikInstanceProfile"
   role = aws_iam_role.traefik_route53_role.name
-}
-
-resource "aws_route53_record" "kodmain" {
-  zone_id = "Z10052173VRSYMBUSS942"
-
-  name    = "kodmain.run"  # Nom de domaine à rediriger
-  type    = "A"
-  ttl     = 10
-  records = [aws_instance.free_tier_arm_instance.public_ip]
-
-  allow_overwrite = true
 }
 
 resource "aws_route53_record" "kodmain_wildcard" {

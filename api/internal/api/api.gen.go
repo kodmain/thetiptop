@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/api/status"
+	"github.com/kodmain/thetiptop/api/internal/api/user"
 	"github.com/swaggo/swag"
 )
 
@@ -19,6 +20,8 @@ var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
 		"status.HealthCheck": status.HealthCheck,
 		"status.IP":          status.IP,
+		"user.Auth":          user.Auth,
+		"user.Register":      user.Register,
 	}
 	Mapping = &Swagger{}
 	doc, _  = swag.ReadDoc()

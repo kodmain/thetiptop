@@ -109,4 +109,14 @@ func main() {
 		file.WriteString(fmt.Sprintf("\"%s\": %s,\n", id, id))
 	}
 	file.WriteString(footer)
+
+	goimportsPath, err := exec.LookPath("goimports")
+	if err != nil {
+		panic("goimports not found. Please install it using 'go install golang.org/x/tools/cmd/goimports@latest'")
+	}
+
+	cmd := exec.Command(goimportsPath, "-w", generatedPath)
+	if err := cmd.Run(); err != nil {
+		panic(fmt.Sprintf("goimports failed: %s", err))
+	}
 }
