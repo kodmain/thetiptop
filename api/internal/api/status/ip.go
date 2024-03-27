@@ -9,7 +9,7 @@ import "github.com/gofiber/fiber/v2"
 // @Produce		application/json
 // @Success		200	{object}	nil
 // @Router		/status/ip [get]
-// @Id	        status.IP
+// @Id	        metrics.Counter => status.IP
 func IP(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).SendString(c.IP())
 }
