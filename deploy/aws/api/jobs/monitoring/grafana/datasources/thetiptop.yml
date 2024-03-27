@@ -4,7 +4,10 @@ datasources:
 - name: Metrics
   type: prometheus
   access: proxy
-  url: http://internal.kodmain.run/prometheus
+  url: https://internal.kodmain.run/prometheus
+  jsonData:
+    tlsSkipVerify: true
+
 - name: CloudWatch
   type: cloudwatch
   jsonData:
