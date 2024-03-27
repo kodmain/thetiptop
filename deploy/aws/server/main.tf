@@ -311,21 +311,25 @@ resource "aws_s3_access_point" "kodmain_access_point" {
 resource "aws_s3_bucket_policy" "bucket_log_policy" {
   bucket = aws_s3_bucket.logs.id
 
-  policy = jsonencode({
+   policy = jsonencode({
     Version = "2012-10-17"
     Id      = "logs_policy"
     Statement = [
       {
-        Effect    = "Allow"
-        Principal = { Service = "cloudfront.amazonaws.com" }
-        Action    = "s3:PutObject"
-        Resource  = "arn:aws:s3:::logs.kodmain/*"
+        Sid       = "HTTPSOnly"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.logs.arn,
+          "${aws_s3_bucket.logs.arn}/*",
+        ]
         Condition = {
-          StringEquals = { 
-            "aws:SourceArn": "arn:aws:cloudfront::<votre-id-compte>:distribution/E27OS30U6FEOKJ" 
+          Bool = {
+            "aws:SecureTransport" = "false"
           }
         }
-      }
+      },
     ]
   })
 }
