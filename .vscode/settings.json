@@ -3,7 +3,7 @@
 		".github": false,
 		"vendor": true,
 		".maker": false,
-		"deploy/server/*terraform*": true,
+		"deploy/**/*terraform*": true,
 		".vscode": false
 	},
     "sonarlint.connectedMode.project": {

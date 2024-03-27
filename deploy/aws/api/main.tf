@@ -87,7 +87,7 @@ resource "aws_instance" "free_tier_arm_instance" {
     yum-config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
     yum -y install nomad docker gh cni-plugins httpd-tools htop
     git clone https://github.com/kodmain/thetiptop /home/ec2-user/thetiptop
-    cp /home/ec2-user/thetiptop/deploy/server/nomad.service /etc/systemd/system/nomad.service
+    cp /home/ec2-user/thetiptop/deploy/aws/api/nomad.service /etc/systemd/system/nomad.service
     sleep 1
     systemctl enable nomad 
     systemctl enable docker
@@ -101,7 +101,7 @@ resource "aws_instance" "free_tier_arm_instance" {
     echo "export NOMAD_TOKEN=$NOMAD_TOKEN" >> /home/ec2-user/.bashrc
     echo "export GH_TOKEN='$GH_TOKEN'" >> /home/ec2-user/.bashrc
     echo "export GF_ADMIN_PASSWORD='$GF_ADMIN_PASSWORD'" >> /home/ec2-user/.bashrc
-    nomad acl policy apply -description "Deployment" deploy /home/ec2-user/thetiptop/deploy/server/nomad-policy.hcl
+    nomad acl policy apply -description "Deployment" deploy /home/ec2-user/thetiptop/deploy/aws/api/nomad-policy.hcl
     nomad acl token create -name="github" -policy="deploy" > /home/ec2-user/github.token
     export GITHUB_NOMAD_TOKEN=$(cat /home/ec2-user/github.token | grep "Secret" |awk '{print $4}')
     gh secret set NOMAD_TOKEN -b"$GITHUB_NOMAD_TOKEN" --repo kodmain/thetiptop
