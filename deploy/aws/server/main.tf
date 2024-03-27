@@ -296,6 +296,33 @@ resource "aws_s3_access_point" "kodmain_access_point" {
   }
 }
 
+resource "aws_s3_bucket_policy" "bucket_log_policy" {
+  bucket = aws_s3_bucket.logs.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = { Service = "cloudfront.amazonaws.com" }
+        Action    = "s3:PutObject"
+        Resource  = "arn:aws:s3:::logs.kodmain/*"
+        Condition = {
+          StringEquals = { 
+            "aws:SourceArn": "arn:aws:cloudfront::736517609751:distribution/${aws_cloudfront_distribution.s3_distribution.id}" 
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket" "logs" {
+  bucket = "logs.kodmain"
+  force_destroy = true
+}
+
+
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
     domain_name = aws_s3_bucket.app.bucket_domain_name
@@ -342,9 +369,16 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
       restriction_type = "none"
     }
   }
+  
+  logging_config {
+    include_cookies = false
+    bucket          = "${aws_s3_bucket.logs.bucket}.s3.amazonaws.com"
+    prefix          = "thetiptop"
+  }
+  
 }
 
-resource "aws_s3_bucket_policy" "bucket_policy" {
+resource "aws_s3_bucket_policy" "bucket_app_policy" {
   bucket = aws_s3_bucket.app.id
   
   policy = jsonencode({

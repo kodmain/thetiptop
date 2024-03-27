@@ -20,7 +20,6 @@ tasks:
     desc: Déployer l'application en local avec la release sur la machine
     cmds:
       - terraform init -var="github_token=$GH_TOKEN" -upgrade
-      - terraform plan -var="github_token=$GH_TOKEN"
       - terraform apply -auto-approve -var="github_token=$GH_TOKEN"
   server:destroy:
     dir: deploy/aws/server
@@ -28,7 +27,6 @@ tasks:
     desc: Déployer l'application en local avec la release sur la machine
     cmds:
       - terraform init -var="github_token=GH_TOKEN" -upgrade
-      - terraform plan -destroy -var="github_token=GH_TOKEN"
       - terraform apply -auto-approve -destroy -var="github_token=GH_TOKEN"
 
   build:
