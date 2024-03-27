@@ -29,7 +29,7 @@ job "middlewares" {
       }
 
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/prometheus/prometheus.yml"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/aws/api/jobs/monitoring/prometheus/prometheus.yml"
         destination = "local/prometheus"
       }
 
@@ -131,17 +131,17 @@ job "middlewares" {
       }
 
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/datasources/thetiptop.yml"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/aws/api/jobs/monitoring/grafana/datasources/thetiptop.yml"
         destination = "local/datasources"
       }
 
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboards/thetiptop.yml"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/aws/api/jobs/monitoring/grafana/dashboards/thetiptop.yml"
         destination = "local/dashboards"
       }
 
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/templates/thetiptop.json"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/aws/api/jobs/monitoring/grafana/templates/thetiptop.json"
         destination = "local/template"
       }
 
