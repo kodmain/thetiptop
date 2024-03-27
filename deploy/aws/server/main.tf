@@ -304,21 +304,6 @@ resource "aws_s3_bucket_policy" "bucket_log_policy" {
     Id      = "logs_policy"
     Statement = [
       {
-        Sid       = "HTTPSOnly"
-        Effect    = "Deny"
-        Principal = "*"
-        Action    = "s3:*"
-        Resource = [
-          aws_s3_bucket.logs.arn,
-          "${aws_s3_bucket.logs.arn}/*",
-        ]
-        Condition = {
-          Bool = {
-            "aws:SecureTransport" = "false"
-          }
-        }
-      },
-      {
         Effect    = "Allow"
         Principal = { Service = "cloudfront.amazonaws.com" }
         Action    = "s3:PutObject"
@@ -402,12 +387,20 @@ resource "aws_s3_bucket_policy" "bucket_app_policy" {
     Id      = "AllowGetObjects",
     Statement = [
       {
-        Sid       = "AllowPublic",
-        Effect    = "Allow",
-        Principal = "*",
-        Action    = "s3:GetObject",
-        Resource  = "${aws_s3_bucket.app.arn}/*"
-      },
+        Sid       = "HTTPSOnly"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.app.arn,
+          "${aws_s3_bucket.app.arn}/*",
+        ]
+        Condition = {
+          Bool = {
+            "aws:SecureTransport" = "false"
+          }
+        }
+      }
     ]
   })
 }
