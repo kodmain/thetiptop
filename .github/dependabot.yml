@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Configuration pour les dépendances Go
+  - package-ecosystem: "gomod"
+    directory: "/" # Ajustez le chemin si go.mod n'est pas à la racine du repo
+    schedule:
+      interval: "weekly"
+
+  # Configuration pour les dépendances Flutter/Dart
+  - package-ecosystem: "pub"
+    directory: "/app" # Ajustez le chemin si pubspec.yaml n'est pas à la racine du repo
+    schedule:
+      interval: "weekly"

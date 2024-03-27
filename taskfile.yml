@@ -1,0 +1,93 @@
+version: '3'
+
+silent: true
+
+dotenv: [ 'deploy/aws/server/token.env' ]
+
+tasks:
+  default:
+    cmds:
+      - task -l
+
+  login:aws:
+    desc: Se connecter à AWS SSO
+    cmds:
+      - aws --profile=kodmain s3 ls > /dev/null 2>&1 && { echo "Déjà connecté à AWS SSO."; } || { echo "Connexion à AWS SSO requise."; aws sso login --profile=kodmain; }
+
+  server:deploy:
+    dir: deploy/aws/server
+    deps: [ login:aws ]
+    desc: Déployer l'application en local avec la release sur la machine
+    cmds:
+      - terraform init -var="github_token=$GH_TOKEN" -upgrade
+      - terraform plan -var="github_token=$GH_TOKEN"
+      - terraform apply -auto-approve -var="github_token=$GH_TOKEN"
+  server:destroy:
+    dir: deploy/aws/server
+    deps: [ login:aws ]
+    desc: Déployer l'application en local avec la release sur la machine
+    cmds:
+      - terraform init -var="github_token=GH_TOKEN" -upgrade
+      - terraform plan -destroy -var="github_token=GH_TOKEN"
+      - terraform apply -auto-approve -destroy -var="github_token=GH_TOKEN"
+
+  build:
+    desc: Build the app and the api
+    cmds:
+      - task build:app
+      - task build:api
+
+  build:app:
+    dir: app
+    desc: Build the app
+    cmds:
+      - |
+        rm -rf {{.TASKFILE_DIR}}/.build/app || true
+        flutter build web -d {{.TASKFILE_DIR}}/.build/app --release --web-renderer canvaskit
+        mv build {{.TASKFILE_DIR}}/.build/app
+  
+  build:api:
+    dir: api
+    desc: Build the api
+    cmds:
+      - | 
+        rm -rf {{.TASKFILE_DIR}}/.build/api || true
+        ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_VERSION=local -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
+        GOOS=linux go build -trimpath -buildvcs=false -tags netgo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/thetiptop cmd/main.go
+
+  tests:
+    desc: Run the tests
+    cmds:
+      - task tests:app
+      - task tests:api
+
+  tests:app:
+    dir: app
+    desc: Run the tests for the app
+    cmds:
+      - flutter test -r github --coverage-path {{.TASKFILE_DIR}}
+  
+  tests:api:
+    dir: api
+    desc: Run the tests for the api
+    cmds:
+      - gotestsum -f github-actions -- -v $(go list ./... | grep -vE "vendor") -coverprofile={{.TASKFILE_DIR}}/coverage.out -covermode=atomic
+
+  update:
+    desc: Update the dependencies
+    cmds:
+      - task update:app
+      - task update:api
+  
+  update:app:
+    dir: app
+    desc: Update the dependencies for the app
+    cmds:
+      - flutter pub upgrade
+  
+  update:api:
+    dir: api
+    desc: Update the dependencies for the api
+    cmds:
+      - go get -u {{.TASKFILE_DIR}}/...
+      - go mod vendor
