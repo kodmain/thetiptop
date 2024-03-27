@@ -132,25 +132,24 @@ job "middlewares" {
 
       artifact {
         source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/aws/api/jobs/monitoring/grafana/datasources/thetiptop.yml"
-        destination = "local/datasources"
+        destination = "local/provisioning/datasources"
       }
 
       artifact {
         source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/aws/api/jobs/monitoring/grafana/dashboards/thetiptop.yml"
-        destination = "local/dashboards"
+        destination = "local/provisioning/dashboards"
       }
 
       artifact {
         source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/aws/api/jobs/monitoring/grafana/templates/thetiptop.json"
-        destination = "local/template"
+        destination = "local/templates"
       }
 
       config {
         image = "grafana/grafana:latest"
         ports = ["grafana"]
         volumes = [
-          "local/datasources:/etc/grafana/provisioning/datasources",
-          "local/dashboards:/etc/grafana/provisioning/dashboards",
+          "local/provisioning:/etc/grafana/provisioning",
           "local/templates:/var/lib/grafana/dashboards"
         ]
       }
