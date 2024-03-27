@@ -12,13 +12,13 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
-  alias  = "global"
+  region  = "us-east-1"
+  alias   = "global"
   profile = "kodmain"
 }
 
 provider "aws" {
-  region = "eu-west-3"
+  region  = "eu-west-3"
   profile = "kodmain"
 }
 
@@ -74,7 +74,7 @@ resource "aws_instance" "free_tier_arm_instance" {
   # ARM ami-09e82d7942ffb02d3 t4g.micro Amazon Linux 2 # NOT WORKING (fixed by client.cpu_total_compute in nomad-server.hcl)
   ami           = "ami-09e82d7942ffb02d3"
   instance_type = "t4g.micro"
-  associate_public_ip_address = true
+  associate_public_ip_address = false
 
   tags = {
     Name = "NomadServer"
@@ -105,10 +105,10 @@ resource "aws_instance" "free_tier_arm_instance" {
     nomad acl token create -name="github" -policy="deploy" > /home/ec2-user/github.token
     export GITHUB_NOMAD_TOKEN=$(cat /home/ec2-user/github.token | grep "Secret" |awk '{print $4}')
     gh secret set NOMAD_TOKEN -b"$GITHUB_NOMAD_TOKEN" --repo kodmain/thetiptop
-    sed -i 's/NOMADTOKEN/'"$NOMAD_TOKEN"'/g' /home/ec2-user/thetiptop/deploy/jobs/server.hcl
+    sed -i 's/NOMADTOKEN/'"$NOMAD_TOKEN"'/g' /home/ec2-user/thetiptop/deploy/aws/api/jobs/server.hcl
     sleep 1
-    nomad job run -token=$NOMAD_TOKEN /home/ec2-user/thetiptop/deploy/jobs/server.hcl
-    nomad job run -token=$NOMAD_TOKEN -var="grafana_admin_password=$GF_ADMIN_PASSWORD" /home/ec2-user/thetiptop/deploy/jobs/middlewares.hcl
+    nomad job run -token=$NOMAD_TOKEN /home/ec2-user/thetiptop/deploy/aws/api/jobs/server.hcl
+    nomad job run -token=$NOMAD_TOKEN -var="grafana_admin_password=$GF_ADMIN_PASSWORD" /home/ec2-user/thetiptop/deploy/aws/api/jobs/middlewares.hcl
   EOF
 
   iam_instance_profile = aws_iam_instance_profile.traefik_instance_profile.name
