@@ -29,7 +29,7 @@ job "middlewares" {
       }
 
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/prometheus/configuration.yml"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/prometheus/prometheus.yml"
         destination = "local/prometheus"
       }
 
@@ -42,7 +42,7 @@ job "middlewares" {
           "--web.route-prefix=/prometheus"
         ]
         volumes = [
-          "local/prometheus/configuration.yml:/etc/prometheus/prometheus.yml",
+          "local/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml",
         ]
       }
 
@@ -122,7 +122,7 @@ job "middlewares" {
         GF_SECURITY_ADMIN_PASSWORD = "${var.grafana_admin_password}"
         GF_LOG_MODE="console"
         GF_PATHS_PROVISIONING="/etc/grafana/provisioning"
-        GF_DEFAULT_HOME_DASHBOARD_PATH="/var/lib/grafana/dashboards/mixed.json"
+        GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH="/var/lib/grafana/dashboards/thetiptop.json"
       }
 
       resources {
@@ -131,17 +131,17 @@ job "middlewares" {
       }
 
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/datasource.yml"
-        destination = "local/datasource"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/datasources/thetiptop.yml"
+        destination = "local/datasources"
       }
 
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard.yml"
-        destination = "local/dashboard"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboards/thetiptop.yml"
+        destination = "local/dashboards"
       }
 
       artifact {
-        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/dashboard/mixed.json"
+        source = "https://raw.githubusercontent.com/kodmain/thetiptop/main/deploy/jobs/monitoring/grafana/templates/thetiptop.json"
         destination = "local/template"
       }
 
@@ -149,9 +149,9 @@ job "middlewares" {
         image = "grafana/grafana:latest"
         ports = ["grafana"]
         volumes = [
-          "local/datasource:/etc/grafana/provisioning/datasources",
-          "local/dashboard:/etc/grafana/provisioning/dashboards",
-          "local/template:/var/lib/grafana/dashboards"
+          "local/datasources:/etc/grafana/provisioning/datasources",
+          "local/dashboards:/etc/grafana/provisioning/dashboards",
+          "local/templates:/var/lib/grafana/dashboards"
         ]
       }
 
