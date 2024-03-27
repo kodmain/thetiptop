@@ -4,7 +4,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/usr/bin/nomad agent -config=/home/ec2-user/thetiptop/deploy/server/nomad-server.hcl
+ExecStart=/usr/bin/nomad agent -config=/home/ec2-user/thetiptop/deploy/aws/api/nomad-server.hcl
 Restart=on-failure
 LimitNOFILE=65536
 
