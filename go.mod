@@ -3,10 +3,12 @@ module github.com/kodmain/thetiptop
 go 1.19
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.2
+	github.com/Code-Hex/dd v1.1.0
+	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/gofiber/swagger v1.0.0
 	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/swag v1.16.3
+	golang.org/x/crypto v0.21.0
 )
 
 require (
@@ -14,7 +16,10 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
+	golang.org/x/net v0.22.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 )
 
 require (

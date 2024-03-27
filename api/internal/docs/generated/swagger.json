@@ -1,0 +1,150 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/fizzbuzz/:int1/:int2/:limit/:str1/:str2": {
+            "get": {
+                "description": "Executes the FizzBuzz algorithm based on the provided parameters.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FizzBuzz"
+                ],
+                "summary": "Run FizzBuzz",
+                "operationId": "metrics.Counter =\u003e fizzbuzz.FizzBuzz",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "First integer to replace with str1",
+                        "name": "int1",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Second integer to replace with str2",
+                        "name": "int2",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "The upper limit for the FizzBuzz sequence",
+                        "name": "limit",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "String to replace multiples of int1",
+                        "name": "str1",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "String to replace multiples of int2",
+                        "name": "str2",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of strings representing the FizzBuzz sequence",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - invalid input parameters",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/metrics/statistics": {
+            "get": {
+                "description": "Retrieves data for the most frequent request.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Metrics"
+                ],
+                "summary": "Show request metrics.",
+                "operationId": "metrics.Statistics",
+                "responses": {
+                    "200": {
+                        "description": "Statistics of the most frequent request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "No data available",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/status/healthcheck": {
+            "get": {
+                "description": "get the status of server.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status"
+                ],
+                "summary": "Show the status of server.",
+                "operationId": "metrics.Counter =\u003e status.HealthCheck",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/status/ip": {
+            "get": {
+                "description": "get the ip of user.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status"
+                ],
+                "summary": "Show the ip of user.",
+                "operationId": "metrics.Counter =\u003e status.IP",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    }
+}

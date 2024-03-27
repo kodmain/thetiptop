@@ -28,11 +28,23 @@ jobs:
         with:
           go-version: 1.22.x
 
-      - name: Setup gotestsum
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v2
+        with:
+          channel: stable
+          version: 3.19.3
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup dependencies
         run: go install gotest.tools/gotestsum@latest
 
       - name: Run all the tests and code checks
-        run: make test units
+        run: task tests
 
       - name: Upload project to Artifacts
         uses: actions/upload-artifact@v4
@@ -99,7 +111,7 @@ jobs:
       - name: Build
         run: |
           ldflags="-s -w -X github.com/kodmain/thetiptop/api/config/config.BUILD_VERSION=${{ steps.semver.outputs.next }} -X github.com/kodmain/thetiptop/api/config/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
-          CGO_ENABLED=0 GOOS=linux GOARCH=${{ matrix.arch }} go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-linux-${{ matrix.arch }} api/cmd/main.go
+          GOOS=linux GOARCH=${{ matrix.arch }} go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-linux-${{ matrix.arch }} api/cmd/main.go
         env:
           VERSION: ${{ steps.semver.outputs.next }}
           GWD: ${{ github.workspace }}
