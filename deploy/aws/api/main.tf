@@ -12,52 +12,9 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
-  alias  = "global"
-  profile = "kodmain"
-}
-
-provider "aws" {
   region = "eu-west-3"
   profile = "kodmain"
 }
-
-resource "aws_acm_certificate" "cert" {
-  provider          = aws.global
-  domain_name       = "kodmain.run"
-  validation_method = "DNS"
-
-  tags = {
-    Environment = "production"
-  }
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-# Attendez la validation du certificat avant de créer la distribution CloudFront
-resource "aws_acm_certificate_validation" "cert_validation" {
-  provider        = aws.global
-  certificate_arn = aws_acm_certificate.cert.arn
-  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
-}
-
-resource "aws_route53_record" "cert_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      type   = dvo.resource_record_type
-      record = dvo.resource_record_value
-    }
-  }
-
-  zone_id = "Z10052173VRSYMBUSS942"
-  name    = each.value.name
-  type    = each.value.type
-  records = [each.value.record]
-  ttl     = 60
-}
-
 
 variable "github_token" {
   description = "GitHub token"
@@ -150,13 +107,13 @@ resource "aws_security_group" "nomad" {
   */
 
   /* Disable SSH 
-  */
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  */
 
   ingress {
     from_port   = 80
