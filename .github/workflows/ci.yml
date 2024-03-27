@@ -34,11 +34,17 @@ jobs:
           channel: stable
           version: 3.19.3
 
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Setup dependencies
-        run: make doctor dependencies
+        run: go install gotest.tools/gotestsum@latest
 
       - name: Run all the tests and code checks
-        run: make test units
+        run: task tests
 
       - name: Upload project to Artifacts
         uses: actions/upload-artifact@v4
