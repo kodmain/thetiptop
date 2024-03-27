@@ -50,5 +50,3 @@ job "staging" {
     }
   }
 }
-
-// c6ae4a56-8a5f-8be2-7527-1bad7495928e
