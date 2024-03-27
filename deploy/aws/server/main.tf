@@ -74,6 +74,7 @@ resource "aws_instance" "free_tier_arm_instance" {
   # ARM ami-09e82d7942ffb02d3 t4g.micro Amazon Linux 2 # NOT WORKING (fixed by client.cpu_total_compute in nomad-server.hcl)
   ami           = "ami-09e82d7942ffb02d3"
   instance_type = "t4g.micro"
+  associate_public_ip_address = true
 
   tags = {
     Name = "NomadServer"
@@ -283,6 +284,17 @@ resource "aws_s3_bucket_public_access_block" "app_public_access_block" {
   block_public_policy     = false
   restrict_public_buckets = false
 }
+
+
+resource "aws_s3_bucket_public_access_block" "logs_public_access_block" {
+  bucket = aws_s3_bucket.logs.id
+
+  block_public_acls       = false
+  ignore_public_acls      = true
+  block_public_policy     = true
+  restrict_public_buckets = true
+}
+
 
 resource "aws_s3_access_point" "kodmain_access_point" {
   name         = "kodmain"
