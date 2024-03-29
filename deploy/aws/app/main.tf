@@ -35,6 +35,8 @@ resource "aws_acm_certificate" "cert" {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = aws_s3_bucket.app.id  // Assurez-vous que cela correspond au nom de votre bucket S3
 
@@ -44,7 +46,9 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       {
         Action    = ["s3:GetObject"]
         Effect    = "Allow"
-        Principal = "*"
+        Principal = {
+          AWS = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+        }
         Resource  = ["arn:aws:s3:::${aws_s3_bucket.app.bucket}/*"]
       }
     ]
