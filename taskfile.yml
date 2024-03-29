@@ -60,16 +60,16 @@ tasks:
     deps: [ login:aws ]
     desc: deploy the app 
     cmds:
-      - terraform init -var="github_token=$GH_TOKEN" -upgrade
-      - terraform apply -auto-approve -var="github_token=$GH_TOKEN"
+      - terraform init -upgrade
+      - terraform apply -auto-approve
   
   app:arch:destroy:
     dir: deploy/aws/app
     deps: [ login:aws ]
     desc: destroy the app 
     cmds:
-      - terraform init -var="github_token=GH_TOKEN" -upgrade
-      - terraform apply -auto-approve -destroy -var="github_token=GH_TOKEN"
+      - terraform init -upgrade
+      - terraform apply -auto-approve -destroy
 
   ## API 
   api:update:
@@ -114,5 +114,5 @@ tasks:
     deps: [ login:aws ]
     desc: destroy the app
     cmds:
-      - terraform init -var="github_token=GH_TOKEN" -upgrade
-      - terraform apply -auto-approve -destroy -var="github_token=GH_TOKEN"
+      - terraform init -var="github_token=$GH_TOKEN" -upgrade
+      - terraform apply -auto-approve -destroy -var="github_token=$GH_TOKEN"
