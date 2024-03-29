@@ -84,6 +84,31 @@ resource "aws_s3_bucket" "app" {
   force_destroy = true
 }
 
+
+resource "aws_s3_bucket_policy" "app_policy" {
+  bucket = aws_s3_bucket.app.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource  = [
+          aws_s3_bucket.app.arn,
+          "${aws_s3_bucket.app.arn}/*"
+        ]
+        Condition = {
+          Bool = {
+            "aws:SecureTransport" = "false"
+          }
+        }
+      }
+    ]
+  })
+}
+
 resource "aws_s3_bucket_public_access_block" "app_public_access_block" {
   bucket = aws_s3_bucket.app.id
 
