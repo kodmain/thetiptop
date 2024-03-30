@@ -150,8 +150,46 @@ resource "aws_cloudfront_function" "path_rewrite_function" {
   EOT
 }
 
+resource "aws_s3_bucket_policy" "logs_policy" {
+  bucket = aws_s3_bucket.logs.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = "s3:PutObject"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.logs.bucket}/cf-logs/*"
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket_ownership_controls" "logs_ownership_controls" {
+  bucket = aws_s3_bucket.logs.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket" "logs" {
+  bucket        = "logs.kodmain"
+  force_destroy = true
+}
+
 
 resource "aws_cloudfront_distribution" "s3_distribution" {
+
+  logging_config {
+    include_cookies = false
+    bucket          = "${aws_s3_bucket.logs.bucket}.s3.amazonaws.com"
+    prefix          = "cf-logs/"
+  }
+
   origin {
     domain_name = aws_s3_bucket.app.bucket_domain_name
     origin_id   = "S3-${aws_s3_bucket.app.id}"
