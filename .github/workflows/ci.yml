@@ -141,7 +141,9 @@ jobs:
 
       - name: Extract repository name
         id: repo_name
-        run: echo "::set-output name=REPO_NAME::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
+        run: |
+          echo "::set-output name=REPO_NAME::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
+          echo "::set-output name=REPOSITORY_OWNER::$(echo ${{ github.repository }} | awk -F '/' '{print $1}')"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -168,7 +170,7 @@ jobs:
             BINARY_VERSION=${{ needs.binaries.outputs.version }}
             BINARY_OS=linux
             PROJECT_NAME=${{ steps.repo_name.outputs.REPO_NAME }}
-            REPOSITORY_OWNER=${{ github.repository_owner }}
+            REPOSITORY_OWNER=${{ steps.repo_name.outputs.REPOSITORY_OWNER }}
           tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
 
       - name: Authenticate to Docker
