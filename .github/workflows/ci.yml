@@ -182,7 +182,7 @@ jobs:
         with:
           dockerhub-user: ${{secrets.DOCKERHUB_USERNAME}}
           dockerhub-password: ${{secrets.DOCKERHUB_TOKEN}}
-          command: cves,recommendations,compare
+          command: cves,compare
           organization: ${{ github.repository_owner }}
           image: ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
           to: ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.prev_version }}
