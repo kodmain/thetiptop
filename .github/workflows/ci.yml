@@ -139,6 +139,10 @@ jobs:
           name: project
           path: .
 
+      - name: Extract repository name
+        id: repo_name
+        run: echo "::set-output name=REPO_NAME::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -155,7 +159,7 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v5
         with:
-          file: deploy/Dockerfile
+          file: .github/dockerfiles/remote.Dockerfile
           context: .
           platforms: linux/arm64, linux/amd64
           push: true
@@ -163,6 +167,8 @@ jobs:
           build-args: |
             BINARY_VERSION=${{ needs.binaries.outputs.version }}
             BINARY_OS=linux
+            PROJECT_NAME=${{ steps.repo_name.outputs.REPO_NAME }}
+            REPOSITORY_NAME=${{ github.repository }}
           tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
 
       - name: Authenticate to Docker
