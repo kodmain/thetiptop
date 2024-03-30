@@ -168,7 +168,7 @@ jobs:
             BINARY_VERSION=${{ needs.binaries.outputs.version }}
             BINARY_OS=linux
             PROJECT_NAME=${{ steps.repo_name.outputs.REPO_NAME }}
-            REPOSITORY_NAME=${{ github.repository }}
+            REPOSITORY_OWNER=${{ github.repository_owner }}
           tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
 
       - name: Authenticate to Docker
