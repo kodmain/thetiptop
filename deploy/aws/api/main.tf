@@ -72,6 +72,7 @@ resource "aws_instance" "free_tier_arm_instance" {
   root_block_device {
     volume_size = 10
     volume_type = "gp3"
+    encrypted = true
   }
   
   security_groups = [aws_security_group.nomad.name]
