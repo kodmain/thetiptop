@@ -31,7 +31,6 @@ resource "aws_instance" "free_tier_arm_instance" {
   # ARM ami-09e82d7942ffb02d3 t4g.micro Amazon Linux 2 # NOT WORKING (fixed by client.cpu_total_compute in nomad-server.hcl)
   ami           = "ami-09e82d7942ffb02d3"
   instance_type = "t4g.micro"
-  associate_public_ip_address = false
 
   tags = {
     Name = "NomadServer"

@@ -18,14 +18,14 @@ tasks:
   update:
     desc: Update the dependencies
     cmds:
-      - task app:update
       - task api:update
+      - task app:update
 
   build:
     desc: Build the app and the api
     cmds:
-      - task app:build
       - task api:build
+      - task app:build
 
   tests:
     desc: Run the tests
@@ -55,6 +55,13 @@ tasks:
         flutter build web -d {{.TASKFILE_DIR}}/.build/app --release --web-renderer canvaskit
         mv build {{.TASKFILE_DIR}}/.build/app
   
+  app:arch:rebuild:
+    dir: deploy/aws/app
+    desc: rebuild the app
+    cmds:
+      - task app:arch:destroy
+      - task app:arch:deploy
+
   app:arch:deploy:
     dir: deploy/aws/app
     deps: [ login:aws ]

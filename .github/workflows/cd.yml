@@ -40,7 +40,7 @@ jobs:
         env:
           NOMAD_ADDR: ${{ secrets.NOMAD_ADDR }}
           NOMAD_TOKEN: ${{ secrets.NOMAD_TOKEN }}
-        run: nomad job run -var="image=ghcr.io/kodmain/thetiptop:latest" deploy/aws/api/jobs/project/staging.hcl 
+        run: nomad job run -tls-skip-verify -var="image=ghcr.io/kodmain/thetiptop:latest" deploy/aws/api/jobs/project/staging.hcl 
 
   Manuel:
     if: ${{ github.event_name == 'workflow_dispatch' && (contains(github.ref, 'refs/tags/') || contains(github.ref, 'refs/heads/main')) }}
@@ -67,4 +67,4 @@ jobs:
         env:
           NOMAD_ADDR: ${{ secrets.NOMAD_ADDR }}
           NOMAD_TOKEN: ${{ secrets.NOMAD_TOKEN }}
-        run: nomad job run -var="image=ghcr.io/kodmain/thetiptop:${{ env.VERSION }}" deploy/aws/api/jobs/project/${{ github.event.inputs.environment }}.hcl 
+        run: nomad job run -tls-skip-verify -var="image=ghcr.io/kodmain/thetiptop:${{ env.VERSION }}" deploy/aws/api/jobs/project/${{ github.event.inputs.environment }}.hcl 
