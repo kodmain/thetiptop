@@ -141,7 +141,7 @@ jobs:
 
       - name: Extract repository name
         id: repo_name
-        run: echo "::set-output name=REPO_NAME::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
+        run: echo "REPO_NAME=${{ github.repository }}" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
