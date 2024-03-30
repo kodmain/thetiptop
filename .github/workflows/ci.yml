@@ -111,7 +111,7 @@ jobs:
       - name: Build
         run: |
           ldflags="-s -w -X github.com/kodmain/thetiptop/api/config/config.BUILD_VERSION=${{ steps.semver.outputs.next }} -X github.com/kodmain/thetiptop/api/config/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
-          GOOS=linux GOARCH=${{ matrix.arch }} go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-linux-${{ matrix.arch }} api/cmd/main.go
+          GOOS=linux GOARCH=${{ matrix.arch }} go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
         env:
           VERSION: ${{ steps.semver.outputs.next }}
           GWD: ${{ github.workspace }}
@@ -141,9 +141,7 @@ jobs:
 
       - name: Extract repository name
         id: repo_name
-        run: |
-          echo "::set-output name=REPO_NAME::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
-          echo "::set-output name=REPOSITORY_OWNER::$(echo ${{ github.repository }} | awk -F '/' '{print $1}')"
+        run: echo "::set-output name=REPO_NAME::$(echo ${{ github.repository }} | awk -F '/' '{print $2}')"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -170,7 +168,7 @@ jobs:
             BINARY_VERSION=${{ needs.binaries.outputs.version }}
             BINARY_OS=linux
             PROJECT_NAME=${{ steps.repo_name.outputs.REPO_NAME }}
-            REPOSITORY_OWNER=${{ steps.repo_name.outputs.REPOSITORY_OWNER }}
+            REPOSITORY_NAME=${{ github.repository_owner }}
           tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
 
       - name: Authenticate to Docker
