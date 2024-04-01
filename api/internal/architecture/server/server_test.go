@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/config"
-	"github.com/kodmain/thetiptop/api/internal/api/status"
+	"github.com/kodmain/thetiptop/api/internal/interfaces/status"
 	"github.com/stretchr/testify/assert"
 )
 

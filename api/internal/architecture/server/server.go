@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/api/internal/api"
-	"github.com/kodmain/thetiptop/api/internal/application/observability/logger"
-	"github.com/kodmain/thetiptop/api/internal/architecture/kernel"
+	"github.com/kodmain/thetiptop/api/internal/application"
+	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/docs"
+	"github.com/kodmain/thetiptop/api/internal/interfaces"
 )
 
 var methods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"}
@@ -33,7 +33,7 @@ func (server *Server) Start() {
 // API is a method of the `Server` struct that registers the provided API with the server.
 // It creates a new version of the API router, adds the provided API to the router's namespace, and registers the new router with the server's main `app` instance.
 func (server *Server) Register(handlers map[string]fiber.Handler) {
-	for url, pathItem := range api.Mapping.Paths {
+	for url, pathItem := range interfaces.Mapping.Paths {
 		for _, method := range methods {
 			if operationID, exist := getOperationID(pathItem, method); exist {
 				handlersToRegister := getHandlers(operationID, handlers)
@@ -97,11 +97,11 @@ func getOperationID(pathItem *docs.PathItem, method string) (string, bool) {
 }
 
 func (server *Server) http() {
-	kernel.PANIC <- server.app.Listen(":80")
+	application.PANIC <- server.app.Listen(":80")
 	logger.Info("Server started on port 80")
 }
 
 func (server *Server) https() {
-	kernel.PANIC <- server.app.ListenTLSWithCertificate(":443", server.certs.Certificates[0])
+	application.PANIC <- server.app.ListenTLSWithCertificate(":443", server.certs.Certificates[0])
 	logger.Info("Server started on port 443")
 }

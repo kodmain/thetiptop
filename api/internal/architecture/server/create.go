@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 	"github.com/kodmain/thetiptop/api/config"
-	"github.com/kodmain/thetiptop/api/internal/application/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/architecture/server/certs"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
 )
