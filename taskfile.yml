@@ -103,9 +103,20 @@ tasks:
     desc: Build the api
     cmds:
       - | 
+        go generate ./... 
+        swag init -g cmd/main.go -o ./internal/docs/generated
         rm -rf {{.TASKFILE_DIR}}/.build/api || true
         ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
         GOOS=linux go build -trimpath -buildvcs=false -tags netgo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/thetiptop cmd/main.go
+
+  api:run:
+    dir: api
+    desc: Build the api
+    cmds:
+      - | 
+        go generate ./... 
+        swag init -g cmd/main.go -o ./internal/docs/generated
+        go run cmd/main.go
 
   api:arch:rebuild:
     dir: deploy/aws/api
