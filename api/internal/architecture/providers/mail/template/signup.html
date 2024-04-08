@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>Validation d'inscription</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            margin: 30px auto 30px auto;
+        }
+        .container {
+            width: 600px;
+        }
+        .header {
+            padding: 20px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+        }
+        .body-content {
+            background-color: white;
+            padding: 20px;
+            color: #333333;
+        }
+        .footer {
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #666666;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        p {
+            font-size: 16px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: underline;
+            font-size: 16px;
+        }
+        td.center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <tr>
+            <td class="center">
+                <!-- Conteneur principal -->
+                <table class="container">
+                    <!-- En-tête -->
+                    <tr>
+                        <th class="header">
+                            <h1>Validation de votre inscription</h1>
+                        </th>
+                    </tr>
+                    <!-- Corps du message -->
+                    <tr>
+                        <td class="body-content">
+                            <p>Bonjour,</p>
+                            <p>Veuillez cliquer sur le lien ci-dessous pour valider votre inscription :</p>
+                            <!-- Lien de validation -->
+                            <p><a href="{{.Url}}" target="_blank">Valider mon inscription</a></p>
+                        </td>
+                    </tr>
+                    <!-- Pied de page -->
+                    <tr>
+                        <td class="footer">
+                            <p>&copy; {{.AppName}}</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

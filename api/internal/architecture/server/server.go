@@ -38,7 +38,7 @@ func (server *Server) Register(handlers map[string]fiber.Handler) {
 			if operationID, exist := getOperationID(pathItem, method); exist {
 				handlersToRegister := getHandlers(operationID, handlers)
 				if len(handlersToRegister) > 0 {
-					server.app.Add(method, url, handlersToRegister...)
+					server.app.Add(method, url, wrapLastHandler(handlersToRegister)...)
 					logger.Infof("Register %v %v with %v", method, url, operationID)
 				} else {
 					logger.Warnf("Handler not found %v", operationID)
@@ -46,6 +46,21 @@ func (server *Server) Register(handlers map[string]fiber.Handler) {
 			}
 		}
 	}
+}
+
+func wrapLastHandler(handlers []fiber.Handler) []fiber.Handler {
+	if len(handlers) == 0 {
+		return handlers
+	}
+
+	last := handlers[len(handlers)-1]
+	wrappedLast := func(c *fiber.Ctx) error {
+		err := last(c)
+		logger.Messagef("%v %v %v", c.Method(), c.Response().StatusCode(), c.Path())
+		return err
+	}
+
+	return append(handlers[:len(handlers)-1], wrappedLast)
 }
 
 func getHandlers(operationID string, handlers map[string]fiber.Handler) []fiber.Handler {

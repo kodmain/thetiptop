@@ -2,9 +2,7 @@ package client
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/api/internal/application/repositories"
-	"github.com/kodmain/thetiptop/api/internal/domain/entities"
-	"github.com/kodmain/thetiptop/api/internal/domain/services"
+	"github.com/kodmain/thetiptop/api/internal/application/workflow"
 )
 
 // @Tags		Sign
@@ -16,22 +14,20 @@ import (
 // @Id			client.SignUp
 func SignUp(c *fiber.Ctx) error {
 	email := c.FormValue("email")
+	password := c.FormValue("password")
 
-	if email == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "email is required",
-		})
-	}
+	status, response := workflow.Client.SignUp(email, password)
 
-	service := services.NewClientService(
-		repositories.NewClientRepository(),
-	)
+	return c.Status(status).JSON(response)
+	/*
+		if err := workflow.SignUp(email, password); logger.Error(err) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
 
-	service.CreateClient(&entities.Client{
-		Email: email,
-	})
-
-	return c.Status(fiber.StatusNoContent).Send(nil)
+		return c.Status(fiber.StatusNoContent).Send(nil)
+	*/
 }
 
 // @Tags		Sign

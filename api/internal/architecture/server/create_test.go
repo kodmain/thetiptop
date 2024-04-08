@@ -43,16 +43,6 @@ func TestSetGoToDoc(t *testing.T) {
 
 }
 
-func TestLog(t *testing.T) {
-	app := fiber.New()
-	app.Use(log)
-
-	req := httptest.NewRequest(http.MethodGet, "/index.html", nil)
-	resp, err := app.Test(req)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-}
-
 func TestSetSecurityHeaders(t *testing.T) {
 	app := fiber.New()
 	app.Use(setSecurityHeaders)

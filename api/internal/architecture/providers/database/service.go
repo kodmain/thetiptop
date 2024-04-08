@@ -1,22 +1,26 @@
-package persistence
+package database
 
 import (
 	"fmt"
 
 	"github.com/kodmain/thetiptop/api/internal/application"
-	"github.com/kodmain/thetiptop/api/internal/architecture/events"
 	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	glogger "gorm.io/gorm/logger"
 )
 
-var databases map[string]*gorm.DB = make(map[string]*gorm.DB)
+var instances map[string]*gorm.DB = make(map[string]*gorm.DB)
 
-func New(cfgs ...Config) error {
-	for _, cfg := range cfgs {
-		if _, ok := databases[cfg.Name]; ok {
+func New(databases *Databases) error {
+	for key, cfg := range *databases {
+		if cfg == nil {
+			return fmt.Errorf("database configuration is required")
+		}
+
+		if _, ok := instances[key]; ok {
 			return fmt.Errorf("database already exists")
 		}
 
@@ -42,24 +46,35 @@ func New(cfgs ...Config) error {
 			return fmt.Errorf("unknown protocol")
 		}
 
-		databases[cfg.Name], err = gorm.Open(dial, &gorm.Config{
+		/*
+			import glogger "gorm.io/gorm/logger"
+			newLogger := glogger.New(
+				log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer (stdout)
+				glogger.Config{
+					SlowThreshold: time.Second,  // Seuil de temps lent pour les requêtes
+					LogLevel:      glogger.Info, // LogLevel Info pour voir toutes les requêtes
+					Colorful:      true,         // Activer les couleurs
+				},
+			)
+		*/
+
+		instances[key], err = gorm.Open(dial, &gorm.Config{
 			PrepareStmt: true,
+			Logger:      glogger.Discard,
 		})
 
 		if err != nil {
 			return err
 		}
-
-		events.Notify(events.MIGRATE, cfg.Name)
 	}
 
 	return nil
 }
 
 func Get(name string) *gorm.DB {
-	if _, ok := databases[name]; !ok {
+	if _, ok := instances[name]; !ok {
 		application.PANIC <- fmt.Errorf("database not found")
 	}
 
-	return databases[name]
+	return instances[name]
 }

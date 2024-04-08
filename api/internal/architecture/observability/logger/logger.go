@@ -12,7 +12,7 @@ import (
 )
 
 // Constant for formatting log path with color.
-const PATH = "| \033[38;5;2m%v\033[39;49m | \033[38;5;%sm%s\033[39;49m |"
+const PATH = "| \033[38;5;%sm%s\033[39;49m |"
 
 // Logger struct holds the logging configuration and loggers for different levels.
 type Logger struct {
@@ -76,9 +76,9 @@ func (l *Logger) Write(level levels.TYPE, messages ...any) {
 			}
 
 			if level == levels.DEBUG {
-				logger.Println(fmt.Sprintf(PATH, os.Getpid(), level.Color(), level.String()), dd.Dump(message, dd.WithIndent(4)))
+				logger.Println(fmt.Sprintf(PATH, level.Color(), level.String()), dd.Dump(message, dd.WithIndent(4)))
 			} else if level <= l.level {
-				logger.Println(fmt.Sprintf(PATH, os.Getpid(), level.Color(), level.String()), message)
+				logger.Println(fmt.Sprintf(PATH, level.Color(), level.String()), message)
 			}
 		}
 	}

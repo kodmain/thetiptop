@@ -1,6 +1,8 @@
 package client
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+)
 
 // @Tags		Models
 // @Accept		*/*
