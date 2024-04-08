@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"github.com/kodmain/thetiptop/api/internal/application/dto"
-	"github.com/kodmain/thetiptop/api/internal/architecture/providers/mail"
-	"github.com/kodmain/thetiptop/api/internal/architecture/repositories"
 	interfaces "github.com/kodmain/thetiptop/api/internal/domain/repositories"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/repositories"
 )
 
 var instance *ClientService

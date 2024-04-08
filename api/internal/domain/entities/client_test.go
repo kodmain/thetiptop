@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/dto"
-	"github.com/kodmain/thetiptop/api/internal/architecture/security"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
 type Exiter interface {

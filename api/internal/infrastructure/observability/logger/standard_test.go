@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger/levels"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
 	"github.com/stretchr/testify/assert"
 )
 

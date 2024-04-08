@@ -7,11 +7,11 @@ package main
 import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application"
-	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
-	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger/levels"
-	"github.com/kodmain/thetiptop/api/internal/architecture/providers/database"
-	"github.com/kodmain/thetiptop/api/internal/architecture/providers/mail"
-	"github.com/kodmain/thetiptop/api/internal/architecture/server"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/spf13/cobra"
 )

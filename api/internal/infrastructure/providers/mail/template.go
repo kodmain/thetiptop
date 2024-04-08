@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
 // Utilisez `go:embed` pour embarquer les fichiers de template.
