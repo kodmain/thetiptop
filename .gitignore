@@ -7,3 +7,4 @@ token.env
 coverage.out
 tfplan
 *.db
+config.yml

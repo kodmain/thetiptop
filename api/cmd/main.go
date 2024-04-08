@@ -2,14 +2,15 @@
 package main
 
 //go:generate go run ../internal/docs/generator.go
-//go:generate go fmt ../../api/internal/interfaces/api.gen.go
+//go:generate go fmt ../internal/interfaces/api.gen.go
 
 import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application"
 	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger/levels"
-	"github.com/kodmain/thetiptop/api/internal/architecture/persistence"
+	"github.com/kodmain/thetiptop/api/internal/architecture/providers/database"
+	"github.com/kodmain/thetiptop/api/internal/architecture/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/architecture/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/spf13/cobra"
@@ -22,18 +23,32 @@ var Helper *cobra.Command = &cobra.Command{
 	DisableAutoGenTag:     true,
 	DisableFlagsInUseLine: true,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
+		logger.Info("loading configuration")
 		logger.SetLevel(levels.DEBUG)
-		if err := persistence.New(
-			persistence.Config{
-				Protocol: persistence.SQLite,
-				Name:     "file",
-				DBName:   config.DEFAULT_DB_PATH,
-			},
-		); err != nil {
+		cfg, err := config.Load("config.yml")
+
+		if err != nil {
 			return err
 		}
 
-		logger.Info("loading configuration")
+		if err := database.New(cfg.Databases); err != nil {
+			return err
+		}
+
+		if err := mail.New(cfg.Mail); err != nil {
+			return err
+		}
+
+		/*
+			err = mail.Send(&mail.Mail{
+				To:      []string{"extazy937@gmail.com"},
+				Cc:      []string{"alt.zo-8of03jkz@yopmail.com"},
+				Subject: "TheTipTop API Server",
+				Text:    []byte("TheTipTop API Server is running"),
+				Html:    []byte("<h1>TheTipTop API Server is running</h1>"),
+			})
+		*/
+
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {

@@ -4,31 +4,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kodmain/thetiptop/api/internal/architecture/events"
-	"github.com/kodmain/thetiptop/api/internal/architecture/persistence"
+	"github.com/kodmain/thetiptop/api/internal/application/dto"
+	"github.com/kodmain/thetiptop/api/internal/architecture/security"
 	"gorm.io/gorm"
 )
-
-// Client defines the model for the 'clients' table.
-// This model includes ID, Email, Password, CreatedAt, UpdatedAt, and DeletedAt.
-//
-// Parameters:
-// - gorm.Model: Provides ID, CreatedAt, UpdatedAt, DeletedAt.
-// - ID: uuid.UUID Unique identifier for the client, serves as the primary key.
-// - Email: string Client's email, must be unique.
-// - Password: string Client's password.
-// - CreatedAt: time.Time Timestamp when the client record was created.
-// - UpdatedAt: time.Time Timestamp when the client record was last updated.
-// - DeletedAt: *time.Time Timestamp when the client record was deleted, can be null.
-//
-// Returns:
-// - Client: Struct representing a client.
-
-func init() {
-	events.Subscribe(events.MIGRATE, func(a ...any) {
-		persistence.Migrate(&Client{})
-	})
-}
 
 /*
 type Client struct {
@@ -44,20 +23,36 @@ type Client struct {
 
 type Client struct {
 	gorm.Model
-	ID        uuid.UUID
-	Email     string     `gorm:"type:varchar(100);uniqueIndex"`
-	Password  string     `gorm:"size:255"`
-	CreatedAt time.Time  `gorm:"type:timestamp"`
-	UpdatedAt time.Time  `gorm:"type:timestamp"`
-	DeletedAt *time.Time `gorm:"type:timestamp;index"`
+	ID       uuid.UUID `gorm:"type:uuid;primaryKey;"`
+	Email    string    `gorm:"type:varchar(100);uniqueIndex"`
+	Password string    `gorm:"size:255"`
 }
 
-func NewClient(email, password string) *Client {
-	return &Client{
-		ID:        uuid.New(),
-		Email:     email,
-		Password:  password,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+func (client *Client) BeforeUpdate(tx *gorm.DB) error {
+	client.UpdatedAt = time.Now()
+	return nil
+}
+
+func (client *Client) BeforeCreate(tx *gorm.DB) error {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return err
 	}
+
+	client.ID = id
+	return nil
+}
+
+func CreateClient(obj *dto.Client) (*Client, error) {
+	password, err := security.Hash(obj.Email+":"+obj.Password, security.BCRYPT)
+
+	if err != nil {
+		return nil, nil
+	}
+
+	return &Client{
+		ID:       uuid.New(),
+		Email:    obj.Email,
+		Password: password,
+	}, nil
 }

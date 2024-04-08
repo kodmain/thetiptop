@@ -19,18 +19,18 @@ func init() {
 // API represents a collection of HTTP endpoints grouped by namespace and version.
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
-		"status.HealthCheck":    status.HealthCheck,
-		"status.IP":             status.IP,
-		"client.UpdatePartial":  client.UpdatePartial,
-		"client.UpdateComplete": client.UpdateComplete,
-		"client.Delete":         client.Delete,
-		"client.Renew":          client.Renew,
-		"client.Find":           client.Find,
-		"client.Reset":          client.Reset,
 		"client.SignUp":         client.SignUp,
 		"client.SignIn":         client.SignIn,
-		"client.SignOut":        client.SignOut,
 		"client.FindOne":        client.FindOne,
+		"client.Find":           client.Find,
+		"client.Delete":         client.Delete,
+		"status.IP":             status.IP,
+		"client.SignOut":        client.SignOut,
+		"client.UpdatePartial":  client.UpdatePartial,
+		"client.UpdateComplete": client.UpdateComplete,
+		"client.Renew":          client.Renew,
+		"client.Reset":          client.Reset,
+		"status.HealthCheck":    status.HealthCheck,
 	}
 	Mapping = &docs.Swagger{}
 	doc, _  = swag.ReadDoc()

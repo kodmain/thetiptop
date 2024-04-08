@@ -1,4 +1,4 @@
-package persistence
+package database
 
 import (
 	"fmt"
@@ -6,46 +6,45 @@ import (
 	"strings"
 )
 
-type Protocol int
+type Options map[string]string
+type Databases map[string]*Database
 
 const (
-	MySQL Protocol = iota
-	PostgreSQL
-	SQLite
+	MySQL      string = "mysql"
+	PostgreSQL string = "postgres"
+	SQLite     string = "sqlite"
 )
 
-type Config struct {
-	Name string // Nom de la base de données
-
-	Protocol Protocol // 'mysql', 'postgres', 'sqlite'
-	Host     string   // 'localhost', '127.0.0.1', ou vide pour SQLite
-	Port     string   // '3306', '5432', ou vide pour SQLite
-	User     string   // Nom d'utilisateur, vide pour SQLite
-	Password string   // Mot de passe, vide pour SQLite
-	DBName   string   // Nom de la base de données, chemin vers le fichier SQLite ou ':memory:'
+type Database struct {
+	Protocol string `yaml:"protocol"` // 'mysql', 'postgres', 'sqlite'
+	Host     string `yaml:"host"`     // 'localhost', '127.0.0.1', ou vide pour SQLite
+	Port     string `yaml:"port"`     // '3306', '5432', ou vide pour SQLite
+	User     string `yaml:"user"`     // Nom d'utilisateur, vide pour SQLite
+	Password string `yaml:"password"` // Mot de passe, vide pour SQLite
+	DBname   string `yaml:"dbname"`   // Nom de la base de données, chemin vers le fichier SQLite ou ':memory:'
 
 	// Paramètres spécifiques pour la connexion à la base de données
 	// Par exemple, pour MySQL & PostgreSQL, ça pourrait être 'sslmode=disable', etc.
-	Options map[string]string
+	Options Options
 }
 
-func (cfg *Config) ToDSN() (string, error) {
+func (cfg *Database) ToDSN() (string, error) {
 	switch cfg.Protocol {
 	case MySQL:
 		// Format DSN MySQL : user:password@tcp(host:port)/dbname?options
-		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, formatOptions(cfg.Options)), nil
+		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBname, formatOptions(cfg.Options)), nil
 	case PostgreSQL:
-		// Format DSN PostgreSQL : host=myhost port=myport user=myuser dbname=mydb options
-		return fmt.Sprintf("host=%s port=%s user=%s dbname=%s %s", cfg.Host, cfg.Port, cfg.User, cfg.DBName, formatOptions(cfg.Options)), nil
+		// Format DSN PostgreSQL : h=myh port=myport user=myuser dbname=mydb options
+		return fmt.Sprintf("host=%s port=%s user=%s dbname=%s %s", cfg.Host, cfg.Port, cfg.User, cfg.DBname, formatOptions(cfg.Options)), nil
 	case SQLite:
 		// SQLite utilise simplement le chemin du fichier ou ':memory:'
-		return cfg.DBName, nil
+		return cfg.DBname, nil
 	default:
 		return "", fmt.Errorf("protocole inconnu")
 	}
 }
 
-func (cfg *Config) Validate() error {
+func (cfg *Database) Validate() error {
 	switch cfg.Protocol {
 	case MySQL:
 		return cfg.validateMySQL()
@@ -58,7 +57,7 @@ func (cfg *Config) Validate() error {
 	}
 }
 
-func (cfg *Config) validateMySQL() error {
+func (cfg *Database) validateMySQL() error {
 	if cfg.Host == "" {
 		return fmt.Errorf("l'hôte MySQL est requis")
 	}
@@ -72,7 +71,7 @@ func (cfg *Config) validateMySQL() error {
 	return nil
 }
 
-func (cfg *Config) validatePostgreSQL() error {
+func (cfg *Database) validatePostgreSQL() error {
 	if cfg.Host == "" {
 		return fmt.Errorf("l'hôte PostgreSQL est requis")
 	}
@@ -86,8 +85,8 @@ func (cfg *Config) validatePostgreSQL() error {
 	return nil
 }
 
-func (cfg *Config) validateSQLite() error {
-	if cfg.DBName == "" {
+func (cfg *Database) validateSQLite() error {
+	if cfg.DBname == "" {
 		return fmt.Errorf("le nom de la base de données SQLite est requis")
 	}
 	return nil

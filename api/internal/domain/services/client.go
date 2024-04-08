@@ -1,37 +1,60 @@
 package services
 
 import (
-	"github.com/google/uuid"
-	"github.com/kodmain/thetiptop/api/internal/domain/entities"
-	"github.com/kodmain/thetiptop/api/internal/domain/repositories"
+	"errors"
+
+	"github.com/kodmain/thetiptop/api/internal/application/dto"
+	"github.com/kodmain/thetiptop/api/internal/architecture/providers/mail"
+	"github.com/kodmain/thetiptop/api/internal/architecture/repositories"
+	interfaces "github.com/kodmain/thetiptop/api/internal/domain/repositories"
 )
 
+var instance *ClientService
+
 type ClientService struct {
-	repo repositories.ClientRepository
+	repo interfaces.ClientRepository
+	mail *mail.Template
 }
 
-func NewClientService(repo repositories.ClientRepository) *ClientService {
-	return &ClientService{
-		repo: repo,
+func Client() *ClientService {
+	if instance != nil {
+		return instance
 	}
+
+	instance = &ClientService{
+		repo: repositories.NewClientRepository("default"),
+		mail: mail.NewTemplate("signup"),
+	}
+
+	return instance
 }
 
-func (s *ClientService) GetClient(uuid uuid.UUID) (*entities.Client, error) {
-	return s.repo.GetClient(uuid)
-}
+func (s *ClientService) SignUp(dto *dto.Client) error {
+	_, err := s.repo.Read(dto)
+	if err == nil {
+		return errors.New("client already exists")
+	}
 
-func (s *ClientService) GetClients(filter map[string]interface{}) ([]*entities.Client, error) {
-	return s.repo.GetClients(filter)
-}
+	client, err := s.repo.Create(dto)
+	if err != nil {
+		return err
+	}
 
-func (s *ClientService) CreateClient(client *entities.Client) (*entities.Client, error) {
-	return s.repo.CreateClient(client)
-}
+	text, html, err := s.mail.Inject(map[string]interface{}{
+		"AppName": "The Tip Top",
+		"Url":     "https://thetiptop.com",
+	})
 
-func (s *ClientService) UpdateClient(client *entities.Client) (*entities.Client, error) {
-	return s.repo.UpdateClient(client)
-}
+	if err != nil {
+		return err
+	}
 
-func (s *ClientService) DeleteClient(uuid uuid.UUID) error {
-	return s.repo.DeleteClient(uuid)
+	m := &mail.Mail{
+		To:      []string{client.Email},
+		Subject: "Welcome to The Tip Top",
+		Text:    text,
+		Html:    html,
+	}
+
+	return mail.Send(m)
 }

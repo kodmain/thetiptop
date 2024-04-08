@@ -5,7 +5,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 	"github.com/kodmain/thetiptop/api/config"
-	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/architecture/server/certs"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
 )
@@ -38,7 +37,7 @@ func Create(cfgs ...fiber.Config) *Server {
 		app:   fiber.New(cfg),
 		certs: certs.TLSConfigFor(config.HOSTNAME),
 	}
-	server.app.Use(log)                // register middleware logger
+
 	server.app.Use(setGoToDoc)         // register middleware setGoToDoc
 	server.app.Use(setSecurityHeaders) // register middleware setSecurityHeaders
 	server.app.Get("/docs/*", swagger.New(swagger.Config{
@@ -51,11 +50,6 @@ func Create(cfgs ...fiber.Config) *Server {
 	servers[cfg.AppName] = server
 
 	return server
-}
-
-func log(c *fiber.Ctx) error {
-	logger.Messagef("%v %v", c.Method(), c.Path())
-	return c.Next()
 }
 
 // setGoToDoc is a middleware that redirect to /docs url path is like /
