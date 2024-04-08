@@ -1,6 +1,6 @@
 package logger
 
-import "github.com/kodmain/thetiptop/api/internal/architecture/observability/logger/levels"
+import "github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
 
 var instance *Logger = nil
 

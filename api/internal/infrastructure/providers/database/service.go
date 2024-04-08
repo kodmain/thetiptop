@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kodmain/thetiptop/api/internal/application"
-	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"

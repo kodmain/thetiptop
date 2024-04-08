@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/dto"
-	"github.com/kodmain/thetiptop/api/internal/architecture/security"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security"
 	"gorm.io/gorm"
 )
 

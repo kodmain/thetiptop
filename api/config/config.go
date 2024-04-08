@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kodmain/thetiptop/api/internal/architecture/providers/database"
-	"github.com/kodmain/thetiptop/api/internal/architecture/providers/mail"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"gopkg.in/yaml.v3"
 )
 

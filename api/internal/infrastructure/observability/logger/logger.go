@@ -8,7 +8,7 @@ import (
 	"runtime/debug"
 
 	"github.com/Code-Hex/dd"
-	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger/levels"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
 )
 
 // Constant for formatting log path with color.

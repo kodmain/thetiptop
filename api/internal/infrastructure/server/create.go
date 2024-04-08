@@ -5,8 +5,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 	"github.com/kodmain/thetiptop/api/config"
-	"github.com/kodmain/thetiptop/api/internal/architecture/server/certs"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/server/certs"
 )
 
 var servers map[string]*Server = make(map[string]*Server)

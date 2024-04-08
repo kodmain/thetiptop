@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"github.com/kodmain/thetiptop/api/internal/application/dto"
-	"github.com/kodmain/thetiptop/api/internal/architecture/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"gorm.io/gorm"
 )
 

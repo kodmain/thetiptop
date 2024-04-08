@@ -7,8 +7,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application"
-	"github.com/kodmain/thetiptop/api/internal/architecture/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/docs"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 )
 
