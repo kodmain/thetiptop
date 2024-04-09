@@ -78,6 +78,12 @@ tasks:
       - terraform init -upgrade
       - terraform apply -auto-approve -destroy
 
+  app:run:
+    dir: app
+    desc: Run the app
+    cmds:
+      - flutter run -d chrome
+
   ## API 
   api:update:
     dir: api
@@ -123,3 +129,9 @@ tasks:
     cmds:
       - terraform init -var="github_token=$GH_TOKEN" -upgrade
       - terraform apply -auto-approve -destroy -var="github_token=$GH_TOKEN"
+
+  api:run:
+    dir: api
+    desc: Run the api
+    cmds:
+      - go run cmd/main.go
