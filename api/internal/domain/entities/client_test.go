@@ -33,8 +33,8 @@ func TestNewClient(t *testing.T) {
 
 	hash, err := security.Hash(email+":"+password, security.BCRYPT)
 	assert.Nil(t, err)
-	if security.CompareHash(client.Password, email+":"+password, security.BCRYPT) != nil {
-		t.Errorf("Expected password %s, got %s", hash, client.Password)
+	if client.CompareHash(email + ":" + password) {
+		t.Errorf("Expected password %s", hash)
 	}
 
 	now := time.Now()

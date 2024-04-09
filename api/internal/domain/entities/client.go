@@ -23,9 +23,18 @@ type Client struct {
 
 type Client struct {
 	gorm.Model
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey;"`
-	Email    string    `gorm:"type:varchar(100);uniqueIndex"`
-	Password string    `gorm:"size:255"`
+	ID    uuid.UUID `gorm:"type:uuid;primaryKey;"`
+	Email string    `gorm:"type:varchar(320);uniqueIndex"`
+
+	ValidationEmail bool `gorm:"type:boolean;default:false"`
+	CGU             bool `gorm:"type:boolean;default:false"`
+	Newsletter      bool `gorm:"type:boolean;default:false"`
+
+	password string `gorm:"type:varchar(255)"` // private field
+}
+
+func (client *Client) CompareHash(password string) bool {
+	return security.CompareHash(client.password, password, security.BCRYPT) == nil
 }
 
 func (client *Client) BeforeUpdate(tx *gorm.DB) error {
@@ -53,6 +62,6 @@ func CreateClient(obj *dto.Client) (*Client, error) {
 	return &Client{
 		ID:       uuid.New(),
 		Email:    obj.Email,
-		Password: password,
+		password: password,
 	}, nil
 }

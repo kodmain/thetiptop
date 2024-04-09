@@ -1,8 +1,11 @@
 package repositories
 
 import (
+	"fmt"
+
 	"github.com/kodmain/thetiptop/api/internal/application/dto"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"gorm.io/gorm"
 )
@@ -27,6 +30,10 @@ func (r *ClientRepository) Create(obj *dto.Client) (*entities.Client, error) {
 	result := r.database.Create(client)
 
 	if result.Error != nil {
+		if result.Error.Error() == "UNIQUE constraint failed: clients.email" {
+			return nil, fmt.Errorf(errors.ErrClientAlreadyExists)
+		}
+
 		return nil, result.Error
 	}
 
@@ -34,8 +41,9 @@ func (r *ClientRepository) Create(obj *dto.Client) (*entities.Client, error) {
 }
 
 func (r *ClientRepository) Read(obj *dto.Client) (*entities.Client, error) {
-	client := &entities.Client{
-		Email: obj.Email,
+	client, err := entities.CreateClient(obj)
+	if err != nil {
+		return nil, err
 	}
 
 	result := r.database.Where(client).First(client)
