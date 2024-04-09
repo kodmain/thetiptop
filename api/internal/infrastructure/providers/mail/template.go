@@ -5,18 +5,21 @@ import (
 	"embed"
 	"html/template"
 	"io/fs"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
+const templatesPath = "templates"
+
 // Utilisez `go:embed` pour embarquer les fichiers de template.
 //
-//go:embed template/*.html
+//go:embed templates/*.html
 var htmls embed.FS
 
-//go:embed template/*.txt
+//go:embed templates/*.txt
 var txts embed.FS
 
 // templates stocke les templates HTML et texte compilés.
@@ -24,7 +27,7 @@ var templates = make(map[string]*Template)
 
 func init() {
 	// Charger les templates HTML.
-	htmlFiles, err := fs.ReadDir(htmls, "template")
+	htmlFiles, err := fs.ReadDir(htmls, templatesPath)
 	if err != nil {
 		logger.Error(err)
 	}
@@ -33,7 +36,7 @@ func init() {
 			continue
 		}
 		name := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
-		tmpl, err := template.ParseFS(htmls, "template/"+file.Name())
+		tmpl, err := template.ParseFS(htmls, path.Join(templatesPath, file.Name()))
 		if err != nil {
 			logger.Error(err)
 			continue
@@ -46,7 +49,7 @@ func init() {
 	}
 
 	// Charger les templates texte.
-	textFiles, err := fs.ReadDir(txts, "template")
+	textFiles, err := fs.ReadDir(txts, templatesPath)
 	if err != nil {
 		logger.Error(err)
 	}
@@ -55,7 +58,7 @@ func init() {
 			continue
 		}
 		name := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
-		tmpl, err := template.New(file.Name()).ParseFS(txts, "template/"+file.Name())
+		tmpl, err := template.New(file.Name()).ParseFS(txts, path.Join(templatesPath, file.Name()))
 		if err != nil {
 			logger.Error(err)
 			continue
@@ -75,7 +78,7 @@ type Template struct {
 }
 
 // Inject insère des données dans les templates HTML et texte.
-func (t *Template) Inject(data any) ([]byte, []byte, error) {
+func (t *Template) Inject(data Data) ([]byte, []byte, error) {
 	var html bytes.Buffer
 	var text bytes.Buffer
 

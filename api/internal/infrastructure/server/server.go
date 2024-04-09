@@ -3,6 +3,7 @@ package server
 
 import (
 	"crypto/tls"
+	"fmt"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,6 +14,10 @@ import (
 )
 
 var methods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"}
+
+const (
+	vvv = "%v %v %v"
+)
 
 // Server is a struct that represents a Fiber server instance with an underlying `fiber.App`, `fiber.Router` for the API endpoints, and a map of `fiber.Router` instances for different API versions.
 type Server struct {
@@ -56,7 +61,13 @@ func wrapLastHandler(handlers []fiber.Handler) []fiber.Handler {
 	last := handlers[len(handlers)-1]
 	wrappedLast := func(c *fiber.Ctx) error {
 		err := last(c)
-		logger.Messagef("%v %v %v", c.Method(), c.Response().StatusCode(), c.Path())
+		status := c.Response().StatusCode()
+		if status >= 400 {
+			logger.Error(fmt.Errorf(vvv, c.Method(), status, c.Path()))
+		} else {
+			logger.Messagef(vvv, c.Method(), c.Response().StatusCode(), c.Path())
+		}
+
 		return err
 	}
 

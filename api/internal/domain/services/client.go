@@ -40,8 +40,8 @@ func (s *ClientService) SignUp(dto *dto.Client) error {
 		return err
 	}
 
-	text, html, err := s.mail.Inject(map[string]interface{}{
-		"AppName": "The Tip Top",
+	text, html, err := s.mail.Inject(mail.Data{
+		"AppName": "ThéTipTop",
 		"Url":     "https://thetiptop.com",
 	})
 
