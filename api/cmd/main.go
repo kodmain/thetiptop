@@ -11,6 +11,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/spf13/cobra"
@@ -39,15 +40,9 @@ var Helper *cobra.Command = &cobra.Command{
 			return err
 		}
 
-		/*
-			err = mail.Send(&mail.Mail{
-				To:      []string{"extazy937@gmail.com"},
-				Cc:      []string{"alt.zo-8of03jkz@yopmail.com"},
-				Subject: "TheTipTop API Server",
-				Text:    []byte("TheTipTop API Server is running"),
-				Html:    []byte("<h1>TheTipTop API Server is running</h1>"),
-			})
-		*/
+		if err := jwt.New(cfg.JWT); err != nil {
+			return err
+		}
 
 		return nil
 	},

@@ -3,7 +3,7 @@ package repositories
 import (
 	"fmt"
 
-	"github.com/kodmain/thetiptop/api/internal/application/dto"
+	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
@@ -21,7 +21,7 @@ func NewClientRepository(name string) *ClientRepository {
 	return &ClientRepository{database}
 }
 
-func (r *ClientRepository) Create(obj *dto.Client) (*entities.Client, error) {
+func (r *ClientRepository) Create(obj *transfert.Client) (*entities.Client, error) {
 	client, err := entities.CreateClient(obj)
 	if err != nil {
 		return nil, err
@@ -40,13 +40,13 @@ func (r *ClientRepository) Create(obj *dto.Client) (*entities.Client, error) {
 	return client, nil
 }
 
-func (r *ClientRepository) Read(obj *dto.Client) (*entities.Client, error) {
+func (r *ClientRepository) Read(obj *transfert.Client) (*entities.Client, error) {
 	client, err := entities.CreateClient(obj)
 	if err != nil {
 		return nil, err
 	}
 
-	result := r.database.Where(client).First(client)
+	result := r.database.Where(obj).First(client)
 
 	if result.Error != nil {
 		return nil, result.Error

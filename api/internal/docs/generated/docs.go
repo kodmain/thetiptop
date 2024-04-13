@@ -161,6 +161,13 @@ const docTemplate = `{
                         "name": "email",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -181,7 +188,26 @@ const docTemplate = `{
                 "tags": [
                     "Sign"
                 ],
-                "operationId": "client.SignOut",
+                "operationId": "jwt.Auth =\u003e client.SignOut",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/sign/renew": {
+            "get": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sign"
+                ],
+                "operationId": "client.SignRenew",
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -211,8 +237,14 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "No Content"
+                    "201": {
+                        "description": "Client created"
+                    },
+                    "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "409": {
+                        "description": "Client already exists"
                     }
                 }
             }

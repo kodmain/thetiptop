@@ -4,8 +4,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kodmain/thetiptop/api/internal/application/dto"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/security"
+	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 	"gorm.io/gorm"
 )
 
@@ -23,18 +24,17 @@ type Client struct {
 
 type Client struct {
 	gorm.Model
-	ID    uuid.UUID `gorm:"type:uuid;primaryKey;"`
-	Email string    `gorm:"type:varchar(320);uniqueIndex"`
+	ID       string `gorm:"type:varchar(36);primaryKey;"`
+	Email    string `gorm:"type:varchar(320);uniqueIndex"`
+	Password string `gorm:"type:varchar(255)"` // private field
 
 	ValidationEmail bool `gorm:"type:boolean;default:false"`
 	CGU             bool `gorm:"type:boolean;default:false"`
 	Newsletter      bool `gorm:"type:boolean;default:false"`
-
-	password string `gorm:"type:varchar(255)"` // private field
 }
 
 func (client *Client) CompareHash(password string) bool {
-	return security.CompareHash(client.password, password, security.BCRYPT) == nil
+	return hash.CompareHash(client.Password, client.Email+":"+password, hash.BCRYPT) == nil
 }
 
 func (client *Client) BeforeUpdate(tx *gorm.DB) error {
@@ -48,20 +48,22 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 
-	client.ID = id
+	logger.Info(client.Email + ":" + client.Password)
+
+	password, err := hash.Hash(client.Email+":"+client.Password, hash.BCRYPT)
+	if err != nil {
+		return err
+	}
+
+	client.ID = id.String()
+	client.Password = password
+
 	return nil
 }
 
-func CreateClient(obj *dto.Client) (*Client, error) {
-	password, err := security.Hash(obj.Email+":"+obj.Password, security.BCRYPT)
-
-	if err != nil {
-		return nil, nil
-	}
-
+func CreateClient(obj *transfert.Client) (*Client, error) {
 	return &Client{
-		ID:       uuid.New(),
 		Email:    obj.Email,
-		password: password,
+		Password: obj.Password,
 	}, nil
 }

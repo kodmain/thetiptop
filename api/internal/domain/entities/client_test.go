@@ -4,10 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/kodmain/thetiptop/api/internal/application/dto"
+	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/security"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,15 +14,15 @@ func TestNewClient(t *testing.T) {
 	email := "test@example.com"
 	password := "password"
 
-	dto := &dto.Client{
+	obj := &transfert.Client{
 		Email:    email,
 		Password: password,
 	}
 
-	client, err := entities.CreateClient(dto)
+	client, err := entities.CreateClient(obj)
 	assert.Nil(t, err)
 
-	if client.ID == uuid.Nil {
+	if client.ID == "" {
 		t.Error("Expected non-zero UUID, got zero")
 	}
 
@@ -31,7 +30,7 @@ func TestNewClient(t *testing.T) {
 		t.Errorf("Expected email %s, got %s", email, client.Email)
 	}
 
-	hash, err := security.Hash(email+":"+password, security.BCRYPT)
+	hash, err := hash.Hash(email+":"+password, hash.BCRYPT)
 	assert.Nil(t, err)
 	if client.CompareHash(email + ":" + password) {
 		t.Errorf("Expected password %s", hash)

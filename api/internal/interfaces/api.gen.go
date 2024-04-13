@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/docs"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/api/client"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/status"
 	"github.com/swaggo/swag"
@@ -19,18 +20,20 @@ func init() {
 // API represents a collection of HTTP endpoints grouped by namespace and version.
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
-		"client.SignUp":         client.SignUp,
-		"client.SignIn":         client.SignIn,
-		"client.Find":           client.Find,
-		"client.UpdateComplete": client.UpdateComplete,
-		"client.Renew":          client.Renew,
-		"client.SignOut":        client.SignOut,
-		"client.FindOne":        client.FindOne,
-		"client.UpdatePartial":  client.UpdatePartial,
-		"client.Delete":         client.Delete,
 		"client.Reset":          client.Reset,
+		"client.SignRenew":      client.SignRenew,
+		"client.FindOne":        client.FindOne,
+		"client.Renew":          client.Renew,
 		"status.HealthCheck":    status.HealthCheck,
 		"status.IP":             status.IP,
+		"client.SignIn":         client.SignIn,
+		"jwt.Auth":              jwt.Auth,
+		"client.SignOut":        client.SignOut,
+		"client.UpdateComplete": client.UpdateComplete,
+		"client.SignUp":         client.SignUp,
+		"client.Find":           client.Find,
+		"client.UpdatePartial":  client.UpdatePartial,
+		"client.Delete":         client.Delete,
 	}
 	Mapping = &docs.Swagger{}
 	doc, _  = swag.ReadDoc()
