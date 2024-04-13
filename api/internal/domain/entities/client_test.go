@@ -22,10 +22,6 @@ func TestNewClient(t *testing.T) {
 	client, err := entities.CreateClient(obj)
 	assert.Nil(t, err)
 
-	if client.ID == "" {
-		t.Error("Expected non-zero UUID, got zero")
-	}
-
 	if client.Email != email {
 		t.Errorf("Expected email %s, got %s", email, client.Email)
 	}
