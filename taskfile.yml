@@ -141,9 +141,3 @@ tasks:
     cmds:
       - terraform init -var="github_token=$GH_TOKEN" -upgrade
       - terraform apply -auto-approve -destroy -var="github_token=$GH_TOKEN"
-
-  api:run:
-    dir: api
-    desc: Run the api
-    cmds:
-      - go run cmd/main.go
