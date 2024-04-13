@@ -26,7 +26,11 @@ var txts embed.FS
 var templates = make(map[string]*Template)
 
 func init() {
-	// Charger les templates HTML.
+	loadHTMLTemplates()
+	loadTextTemplates()
+}
+
+func loadHTMLTemplates() {
 	htmlFiles, err := fs.ReadDir(htmls, templatesPath)
 	if err != nil {
 		logger.Error(err)
@@ -47,8 +51,9 @@ func init() {
 			templates[name] = &Template{Html: tmpl}
 		}
 	}
+}
 
-	// Charger les templates texte.
+func loadTextTemplates() {
 	textFiles, err := fs.ReadDir(txts, templatesPath)
 	if err != nil {
 		logger.Error(err)
