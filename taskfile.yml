@@ -91,6 +91,7 @@ tasks:
     cmds:
       - go get -u {{.TASKFILE_DIR}}/...
       - go mod vendor
+      - go mod tidy
 
   api:tests:
     dir: api

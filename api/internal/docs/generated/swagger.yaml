@@ -93,6 +93,11 @@ paths:
         name: email
         required: true
         type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -104,7 +109,19 @@ paths:
     get:
       consumes:
       - '*/*'
-      operationId: client.SignOut
+      operationId: jwt.Auth => client.SignOut
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Sign
+  /sign/renew:
+    get:
+      consumes:
+      - '*/*'
+      operationId: client.SignRenew
       produces:
       - application/json
       responses:
@@ -126,8 +143,12 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
+        "201":
+          description: Client created
+        "400":
+          description: Invalid email or password
+        "409":
+          description: Client already exists
       tags:
       - Sign
   /status/healthcheck:

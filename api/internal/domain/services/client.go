@@ -1,9 +1,11 @@
 package services
 
 import (
-	"errors"
+	"fmt"
 
-	"github.com/kodmain/thetiptop/api/internal/application/dto"
+	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/domain/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/errors"
 	interfaces "github.com/kodmain/thetiptop/api/internal/domain/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/repositories"
@@ -29,13 +31,13 @@ func Client() *ClientService {
 	return instance
 }
 
-func (s *ClientService) SignUp(dto *dto.Client) error {
-	_, err := s.repo.Read(dto)
+func (s *ClientService) SignUp(obj *transfert.Client) error {
+	_, err := s.repo.Read(obj)
 	if err == nil {
-		return errors.New("client already exists")
+		return err
 	}
 
-	client, err := s.repo.Create(dto)
+	client, err := s.repo.Create(obj)
 	if err != nil {
 		return err
 	}
@@ -57,4 +59,16 @@ func (s *ClientService) SignUp(dto *dto.Client) error {
 	}
 
 	return mail.Send(m)
+}
+
+func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
+	client, err := s.repo.Read(&transfert.Client{
+		Email: obj.Email,
+	})
+
+	if err != nil || !client.CompareHash(obj.Password) {
+		return nil, fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	return client, nil
 }

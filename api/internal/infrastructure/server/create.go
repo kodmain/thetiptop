@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/swagger"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server/certs"
 )
 
@@ -40,6 +41,7 @@ func Create(cfgs ...fiber.Config) *Server {
 
 	server.app.Use(setGoToDoc)         // register middleware setGoToDoc
 	server.app.Use(setSecurityHeaders) // register middleware setSecurityHeaders
+	server.app.Use(jwt.Parser)         // register middleware security.Parser
 	server.app.Get("/docs/*", swagger.New(swagger.Config{
 		Title:                    config.APP_NAME,
 		Layout:                   "BaseLayout",

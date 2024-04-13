@@ -7,6 +7,11 @@ import (
 	"unicode"
 )
 
+const (
+	CAN_BE_NIL  = true
+	CANT_BE_NIL = false
+)
+
 func Email(email string) error {
 	_, err := mail.ParseAddress(email)
 	return err

@@ -1,9 +1,10 @@
-package dto
+package transfert
 
 import (
 	"errors"
 
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
 type Client struct {
@@ -11,7 +12,10 @@ type Client struct {
 	Password string `json:"password"`
 }
 
-func NewClient(email, password string) (*Client, error) {
+func NewClient(obj data.Object) (*Client, error) {
+	email := obj.Get("email")
+	password := obj.Get("password")
+
 	err := errors.Join(
 		validator.Email(email),
 		validator.Password(password),

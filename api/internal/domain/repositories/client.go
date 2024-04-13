@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"github.com/kodmain/thetiptop/api/internal/application/dto"
+	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
 )
 
@@ -19,6 +19,6 @@ type ClientRepository interface {
 	// Returns:
 	// - *entities.Client: The created client.
 	// - error: Error returned in case of problems during creation.
-	Create(client *dto.Client) (*entities.Client, error)
-	Read(client *dto.Client) (*entities.Client, error)
+	Create(client *transfert.Client) (*entities.Client, error)
+	Read(client *transfert.Client) (*entities.Client, error)
 }
