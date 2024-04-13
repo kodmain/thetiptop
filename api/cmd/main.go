@@ -26,7 +26,8 @@ var Helper *cobra.Command = &cobra.Command{
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("loading configuration")
 		logger.SetLevel(levels.DEBUG)
-		cfg, err := config.Load("config.yml")
+		// cfg, err := config.Load("config.yml")
+		cfg, err := config.Load("s3://config.kodmain/config.yml")
 
 		if err != nil {
 			return err
