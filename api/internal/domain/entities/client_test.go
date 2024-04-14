@@ -45,3 +45,25 @@ func TestNewClient(t *testing.T) {
 		t.Error("Expected DeletedAt to be nil, got non-nil")
 	}
 }
+func TestBefore(t *testing.T) {
+	email := "test@example.com"
+	password := "password"
+
+	client := &entities.Client{
+		Email:    email,
+		Password: password,
+	}
+
+	err := client.BeforeCreate(nil)
+	assert.Nil(t, err)
+
+	assert.NotEmpty(t, client.ID)
+	assert.NotEmpty(t, client.Password)
+
+	old := client.UpdatedAt
+	time.Sleep(100 * time.Millisecond)
+
+	err = client.BeforeUpdate(nil)
+	assert.Nil(t, err)
+	assert.True(t, client.UpdatedAt.After(old))
+}

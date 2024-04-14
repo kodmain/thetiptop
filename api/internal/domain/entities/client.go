@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 	"gorm.io/gorm"
 )
@@ -47,8 +46,6 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-
-	logger.Info(client.Email + ":" + client.Password)
 
 	password, err := hash.Hash(client.Email+":"+client.Password, hash.BCRYPT)
 	if err != nil {
