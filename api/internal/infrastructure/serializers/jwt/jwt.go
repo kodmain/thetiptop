@@ -72,6 +72,7 @@ func FromID(id string) (string, error) {
 		ID:     id,
 		Exp:    now.Add(time.Minute * time.Duration(instance.Refresh)).Unix(),
 		TZ:     location.String(),
+		Type:   REFRESH,
 		Offset: offset,
 	}.Claims())
 
@@ -85,6 +86,7 @@ func FromID(id string) (string, error) {
 		Exp:     now.Add(time.Minute * time.Duration(instance.Expire)).Unix(),
 		TZ:      location.String(),
 		Offset:  offset,
+		Type:    ACCESS,
 		Refresh: &refresh,
 	}.Claims())
 
@@ -96,7 +98,7 @@ func FromID(id string) (string, error) {
 	return access, nil
 }
 
-func tokenToClaims(tokenString string) (*Token, error) {
+func TokenToClaims(tokenString string) (*Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")

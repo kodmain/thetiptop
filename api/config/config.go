@@ -1,21 +1,27 @@
 package config
 
 import (
-	"bytes"
-	"context"
 	"fmt"
-	"io"
 	"os"
 	"reflect"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gopkg.in/yaml.v3"
 
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/aws/s3"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
+)
+
+var (
+	BUILD_COMMIT  string               // The commit hash of the build, useful for tracking specific builds in version control.
+	BUILD_VERSION string = "local"     // The version of the build, defaults to the value in DEFAULT_VERSION.
+	APP_NAME      string = "TheTipTop" // The name of the application, defaults to the value in DEFAULT_APP_NAME.
+	HOSTNAME      string = "localhost" // The hostname of the server, used for generating TLS certificates.
+	cfg           *Config
+
+	DEFAULT_DB_NAME string = "default"
 )
 
 type Config struct {
@@ -23,10 +29,6 @@ type Config struct {
 	Databases *database.Databases `yaml:"databases"`
 	JWT       *jwt.JWT            `yaml:"jwt"`
 }
-
-var (
-	cfg *Config
-)
 
 func Get(key string) interface{} {
 	if cfg == nil {
@@ -63,38 +65,54 @@ func Get(key string) interface{} {
 	return nil
 }
 
-func Load(path string) (*Config, error) {
+func Load(path string) error {
 	if path == "" {
-		return nil, fmt.Errorf("path is required")
+		return fmt.Errorf("path is required")
 	}
 
 	var fileContents []byte
 	var err error
 
 	if strings.HasPrefix(path, "s3://") {
-		fileContents, err = loadFromS3(context.Background(), path)
+		fileContents, err = loadFromS3(path)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		fileContents, err = os.ReadFile(path)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	configuration := &Config{}
 	err = yaml.Unmarshal(fileContents, configuration)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	cfg = configuration
 
-	return configuration, nil
+	return cfg.Initialize()
 }
 
-func loadFromS3(ctx context.Context, s3Path string) ([]byte, error) {
+func (cfg *Config) Initialize() error {
+	if err := database.New(cfg.Databases); err != nil {
+		return err
+	}
+
+	if err := mail.New(cfg.Mail); err != nil {
+		return err
+	}
+
+	if err := jwt.New(cfg.JWT); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func loadFromS3(s3Path string) ([]byte, error) {
 	s3URL := strings.SplitN(s3Path[len("s3://"):], "/", 2)
 	if len(s3URL) < 2 {
 		return nil, fmt.Errorf("invalid S3 path")
@@ -103,25 +121,16 @@ func loadFromS3(ctx context.Context, s3Path string) ([]byte, error) {
 	bucket := s3URL[0]
 	item := s3URL[1]
 
-	cfg, err := config.LoadDefaultConfig(ctx)
+	service, err := s3.New()
 	if err != nil {
 		return nil, err
 	}
 
-	client := s3.NewFromConfig(cfg)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: &bucket,
-		Key:    &item,
-	})
+	output, err := service.GetObject(&bucket, &item)
+
 	if err != nil {
 		return nil, err
 	}
-	defer output.Body.Close()
 
-	buf := new(bytes.Buffer)
-	if _, err = io.Copy(buf, output.Body); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+	return output.Bytes(), nil
 }
