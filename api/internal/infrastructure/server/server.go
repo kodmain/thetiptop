@@ -38,6 +38,11 @@ func (server *Server) Start() error {
 	return nil
 }
 
+func (server *Server) Stop() error {
+	logger.Info("Shutting down server")
+	return server.app.Shutdown()
+}
+
 // API is a method of the `Server` struct that registers the provided API with the server.
 // It creates a new version of the API router, adds the provided API to the router's namespace, and registers the new router with the server's main `app` instance.
 func (server *Server) Register(handlers map[string]fiber.Handler) {

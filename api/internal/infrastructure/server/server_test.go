@@ -19,9 +19,7 @@ func TestRegister(t *testing.T) {
 		"status.HealthCheck": status.HealthCheck,
 	})
 
-	go func() {
-		srv.Start()
-	}()
-
 	assert.NotNil(t, srv)
+	assert.Nil(t, srv.Start())
+	assert.Nil(t, srv.Stop())
 }
