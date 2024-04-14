@@ -28,11 +28,13 @@ type Server struct {
 }
 
 // Start is a method of the `Server` struct that starts the server and listens for incoming HTTP and/or HTTPS requests, depending on the `config` settings.
-func (server *Server) Start() {
+func (server *Server) Start() error {
 	// Launch a goroutine to start the HTTP server.
 	go server.http()
 	// If HTTPS is enabled in the `config`, launch a goroutine to start the HTTPS server as well.
 	go server.https()
+
+	return nil
 }
 
 // API is a method of the `Server` struct that registers the provided API with the server.
