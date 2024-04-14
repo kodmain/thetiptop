@@ -7,6 +7,7 @@ package main
 import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application"
+	"github.com/kodmain/thetiptop/api/internal/docs/generated"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
@@ -22,6 +23,7 @@ var Helper *cobra.Command = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("loading configuration")
+		generated.SwaggerInfo.Version = config.BUILD_VERSION
 		logger.SetLevel(levels.DEBUG)
 		// cfg, err := config.Load("config.yml")
 		return config.Load(config.DEFAULT_CONFIG)
@@ -39,6 +41,11 @@ var Helper *cobra.Command = &cobra.Command{
 	},
 }
 
+// @title		TheTipTop
+// @version		1.0 // BUILD_VERSION
+// @description	TheTipTop API
+// @host		localhost
+// @BasePath
 func main() {
 	Helper.Execute()
 }

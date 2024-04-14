@@ -1,8 +1,12 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "TheTipTop API",
+        "title": "TheTipTop",
+        "contact": {},
+        "version": "1.0 // BUILD_VERSION"
     },
+    "host": "localhost",
     "paths": {
         "/client": {
             "get": {
