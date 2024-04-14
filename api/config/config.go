@@ -22,6 +22,7 @@ var (
 	cfg           *Config
 
 	DEFAULT_DB_NAME string = "default"
+	DEFAULT_CONFIG  string = "s3://config.kodmain/config.yml"
 )
 
 type Config struct {

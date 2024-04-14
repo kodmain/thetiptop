@@ -24,17 +24,18 @@ var Helper *cobra.Command = &cobra.Command{
 		logger.Info("loading configuration")
 		logger.SetLevel(levels.DEBUG)
 		// cfg, err := config.Load("config.yml")
-		return config.Load("s3://config.kodmain/config.yml")
+		return config.Load(config.DEFAULT_CONFIG)
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("starting application")
 		srv := server.Create()
 		srv.Register(interfaces.Endpoints)
-		srv.Start()
+		return srv.Start()
 	},
-	PostRun: func(cmd *cobra.Command, args []string) {
+	PostRunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("waiting for application to shutdown")
 		application.Wait()
+		return nil
 	},
 }
 
