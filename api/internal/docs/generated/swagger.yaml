@@ -1,5 +1,9 @@
+host: localhost
 info:
   contact: {}
+  description: TheTipTop API
+  title: TheTipTop
+  version: 1.0 // BUILD_VERSION
 paths:
   /client:
     delete:
