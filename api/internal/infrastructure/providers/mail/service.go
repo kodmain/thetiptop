@@ -24,6 +24,7 @@ type Service struct {
 	Password  string
 	From      string
 	Expeditor string
+	Disable   bool
 	Auth      smtp.Auth
 }
 
@@ -73,6 +74,10 @@ func Send(mail *Mail) error {
 
 	if !mail.IsValid() {
 		return errors.New("invalid mail")
+	}
+
+	if instance.Disable {
+		return nil
 	}
 
 	msg, to, err := mail.Prepare()

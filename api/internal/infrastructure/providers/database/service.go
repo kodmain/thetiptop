@@ -46,18 +46,6 @@ func New(databases *Databases) error {
 			return fmt.Errorf("unknown protocol")
 		}
 
-		/*
-			import glogger "gorm.io/gorm/logger"
-			newLogger := glogger.New(
-				log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer (stdout)
-				glogger.Config{
-					SlowThreshold: time.Second,  // Seuil de temps lent pour les requêtes
-					LogLevel:      glogger.Info, // LogLevel Info pour voir toutes les requêtes
-					Colorful:      true,         // Activer les couleurs
-				},
-			)
-		*/
-
 		instances[key], err = gorm.Open(dial, &gorm.Config{
 			PrepareStmt: true,
 			Logger:      glogger.Discard,

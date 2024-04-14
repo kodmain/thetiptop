@@ -31,7 +31,7 @@ func Parser(c *fiber.Ctx) error {
 	}
 
 	tokenString := parts[1]
-	token, err := tokenToClaims(tokenString)
+	token, err := TokenToClaims(tokenString)
 	if err != nil {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid token: "+err.Error())
 	}

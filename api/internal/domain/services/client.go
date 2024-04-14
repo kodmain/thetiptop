@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 
+	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
@@ -24,7 +25,7 @@ func Client() *ClientService {
 	}
 
 	instance = &ClientService{
-		repo: repositories.NewClientRepository("default"),
+		repo: repositories.NewClientRepository(config.DEFAULT_DB_NAME),
 		mail: mail.NewTemplate("signup"),
 	}
 

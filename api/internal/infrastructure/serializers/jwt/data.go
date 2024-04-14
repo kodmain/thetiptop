@@ -7,11 +7,19 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type TYPE uint8 // Type de jeton
+
+const (
+	ACCESS  TYPE = 0 // Jeton d'accès
+	REFRESH TYPE = 1 // Jeton de rafraîchissement
+)
+
 type Token struct {
 	ID     string `json:"id"`
 	Exp    int64  `json:"exp"`
 	TZ     string `json:"tz"`
 	Offset int    `json:"offset"`
+	Type   TYPE   `json:"type"`
 
 	Refresh *string `json:"refresh,omitempty"`
 }
@@ -21,7 +29,7 @@ func (t *Token) HasRefresh() *Token {
 		return nil
 	}
 
-	token, err := tokenToClaims(*t.Refresh)
+	token, err := TokenToClaims(*t.Refresh)
 	if err != nil {
 		return nil
 	}
@@ -42,18 +50,16 @@ func (t *Token) HasExpired() bool {
 	// Obtenir le temps courant dans le même fuseau horaire pour une comparaison cohérente
 	currentTime := time.Now().In(location)
 
-	// Logger les temps pour la vérification
-	log.Printf("Temps courant: %v, Temps d'expiration: %v", currentTime, expirationTime)
-
 	// Vérifier si le temps courant est après le temps d'expiration
 	return currentTime.After(expirationTime)
 }
 func (a Token) Claims() jwt.MapClaims {
 	claims := jwt.MapClaims{
-		"id":  a.ID,
-		"exp": a.Exp,
-		"tz":  a.TZ,
-		"off": a.Offset,
+		"id":   a.ID,
+		"exp":  a.Exp,
+		"tz":   a.TZ,
+		"off":  a.Offset,
+		"type": a.Type,
 	}
 
 	if a.Refresh != nil {
@@ -68,9 +74,19 @@ func fromClaims(claims jwt.MapClaims) *Token {
 		ID:      claims["id"].(string),
 		Exp:     convertToInt64(claims["exp"]),
 		TZ:      claims["tz"].(string),
+		Type:    TYPE(convertToInt(claims["type"])),
 		Offset:  convertToInt(claims["off"]),
 		Refresh: convertToStringPointer(claims["refresh"]),
 	}
+}
+
+func FromString(tokenString string) (*Token, error) {
+	token, err := TokenToClaims(tokenString)
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
 }
 
 func convertToInt64(val interface{}) int64 {

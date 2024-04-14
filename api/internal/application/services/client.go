@@ -6,7 +6,6 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
@@ -26,33 +25,10 @@ func SignUp(email, password string) (int, fiber.Map) {
 			return fiber.StatusConflict, fiber.Map{"error": err.Error()}
 		}
 
-		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
-	}
-
-	return fiber.StatusCreated, nil
-}
-
-func SignRenew(token *serializer.Token) (int, fiber.Map) {
-	logger.Infof("Access: %v %v %v", token.Exp, token.TZ, token.Offset)
-
-	refresh := token.HasRefresh()
-
-	if refresh == nil {
-		return fiber.StatusBadRequest, fiber.Map{"error": "No refresh token"}
-	}
-
-	logger.Infof("Refresh: %v %v %v", refresh.Exp, refresh.TZ, refresh.Offset)
-
-	if refresh.HasExpired() {
-		return fiber.StatusUnauthorized, fiber.Map{"error": "Refresh token has expired"}
-	}
-
-	refreshToken, err := serializer.FromID(refresh.ID)
-	if err != nil {
 		return fiber.StatusInternalServerError, fiber.Map{"error": err.Error()}
 	}
 
-	return fiber.StatusOK, fiber.Map{"jwt": refreshToken}
+	return fiber.StatusCreated, nil
 }
 
 func SignIn(email, password string) (int, fiber.Map) {
@@ -76,4 +52,21 @@ func SignIn(email, password string) (int, fiber.Map) {
 	}
 
 	return fiber.StatusOK, fiber.Map{"jwt": token}
+}
+
+func SignRenew(refresh *serializer.Token) (int, fiber.Map) {
+	if refresh.Type != serializer.REFRESH {
+		return fiber.StatusBadRequest, fiber.Map{"error": "Invalid token type"}
+	}
+
+	if refresh.HasExpired() {
+		return fiber.StatusUnauthorized, fiber.Map{"error": "Refresh token has expired"}
+	}
+
+	refreshToken, err := serializer.FromID(refresh.ID)
+	if err != nil {
+		return fiber.StatusInternalServerError, fiber.Map{"error": err.Error()}
+	}
+
+	return fiber.StatusOK, fiber.Map{"jwt": refreshToken}
 }

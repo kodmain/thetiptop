@@ -9,9 +9,6 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/spf13/cobra"
@@ -27,25 +24,7 @@ var Helper *cobra.Command = &cobra.Command{
 		logger.Info("loading configuration")
 		logger.SetLevel(levels.DEBUG)
 		// cfg, err := config.Load("config.yml")
-		cfg, err := config.Load("s3://config.kodmain/config.yml")
-
-		if err != nil {
-			return err
-		}
-
-		if err := database.New(cfg.Databases); err != nil {
-			return err
-		}
-
-		if err := mail.New(cfg.Mail); err != nil {
-			return err
-		}
-
-		if err := jwt.New(cfg.JWT); err != nil {
-			return err
-		}
-
-		return nil
+		return config.Load("s3://config.kodmain/config.yml")
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("starting application")
