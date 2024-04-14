@@ -23,6 +23,9 @@ func TestHelperPreRunE(t *testing.T) {
 }
 
 func TestHelperRunE(t *testing.T) {
+	config.PORT_HTTP = ":8080"
+	config.PORT_HTTPS = ":8443"
+
 	cmd := Helper
 	b := bytes.NewBufferString("")
 	cmd.SetOut(b)

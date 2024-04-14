@@ -23,6 +23,9 @@ var (
 
 	DEFAULT_DB_NAME string = "default"
 	DEFAULT_CONFIG  string = "s3://config.kodmain/config.yml"
+
+	PORT_HTTP  string = ":80"
+	PORT_HTTPS string = ":443"
 )
 
 type Config struct {
