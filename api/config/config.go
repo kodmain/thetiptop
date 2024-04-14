@@ -69,6 +69,10 @@ func Get(key string) interface{} {
 	return nil
 }
 
+func Reset() {
+	cfg = nil
+}
+
 func Load(path string) error {
 	if path == "" {
 		return fmt.Errorf("path is required")

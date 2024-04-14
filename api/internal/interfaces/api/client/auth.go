@@ -57,7 +57,6 @@ func SignRenew(c *fiber.Ctx) error {
 	status, response := services.SignRenew(token.(*serializer.Token))
 
 	return c.Status(status).JSON(response)
-
 }
 
 // @Tags		Sign
@@ -67,5 +66,6 @@ func SignRenew(c *fiber.Ctx) error {
 // @Router		/sign/out [get]
 // @Id			jwt.Auth => client.SignOut
 func SignOut(c *fiber.Ctx) error {
+	// TODO: Implement SignOut
 	return c.Status(fiber.StatusNoContent).Send(nil)
 }

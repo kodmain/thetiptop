@@ -13,9 +13,9 @@ func TestLoad(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "path is required")
 
-	err = config.Load("config.yml")
+	err = config.Load("cnf.yml")
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "open config.yml: no such file or directory")
+	assert.Contains(t, err.Error(), "open cnf.yml: no such file or directory")
 
 	err = config.Load("../config.test.yml")
 	assert.Nil(t, err)
@@ -25,6 +25,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
+	config.Reset()
 	assert.Nil(t, config.Get("mail"))
 	config.Load("../config.test.yml")
 
