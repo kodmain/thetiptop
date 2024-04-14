@@ -83,7 +83,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./api.out,./flutter.lcov
+          files: ./api.out,./flutter.lcov
           fail_ci_if_error: true 
   
   Binaries:
