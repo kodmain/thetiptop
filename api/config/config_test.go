@@ -8,6 +8,7 @@ import (
 )
 
 func TestLoad(t *testing.T) {
+	assert.Nil(t, config.Get("mail"))
 	err := config.Load("")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "path is required")
@@ -24,7 +25,10 @@ func TestLoad(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
+	assert.Nil(t, config.Get("mail"))
 	config.Load("../config.test.yml")
+
+	assert.Nil(t, config.Get("toto"))
 
 	assert.NotNil(t, config.Get("mail"))
 	assert.NotNil(t, config.Get("databases"))
