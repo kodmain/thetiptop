@@ -36,8 +36,7 @@ var Helper *cobra.Command = &cobra.Command{
 	},
 	PostRunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("waiting for application to shutdown")
-		application.Wait()
-		return nil
+		return application.Wait()
 	},
 }
 

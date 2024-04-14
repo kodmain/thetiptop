@@ -9,36 +9,19 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
-type Exiter interface {
-	Exit(code int)
-}
-
-type real struct{}
-
-func (r *real) Exit(code int) {
-	os.Exit(code)
-}
-
 var (
 	PANIC chan error     = make(chan error, 1)
 	SIGS  chan os.Signal = make(chan os.Signal, 1)
-	PROG  Exiter         = &real{}
 )
 
 // Wait listens for signals and errors, and performs appropriate actions based on them.
 // It waits for a signal to gracefully shut down the application or for an error to occur.
-func Wait(exiters ...Exiter) error {
-	var exiter Exiter = &real{}
-	if len(exiters) > 0 {
-		exiter = exiters[0]
-	}
-
+func Wait() error {
 	signal.Notify(SIGS, syscall.SIGINT, syscall.SIGTERM)
 	for {
 		select {
 		case err := <-PANIC:
 			if logger.Panic(err) {
-				exiter.Exit(1)
 				return err
 			}
 		case <-SIGS:
