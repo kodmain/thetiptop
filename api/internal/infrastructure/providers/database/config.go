@@ -32,13 +32,13 @@ func (cfg *Database) ToDSN() (string, error) {
 	switch cfg.Protocol {
 	case MySQL:
 		// Format DSN MySQL : user:password@tcp(host:port)/dbname?options
-		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBname, formatOptions(cfg.Options)), nil
+		return strings.TrimSpace(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBname, formatOptions(cfg.Options))), nil
 	case PostgreSQL:
 		// Format DSN PostgreSQL : h=myh port=myport user=myuser dbname=mydb options
-		return fmt.Sprintf("host=%s port=%s user=%s dbname=%s %s", cfg.Host, cfg.Port, cfg.User, cfg.DBname, formatOptions(cfg.Options)), nil
+		return strings.TrimSpace(fmt.Sprintf("host=%s port=%s user=%s dbname=%s %s", cfg.Host, cfg.Port, cfg.User, cfg.DBname, formatOptions(cfg.Options))), nil
 	case SQLite:
 		// SQLite utilise simplement le chemin du fichier ou ':memory:'
-		return cfg.DBname, nil
+		return strings.TrimSpace(cfg.DBname), nil
 	default:
 		return "", fmt.Errorf("protocole inconnu")
 	}
@@ -57,32 +57,32 @@ func (cfg *Database) Validate() error {
 	}
 }
 
-func (cfg *Database) validateMySQL() error {
+func (cfg *Database) common() error {
 	if cfg.Host == "" {
-		return fmt.Errorf("l'hôte MySQL est requis")
+		return fmt.Errorf("l'hôte " + cfg.Protocol + " est requis")
 	}
+
 	if !isValidPort(cfg.Port) {
-		return fmt.Errorf("le port MySQL est invalide ou manquant")
+		return fmt.Errorf("le port " + cfg.Protocol + " est invalide ou manquant")
 	}
-	if cfg.User == "" {
-		return fmt.Errorf("l'utilisateur MySQL est requis")
+
+	if cfg.Password == "" {
+		return fmt.Errorf("le mot de passe " + cfg.Protocol + " est requis")
+	}
+
+	if cfg.User == "" || cfg.User == "root" {
+		return fmt.Errorf("l'utilisateur " + cfg.Protocol + " est requis")
 	}
 
 	return nil
 }
 
-func (cfg *Database) validatePostgreSQL() error {
-	if cfg.Host == "" {
-		return fmt.Errorf("l'hôte PostgreSQL est requis")
-	}
-	if !isValidPort(cfg.Port) {
-		return fmt.Errorf("le port PostgreSQL est invalide ou manquant")
-	}
-	if cfg.User == "" {
-		return fmt.Errorf("l'utilisateur PostgreSQL est requis")
-	}
+func (cfg *Database) validateMySQL() error {
+	return cfg.common()
+}
 
-	return nil
+func (cfg *Database) validatePostgreSQL() error {
+	return cfg.common()
 }
 
 func (cfg *Database) validateSQLite() error {
