@@ -68,7 +68,7 @@ func TestClient(t *testing.T) {
 		t.Error("JWT token is missing")
 	}
 
-	access, err := serializer.FromString(jwt)
+	access, err := serializer.TokenToClaims(jwt)
 	if err != nil {
 		t.Error(err)
 	}
@@ -81,7 +81,7 @@ func TestClient(t *testing.T) {
 	assert.False(t, access.HasExpired()) // Le jeton ne doit pas être expiré
 	assert.NotNil(t, access.Refresh)     // Le jeton doit avoir un jeton de rafraîchissement
 
-	refresh, err := serializer.FromString(*access.Refresh)
+	refresh, err := serializer.TokenToClaims(*access.Refresh)
 	if err != nil {
 		t.Error(err)
 	}
@@ -92,7 +92,7 @@ func TestClient(t *testing.T) {
 	assert.Equal(t, fiber.StatusOK, statusCode)
 	assert.NotNil(t, response)
 
-	expired, err := serializer.FromString(ExpiredRefreshToken)
+	expired, err := serializer.TokenToClaims(ExpiredRefreshToken)
 	assert.Error(t, err)
 
 	statusCode, response = services.SignRenew(expired)

@@ -163,7 +163,7 @@ func TestSignRenew(t *testing.T) {
 	err := json.Unmarshal(content, &tokenData)
 	assert.Nil(t, err)
 
-	access, err := serializer.FromString(tokenData.JWT)
+	access, err := serializer.TokenToClaims(tokenData.JWT)
 	assert.Nil(t, err)
 
 	users := []struct {

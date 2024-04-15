@@ -85,15 +85,6 @@ func fromClaims(claims jwt.MapClaims) *Token {
 	}
 }
 
-func FromString(tokenString string) (*Token, error) {
-	token, err := TokenToClaims(tokenString)
-	if err != nil {
-		return nil, err
-	}
-
-	return token, nil
-}
-
 func convertToInt64(val interface{}) int64 {
 	switch v := val.(type) {
 	case float64:

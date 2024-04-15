@@ -18,8 +18,8 @@ var fbr *fiber.App = fiber.New()
 
 func start() error {
 	jwt.New(&jwt.JWT{
-		Expire:   1,
-		Refresh:  3,
+		Expire:   5,
+		Refresh:  10,
 		Duration: time.Second,
 	})
 
@@ -124,7 +124,7 @@ func TestParser(t *testing.T) {
 	assert.Equal(t, http.StatusOK, status)
 	assert.Equal(t, "Hello, Restricted!", string(content))
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	content, status, err = request("GET", "http://localhost:3000/restricted", "Bearer "+token, nil)
 	assert.NoError(t, err)
