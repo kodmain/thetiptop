@@ -2,7 +2,6 @@ package client_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -32,9 +31,11 @@ const (
 
 var srv *server.Server
 
-func start() error {
+func start(http, https string) error {
 	config.Load("../../../../config.test.yml")
 	logger.Info("starting application")
+	config.PORT_HTTP = http
+	config.PORT_HTTPS = https
 	srv = server.Create()
 	srv.Register(interfaces.Endpoints)
 	return srv.Start()
@@ -45,8 +46,46 @@ func stop() error {
 	return srv.Stop()
 }
 
+func request(method, uri string, token string, values ...map[string][]string) ([]byte, int, error) {
+	// Create a form with email and password fields
+	form := url.Values{}
+	if len(values) > 0 {
+		for key, value := range values[0] {
+			form.Set(key, value[0])
+		}
+	}
+
+	// Create a new HTTP request to call /sign/up
+	req, err := http.NewRequest(method, uri, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Set the form as the request body
+	if len(values) > 0 {
+		req.Body = io.NopCloser(strings.NewReader(form.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+
+	if token != "" {
+		req.Header.Set("Authorization", token)
+	}
+
+	// Perform the request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	defer resp.Body.Close()
+
+	content, err := buffer.Read(resp.Body)
+
+	return content.Bytes(), resp.StatusCode, nil
+}
+
 func TestSignUp(t *testing.T) {
-	assert.Nil(t, start())
+	assert.Nil(t, start(":8081", ":8444"))
 
 	users := []struct {
 		email    string
@@ -59,39 +98,26 @@ func TestSignUp(t *testing.T) {
 	}
 
 	for _, user := range users {
-		// Create a form with email and password fields
-		form := url.Values{}
-		form.Set("email", user.email)
-		form.Set("password", user.password)
-
-		// Create a new HTTP request to call /sign/up
-		req, err := http.NewRequest("POST", "http://localhost/sign/up", nil)
-		if err != nil {
-			t.Fatalf("failed to create request: %v", err)
+		values := map[string][]string{
+			"email":    {user.email},
+			"password": {user.password},
 		}
 
-		// Set the form as the request body
-		req.Body = io.NopCloser(strings.NewReader(form.Encode()))
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-		// Perform the request
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			t.Fatalf("failed to perform request: %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != user.status {
-			t.Errorf("unexpected status code: %d", resp.StatusCode)
-		}
+		_, status, err := request("POST", "http://localhost:8081/sign/up", "", values)
+		assert.Nil(t, err)
+		assert.Equal(t, status, user.status)
 	}
 
 	assert.Nil(t, stop())
 }
 
 func TestSignIn(t *testing.T) {
-	TestSignUp(t)
-	assert.Nil(t, start())
+	assert.Nil(t, start(":8082", ":8445"))
+
+	request("POST", "http://localhost:8082/sign/up", "", map[string][]string{
+		"email":    {GOOD_EMAIL},
+		"password": {GOOD_PASS},
+	})
 
 	users := []struct {
 		email    string
@@ -104,79 +130,41 @@ func TestSignIn(t *testing.T) {
 	}
 
 	for _, user := range users {
-		// Create a form with email and password fields
-		form := url.Values{}
-		form.Set("email", user.email)
-		form.Set("password", user.password)
-
-		// Create a new HTTP request to call /sign/in
-		req, err := http.NewRequest("POST", "http://localhost/sign/in", nil)
-		if err != nil {
-			t.Fatalf("failed to create request: %v", err)
+		values := map[string][]string{
+			"email":    {user.email},
+			"password": {user.password},
 		}
 
-		// Set the form as the request body
-		req.Body = io.NopCloser(strings.NewReader(form.Encode()))
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-		// Perform the request
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			t.Fatalf("failed to perform request: %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != user.status {
-			t.Errorf("unexpected status code: %d", resp.StatusCode)
-		}
-
+		_, status, err := request("POST", "http://localhost:8082/sign/in", "", values)
+		assert.Nil(t, err)
+		assert.Equal(t, status, user.status)
 	}
 
 	assert.Nil(t, stop())
 }
 
 func TestSignRenew(t *testing.T) {
-	TestSignUp(t)
-	assert.Nil(t, start())
+	assert.Nil(t, start(":8083", ":8446"))
 
-	// Create a new HTTP request to call /sign/in
-	req, err := http.NewRequest("POST", "http://localhost/sign/in", nil)
-	if err != nil {
-		t.Fatalf("failed to create request: %v", err)
-	}
+	request("POST", "http://localhost:8083/sign/up", "", map[string][]string{
+		"email":    {GOOD_EMAIL},
+		"password": {GOOD_PASS},
+	})
 
-	form := url.Values{}
-	form.Set("email", GOOD_EMAIL)
-	form.Set("password", GOOD_PASS)
-
-	// Set the form as the request body
-	req.Body = io.NopCloser(strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// Perform the request
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatalf("failed to perform request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	token, err := buffer.Read(resp.Body)
-	assert.Nil(t, err)
+	content, _, _ := request("POST", "http://localhost:8083/sign/in", "", map[string][]string{
+		"email":    {GOOD_EMAIL},
+		"password": {GOOD_PASS},
+	})
 
 	// Déclaration de la variable qui recevra la valeur désérialisée
 	var tokenData TokenStructure
 
 	// Désérialisation du JSON dans la structure définie
-	err = json.Unmarshal(token.Bytes(), &tokenData)
-	if err != nil {
-		fmt.Printf("Error while parsing JSON: %s\n", err)
-		return
-	}
+	err := json.Unmarshal(content, &tokenData)
+	assert.Nil(t, err)
 
 	access, err := serializer.FromString(tokenData.JWT)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Nil(t, err)
 
 	users := []struct {
 		token  string
@@ -189,26 +177,9 @@ func TestSignRenew(t *testing.T) {
 	}
 
 	for _, user := range users {
-		// Create a new HTTP request to call /sign/renew
-		req, err := http.NewRequest("GET", "http://localhost/sign/renew", nil)
-		if err != nil {
-			t.Fatalf("failed to create request: %v", err)
-		}
-
-		// Set the JWT token in the Authorization header
-		req.Header.Set("Authorization", user.token)
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-		// Perform the request
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			t.Fatalf("failed to perform request: %v", err)
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != user.status {
-			t.Errorf("unexpected status code: %d", resp.StatusCode)
-		}
-
+		_, status, err := request("GET", "http://localhost:8083/sign/renew", user.token)
+		assert.Nil(t, err)
+		assert.Equal(t, status, user.status)
 	}
 
 	assert.Nil(t, stop())
