@@ -1,80 +1,166 @@
+host: localhost
 info:
   contact: {}
+  description: TheTipTop API
+  title: TheTipTop
+  version: 1.0 // BUILD_VERSION
 paths:
-  /fizzbuzz/:int1/:int2/:limit/:str1/:str2:
+  /client:
+    delete:
+      consumes:
+      - '*/*'
+      operationId: client.Delete
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Models
     get:
       consumes:
       - '*/*'
-      description: Executes the FizzBuzz algorithm based on the provided parameters.
-      operationId: metrics.Counter => fizzbuzz.FizzBuzz
+      operationId: client.Find
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Models
+    patch:
+      consumes:
+      - '*/*'
+      operationId: client.UpdatePartial
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Models
+    put:
+      consumes:
+      - '*/*'
+      operationId: client.UpdateComplete
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Models
+  /client/:id:
+    get:
+      consumes:
+      - '*/*'
+      operationId: client.FindOne
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Models
+  /client/password/renew:
+    post:
+      consumes:
+      - '*/*'
+      operationId: client.Renew
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Password
+  /client/password/reset:
+    post:
+      consumes:
+      - '*/*'
+      operationId: client.Reset
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Password
+  /sign/in:
+    post:
+      consumes:
+      - '*/*'
+      operationId: client.SignIn
       parameters:
-      - description: First integer to replace with str1
-        in: path
-        name: int1
-        required: true
-        type: integer
-      - description: Second integer to replace with str2
-        in: path
-        name: int2
-        required: true
-        type: integer
-      - description: The upper limit for the FizzBuzz sequence
-        in: path
-        name: limit
-        required: true
-        type: integer
-      - description: String to replace multiples of int1
-        in: path
-        name: str1
+      - description: Email address
+        in: formData
+        name: email
         required: true
         type: string
-      - description: String to replace multiples of int2
-        in: path
-        name: str2
+      - description: Password
+        in: formData
+        name: password
         required: true
         type: string
       produces:
       - application/json
       responses:
-        "200":
-          description: A list of strings representing the FizzBuzz sequence
-          schema:
-            items:
-              type: string
-            type: array
-        "400":
-          description: Bad Request - invalid input parameters
-          schema:
-            type: object
-      summary: Run FizzBuzz
+        "204":
+          description: No Content
       tags:
-      - FizzBuzz
-  /metrics/statistics:
+      - Sign
+  /sign/out:
     get:
       consumes:
       - '*/*'
-      description: Retrieves data for the most frequent request.
-      operationId: metrics.Statistics
+      operationId: jwt.Auth => client.SignOut
       produces:
-      - text/plain
+      - application/json
       responses:
-        "200":
-          description: Statistics of the most frequent request
-          schema:
-            type: string
-        "404":
-          description: No data available
-          schema:
-            type: string
-      summary: Show request metrics.
+        "204":
+          description: No Content
       tags:
-      - Metrics
+      - Sign
+  /sign/renew:
+    get:
+      consumes:
+      - '*/*'
+      operationId: client.SignRenew
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Sign
+  /sign/up:
+    post:
+      consumes:
+      - multipart/form-data
+      operationId: client.SignUp
+      parameters:
+      - description: Email address
+        in: formData
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Client created
+        "400":
+          description: Invalid email or password
+        "409":
+          description: Client already exists
+      tags:
+      - Sign
   /status/healthcheck:
     get:
       consumes:
       - '*/*'
       description: get the status of server.
-      operationId: metrics.Counter => status.HealthCheck
+      operationId: status.HealthCheck
       produces:
       - application/json
       responses:
@@ -88,7 +174,7 @@ paths:
       consumes:
       - '*/*'
       description: get the ip of user.
-      operationId: metrics.Counter => status.IP
+      operationId: status.IP
       produces:
       - application/json
       responses:
