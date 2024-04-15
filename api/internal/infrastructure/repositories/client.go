@@ -6,6 +6,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"gorm.io/gorm"
 )
@@ -47,6 +48,8 @@ func (r *ClientRepository) Read(obj *transfert.Client) (*entities.Client, error)
 	}
 
 	result := r.database.Where(obj).First(client)
+
+	logger.Error(result.Error)
 
 	if result.Error != nil {
 		return nil, result.Error

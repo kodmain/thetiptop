@@ -23,6 +23,9 @@ func TestTemplate(t *testing.T) {
 	template = mail.NewTemplate("oki")
 	assert.Nil(t, template)
 
+	err = mail.New(nil)
+	assert.NotNil(t, err)
+
 	err = mail.Send(&mail.Mail{
 		To:      []string{"hello@world.com"},
 		Subject: "Subject",
