@@ -32,19 +32,17 @@ func init() {
 
 func loadHTMLTemplates() {
 	htmlFiles, err := fs.ReadDir(htmls, templatesPath)
-	if err != nil {
-		logger.Error(err)
-	}
+	logger.Error(err)
 	for _, file := range htmlFiles {
 		if file.IsDir() {
 			continue
 		}
 		name := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
 		tmpl, err := template.ParseFS(htmls, path.Join(templatesPath, file.Name()))
-		if err != nil {
-			logger.Error(err)
+		if logger.Error(err) {
 			continue
 		}
+
 		if existing, exists := templates[name]; exists {
 			existing.Html = tmpl
 		} else {
@@ -108,5 +106,5 @@ func NewTemplate(name string) *Template {
 		return tmpl
 	}
 
-	return &Template{}
+	return nil
 }

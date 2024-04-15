@@ -38,20 +38,34 @@ var instance *Service
 // Returns:
 // - error: Une erreur si l'initialisation échoue.
 func New(cfg *Service) error {
+	errs := []error{}
+
 	if cfg == nil {
 		return errors.New("mail configuration is nil")
 	}
 
 	if cfg.Host == "" {
-		return errors.New("mail host is empty")
+		errs = append(errs, errors.New("mail host is empty"))
 	}
 
 	if cfg.Port == "" {
-		return errors.New("mail port is empty")
+		errs = append(errs, errors.New("mail port is empty"))
 	}
 
 	if cfg.From == "" {
-		return errors.New("mail from is empty")
+		errs = append(errs, errors.New("mail from is empty"))
+	}
+
+	if cfg.Username == "" {
+		errs = append(errs, errors.New("mail username is empty"))
+	}
+
+	if cfg.Password == "" {
+		errs = append(errs, errors.New("mail password is empty"))
+	}
+
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 
 	instance = cfg
