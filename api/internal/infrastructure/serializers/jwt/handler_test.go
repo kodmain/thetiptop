@@ -96,12 +96,17 @@ func TestParser(t *testing.T) {
 	err := start()
 	assert.NoError(t, err)
 
+	const (
+		restricted = "http://localhost:3000/restricted"
+		bearer     = "Bearer "
+	)
+
 	content, status, err := request("GET", "http://localhost:3000", "", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, status)
 	assert.Equal(t, "Hello, World!", string(content))
 
-	content, status, err = request("GET", "http://localhost:3000/restricted", "", nil)
+	content, status, err = request("GET", restricted, "", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
 	assert.Equal(t, "No token", string(content))
@@ -109,24 +114,24 @@ func TestParser(t *testing.T) {
 	token, err := jwt.FromID("hello")
 	assert.NoError(t, err)
 
-	content, status, err = request("GET", "http://localhost:3000/restricted", token, nil)
+	content, status, err = request("GET", restricted, token, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
 	assert.Equal(t, "Invalid Authorization header format", string(content))
 
-	content, status, err = request("GET", "http://localhost:3000/restricted", "Bearer Oki"+token, nil)
+	content, status, err = request("GET", restricted, bearer+"Oki"+token, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
 	assert.Equal(t, "Invalid token: token is malformed: could not JSON decode header: invalid character ':' looking for beginning of value", string(content))
 
-	content, status, err = request("GET", "http://localhost:3000/restricted", "Bearer "+token, nil)
+	content, status, err = request("GET", restricted, bearer+token, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, status)
 	assert.Equal(t, "Hello, Restricted!", string(content))
 
 	time.Sleep(5 * time.Second)
 
-	content, status, err = request("GET", "http://localhost:3000/restricted", "Bearer "+token, nil)
+	content, status, err = request("GET", restricted, bearer+token, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
 	assert.Equal(t, "Invalid token: token has invalid claims: token is expired", string(content))
@@ -138,7 +143,7 @@ func TestParser(t *testing.T) {
 		Secret: "secret",
 	})
 
-	content, status, err = request("GET", "http://localhost:3000/restricted", "Bearer "+realToken, nil)
+	content, status, err = request("GET", restricted, bearer+realToken, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
 	assert.Equal(t, "Invalid token: token signature is invalid: signature is invalid", string(content))
