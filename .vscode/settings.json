@@ -4,6 +4,7 @@
 		"vendor": true,
 		".maker": false,
 		"deploy/**/*terraform*": true,
+		"**/*_test.go": false,
 		".vscode": false
 	},
     "sonarlint.connectedMode.project": {

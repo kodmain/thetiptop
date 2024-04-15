@@ -162,6 +162,17 @@ resource "aws_iam_role_policy" "traefik_route53_policy" {
     Version = "2012-10-17",
     Statement = [
       {
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ],
+        Resource = [
+          "${aws_s3_bucket.config_bucket.arn}",
+          "${aws_s3_bucket.config_bucket.arn}/*"
+        ]
+      },
+      {
         Action = [
           "ssm:UpdateInstanceInformation",
           "route53:GetChange",
@@ -225,3 +236,59 @@ resource "aws_route53_record" "kodmain_internal" {
 
   allow_overwrite = true
 }
+
+resource "aws_s3_bucket" "config_bucket" {
+  bucket = "config.kodmain"
+
+  tags = {
+    Name        = "ConfigBucket"
+    Environment = "Production"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "config_bucket_policy_access_block" {
+  bucket = aws_s3_bucket.config_bucket.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_policy" "config_bucket_policy" {
+  bucket = aws_s3_bucket.config_bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect    = "Deny",
+        Principal = "*",
+        Action    = "s3:*",
+        Resource  = [
+          "${aws_s3_bucket.config_bucket.arn}",
+          "${aws_s3_bucket.config_bucket.arn}/*"
+        ],
+        Condition = {
+          Bool = {
+            "aws:SecureTransport": "false"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket_versioning" "config_bucket_versioning" {
+  bucket = aws_s3_bucket.config_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_object" "config_file" {
+  bucket = aws_s3_bucket.config_bucket.bucket
+  key    = "config.yml"
+  source = "../../../api/config.yml"
+}
+

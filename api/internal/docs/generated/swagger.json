@@ -1,12 +1,15 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "TheTipTop API",
+        "title": "TheTipTop",
+        "contact": {},
+        "version": "1.0 // BUILD_VERSION"
     },
+    "host": "localhost",
     "paths": {
-        "/fizzbuzz/:int1/:int2/:limit/:str1/:str2": {
+        "/client": {
             "get": {
-                "description": "Executes the FizzBuzz algorithm based on the provided parameters.",
                 "consumes": [
                     "*/*"
                 ],
@@ -14,92 +17,227 @@
                     "application/json"
                 ],
                 "tags": [
-                    "FizzBuzz"
+                    "Models"
                 ],
-                "summary": "Run FizzBuzz",
-                "operationId": "metrics.Counter =\u003e fizzbuzz.FizzBuzz",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "First integer to replace with str1",
-                        "name": "int1",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Second integer to replace with str2",
-                        "name": "int2",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "The upper limit for the FizzBuzz sequence",
-                        "name": "limit",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "String to replace multiples of int1",
-                        "name": "str1",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "String to replace multiples of int2",
-                        "name": "str2",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "operationId": "client.Find",
                 "responses": {
-                    "200": {
-                        "description": "A list of strings representing the FizzBuzz sequence",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request - invalid input parameters",
-                        "schema": {
-                            "type": "object"
-                        }
+                    "204": {
+                        "description": "No Content"
                     }
                 }
-            }
-        },
-        "/metrics/statistics": {
-            "get": {
-                "description": "Retrieves data for the most frequent request.",
+            },
+            "put": {
                 "consumes": [
                     "*/*"
                 ],
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "tags": [
-                    "Metrics"
+                    "Models"
                 ],
-                "summary": "Show request metrics.",
-                "operationId": "metrics.Statistics",
+                "operationId": "client.UpdateComplete",
                 "responses": {
-                    "200": {
-                        "description": "Statistics of the most frequent request",
-                        "schema": {
-                            "type": "string"
-                        }
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Models"
+                ],
+                "operationId": "client.Delete",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Models"
+                ],
+                "operationId": "client.UpdatePartial",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/client/:id": {
+            "get": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Models"
+                ],
+                "operationId": "client.FindOne",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/client/password/renew": {
+            "post": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Password"
+                ],
+                "operationId": "client.Renew",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/client/password/reset": {
+            "post": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Password"
+                ],
+                "operationId": "client.Reset",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/sign/in": {
+            "post": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sign"
+                ],
+                "operationId": "client.SignIn",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
                     },
-                    "404": {
-                        "description": "No data available",
-                        "schema": {
-                            "type": "string"
-                        }
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/sign/out": {
+            "get": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sign"
+                ],
+                "operationId": "jwt.Auth =\u003e client.SignOut",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/sign/renew": {
+            "get": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sign"
+                ],
+                "operationId": "client.SignRenew",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/sign/up": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sign"
+                ],
+                "operationId": "client.SignUp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Client created"
+                    },
+                    "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "409": {
+                        "description": "Client already exists"
                     }
                 }
             }
@@ -117,7 +255,7 @@
                     "Status"
                 ],
                 "summary": "Show the status of server.",
-                "operationId": "metrics.Counter =\u003e status.HealthCheck",
+                "operationId": "status.HealthCheck",
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -138,7 +276,7 @@
                     "Status"
                 ],
                 "summary": "Show the ip of user.",
-                "operationId": "metrics.Counter =\u003e status.IP",
+                "operationId": "status.IP",
                 "responses": {
                     "200": {
                         "description": "OK"
