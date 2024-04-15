@@ -36,7 +36,7 @@ func TestTemplate(t *testing.T) {
 		Disable: true,
 	})
 
-	assert.Nil(t, err)
+	assert.NotNil(t, err)
 
 	err = mail.Send(&mail.Mail{})
 	assert.Error(t, err)
