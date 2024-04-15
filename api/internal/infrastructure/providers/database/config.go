@@ -59,19 +59,19 @@ func (cfg *Database) Validate() error {
 
 func (cfg *Database) common() error {
 	if cfg.Host == "" {
-		return fmt.Errorf("l'hôte " + cfg.Protocol + " est requis")
+		return fmt.Errorf("missing host for " + cfg.Protocol)
 	}
 
 	if !isValidPort(cfg.Port) {
-		return fmt.Errorf("le port " + cfg.Protocol + " est invalide ou manquant")
+		return fmt.Errorf("missing port for " + cfg.Protocol)
 	}
 
 	if cfg.Password == "" {
-		return fmt.Errorf("le mot de passe " + cfg.Protocol + " est requis")
+		return fmt.Errorf("missing password for " + cfg.Protocol)
 	}
 
 	if cfg.User == "" || cfg.User == "root" {
-		return fmt.Errorf("l'utilisateur " + cfg.Protocol + " est requis")
+		return fmt.Errorf("wrong user " + cfg.Protocol)
 	}
 
 	return nil
