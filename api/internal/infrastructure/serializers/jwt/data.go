@@ -36,6 +36,11 @@ func (t *Token) HasRefresh() *Token {
 
 	return token
 }
+
+func (t *Token) IsNotValid() bool {
+	return t.Type != ACCESS
+}
+
 func (t *Token) HasExpired() bool {
 	// Charger le fuseau horaire spécifié ou utiliser UTC si une erreur survient
 	location, err := time.LoadLocation(t.TZ)

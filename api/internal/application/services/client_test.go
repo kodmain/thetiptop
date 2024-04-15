@@ -93,11 +93,9 @@ func TestClient(t *testing.T) {
 	assert.NotNil(t, response)
 
 	expired, err := serializer.FromString(ExpiredRefreshToken)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.Error(t, err)
 
 	statusCode, response = services.SignRenew(expired)
-	assert.Equal(t, fiber.StatusUnauthorized, statusCode)
+	assert.Equal(t, fiber.StatusBadRequest, statusCode)
 	assert.NotNil(t, response)
 }

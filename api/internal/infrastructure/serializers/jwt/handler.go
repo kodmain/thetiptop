@@ -7,12 +7,17 @@ import (
 )
 
 func Auth(c *fiber.Ctx) error {
-	token := c.Locals("token").(*Token)
-	if token == nil {
+	auth := c.Locals("token")
+	if auth == nil {
 		return fiber.NewError(fiber.StatusUnauthorized, "No token")
 	}
 
+	token := auth.(*Token)
 	if token.HasExpired() {
+		return fiber.NewError(fiber.StatusUnauthorized, "Expired token")
+	}
+
+	if token.IsNotValid() {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid token")
 	}
 
