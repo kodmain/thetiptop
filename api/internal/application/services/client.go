@@ -55,6 +55,10 @@ func SignIn(email, password string) (int, fiber.Map) {
 }
 
 func SignRenew(refresh *serializer.Token) (int, fiber.Map) {
+	if refresh == nil {
+		return fiber.StatusBadRequest, fiber.Map{"error": "Invalid token"}
+	}
+
 	if refresh.Type != serializer.REFRESH {
 		return fiber.StatusBadRequest, fiber.Map{"error": "Invalid token type"}
 	}

@@ -9,13 +9,17 @@ import (
 )
 
 type JWT struct {
-	TZ      string `yaml:"tz"`
-	Secret  string `yaml:"secret"`
-	Expire  int    `yaml:"expire"`
-	Refresh int    `yaml:"refresh"`
+	TZ       string        `yaml:"tz"`
+	Secret   string        `yaml:"secret"`
+	Expire   int           `yaml:"expire"`
+	Refresh  int           `yaml:"refresh"`
+	Duration time.Duration `yaml:"duration"`
 }
 
-var instance *JWT
+var (
+	instance *JWT
+	duration time.Duration = time.Minute
+)
 
 func New(t *JWT) error {
 	location := time.Now().Location().String()
@@ -28,11 +32,16 @@ func New(t *JWT) error {
 		}
 
 		instance = &JWT{
-			TZ:      location,
-			Secret:  pass,
-			Expire:  15,
-			Refresh: 30,
+			TZ:       location,
+			Secret:   pass,
+			Expire:   15,
+			Refresh:  30,
+			Duration: duration,
 		}
+	}
+
+	if instance.Duration <= 0 {
+		instance.Duration = duration
 	}
 
 	if instance.Expire < 1 {
@@ -70,7 +79,7 @@ func FromID(id string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Token{
 		ID:     id,
-		Exp:    now.Add(time.Minute * time.Duration(instance.Refresh)).Unix(),
+		Exp:    now.Add(instance.Duration * time.Duration(instance.Refresh)).Unix(),
 		TZ:     location.String(),
 		Type:   REFRESH,
 		Offset: offset,
@@ -83,7 +92,7 @@ func FromID(id string) (string, error) {
 
 	token = jwt.NewWithClaims(jwt.SigningMethodHS256, Token{
 		ID:      id,
-		Exp:     now.Add(time.Minute * time.Duration(instance.Expire)).Unix(),
+		Exp:     now.Add(instance.Duration * time.Duration(instance.Expire)).Unix(),
 		TZ:      location.String(),
 		Offset:  offset,
 		Type:    ACCESS,
@@ -103,10 +112,10 @@ func TokenToClaims(tokenString string) (*Token, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return instance.Secret, nil
+		return []byte(instance.Secret), nil
 	})
 
-	if token == nil {
+	if err != nil {
 		return nil, err
 	}
 

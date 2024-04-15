@@ -13,10 +13,11 @@ func TestNew(t *testing.T) {
 	assert.NoError(t, err)
 
 	jwtConfig := &jwt.JWT{
-		TZ:      "",
-		Secret:  "",
-		Expire:  0,
-		Refresh: 0,
+		TZ:       "",
+		Secret:   "",
+		Expire:   0,
+		Refresh:  0,
+		Duration: 0,
 	}
 
 	err = jwt.New(jwtConfig)
