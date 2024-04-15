@@ -103,7 +103,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get -qq update
-          sudo apt-get install -y --no-install-recommends build-essential gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          sudo apt-get install -y --no-install-recommends build-essential gcc-multilib
 
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
@@ -122,9 +122,9 @@ jobs:
           
       - name: Build
         run: |
-          ldflags="-s -w -X github.com/kodmain/thetiptop/api/config.BUILD_VERSION=${{ steps.semver.outputs.next }} -X github.com/kodmain/thetiptop/api/config/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
+          ldflags="-s -w -X github.com/kodmain/thetiptop/api/config.BUILD_VERSION=${{ steps.semver.outputs.next }} -X github.com/kodmain/thetiptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
           if [ "${{ matrix.arch }}" == "arm64" ]; then
-            CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
+            go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
           else
             go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
           fi
