@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/kodmain/thetiptop/api/internal/application"
@@ -15,22 +16,32 @@ import (
 var instances map[string]*gorm.DB = make(map[string]*gorm.DB)
 
 func New(databases *Databases) error {
+	if databases == nil {
+		return fmt.Errorf("database configuration is required")
+	}
+
+	errs := make([]error, 0)
+
 	for key, cfg := range *databases {
 		if cfg == nil {
-			return fmt.Errorf("database configuration is required")
+			errs = append(errs, fmt.Errorf("database configuration is required"))
+			continue
 		}
 
 		if _, ok := instances[key]; ok {
-			return fmt.Errorf("database already exists")
+			errs = append(errs, fmt.Errorf("database already exists"))
+			continue
 		}
 
 		if err := cfg.Validate(); err != nil {
-			return err
+			errs = append(errs, err)
+			continue
 		}
 
 		dsn, err := cfg.ToDSN()
 		if err != nil {
-			return fmt.Errorf("database name is required")
+			errs = append(errs, err)
+			continue
 		}
 
 		var dial gorm.Dialector
@@ -43,7 +54,7 @@ func New(databases *Databases) error {
 		case PostgreSQL:
 			dial = postgres.Open(dsn)
 		default:
-			return fmt.Errorf("unknown protocol")
+			errs = append(errs, fmt.Errorf("unknown protocol"))
 		}
 
 		instances[key], err = gorm.Open(dial, &gorm.Config{
@@ -52,8 +63,12 @@ func New(databases *Databases) error {
 		})
 
 		if err != nil {
-			return err
+			errs = append(errs, err)
 		}
+	}
+
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 
 	return nil
