@@ -39,6 +39,7 @@ var instance *Service
 // - error: Une erreur si l'initialisation échoue.
 func New(cfg *Service) error {
 	errs := []error{}
+	instance = cfg
 
 	if cfg == nil {
 		return errors.New("mail configuration is nil")
@@ -65,6 +66,7 @@ func New(cfg *Service) error {
 	}
 
 	if len(errs) > 0 {
+		instance = nil
 		return errors.Join(errs...)
 	}
 
