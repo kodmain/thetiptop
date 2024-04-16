@@ -125,6 +125,8 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   
+
+  
   Binaries:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Build binaries for ${{ matrix.arch }}
