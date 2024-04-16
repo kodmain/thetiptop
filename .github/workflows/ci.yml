@@ -109,20 +109,23 @@ jobs:
         id: quality
         if: always()
         run: |
-          curl --show-error --fail --user ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=thetiptop" | jq -r ".projectStatus.status"
+         echo "SONAR_QUALITY=$(curl --show-error --fail --silent --user ${{ secrets.SONAR_TOKEN }}: '${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=thetiptop' | jq -r '.projectStatus.status')" >> "$GITHUB_OUTPUT"
 
       - name: Comment PR
         if: always()
         uses: actions/github-script@v7
+        env:
+          SONAR_QUALITY: ${{ steps.quality.outputs.SONAR_QUALITY }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const { SONAR_QUALITY } = process.env
             let body = '';
       
-            if(${{steps.quality.outputs.result}} == 'ERROR') {
+            if(${SONAR_QUALITY} == 'ERROR') {
               boby = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
               [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
-            } else if(${{steps.quality.outputs.result}} == 'SUCCESS') {
+            } else if(${SONAR_QUALITY} == 'SUCCESS') {
               boby = `## [![Quality Gate Passed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-passed-20px.png 'Quality Gate Passed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate passed**  
               [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
             }
