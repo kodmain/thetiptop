@@ -48,3 +48,7 @@ var Helper *cobra.Command = &cobra.Command{
 func main() {
 	Helper.Execute()
 }
+
+// test bug sonar
+func doNothing() {
+}
