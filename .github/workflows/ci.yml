@@ -90,6 +90,13 @@ jobs:
       #     files: ./api.out,./flutter.lcov
       #     fail_ci_if_error: true 
 
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v2
+        with:
+          channel: stable
+          version: 3.19.3
+          
       - name: Setup Sonar
         run: |
           wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
@@ -108,7 +115,7 @@ jobs:
 
       - name: Analyze Sonar
         run: sonar-scanner -X -Dsonar.verbose=true
-        
+
   
   Binaries:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
