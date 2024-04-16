@@ -103,7 +103,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get -qq update
-          sudo apt-get install -y --no-install-recommends build-essential musl-dev
+          sudo apt-get install -y --no-install-recommends build-essential musl-dev musl-tools gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-x86-64-linux-gnu g++-x86-64-linux-gnu
 
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
@@ -124,9 +124,9 @@ jobs:
         run: |
           ldflags="-linkmode external -extldflags '-static' -s -w -X github.com/kodmain/thetiptop/api/config.BUILD_VERSION=${{ steps.semver.outputs.next }} -X github.com/kodmain/thetiptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
           if [ "${{ matrix.arch }}" == "arm64" ]; then
-            CC=aarch64-linux-musl-gcc CXX=aarch64-linux-musl-g++ go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
+            CC=aarch64-linux-musl-gcc CXX=aarch64-linux-musl-g++ go build -tags "libsqlite3 linux arm64" -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
           else
-            CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ go build -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
+            CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ go build -tags "libsqlite3 linux amd64" -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
           fi
         env:
           CGO_ENABLED: 1
