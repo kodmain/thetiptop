@@ -115,8 +115,8 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png "Quality Gate Failed")](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${{ github.repository }}) **Quality Gate failed**  
-              [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${{ github.repository }})'
+              body: `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${{ github.repository }}) **Quality Gate failed**  
+              [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${{ github.repository }})`
             })
 
   
