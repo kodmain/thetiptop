@@ -114,14 +114,14 @@ jobs:
             const exec = require('@actions/exec');
             let body = '';
             let output = '';
-            
+
             const options = {};
             options.listeners = {
               stdout: (data: Buffer) => {
                 output += data.toString();
               }
             };
-            await exec.exec('curl --show-error --fail --user ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=${context.payload.repository.name}" | jq -r '.projectStatus.status'');
+            await exec.exec("curl --show-error --fail --user ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=${context.payload.repository.name}" | jq -r '.projectStatus.status'");
             
             if(output == 'ERROR') {
               boby = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
