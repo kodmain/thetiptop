@@ -109,7 +109,7 @@ jobs:
         id: quality
         if: always()
         run: |
-          curl --show-error --fail --user ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=${context.payload.repository.name}" | jq -r ".projectStatus.status"
+          curl --show-error --fail --user ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=thetiptop" | jq -r ".projectStatus.status"
 
       - name: Comment PR
         if: always()
