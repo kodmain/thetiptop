@@ -103,7 +103,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get -qq update
-          sudo apt-get install -y --no-install-recommends build-essential
+          sudo apt-get install -y --no-install-recommends build-essential musl-tools
 
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
