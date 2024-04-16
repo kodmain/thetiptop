@@ -105,6 +105,12 @@ jobs:
       - name: SonarScanner Analyze
         run: sonar-scanner -X -Dsonar.qualitygate.wait=true -Dsonar.verbose=true
 
+      - name: SonarScanner Get Quality Gates for steps Commment PR
+        id: quality
+        if: always()
+        run: |
+          curl --show-error --fail --user ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=${context.payload.repository.name}" | jq -r ".projectStatus.status"
+
       - name: Comment PR
         if: always()
         uses: actions/github-script@v7
@@ -112,20 +118,11 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             let body = '';
-            let output = '';
-
-            const options = {};
-            options.listeners = {
-              stdout: (data: Buffer) => {
-                output += data.toString();
-              }
-            };
-            await exec.exec('curl --show-error --fail --user ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=${context.payload.repository.name}" | jq -r ".projectStatus.status"');
-            
-            if(output == 'ERROR') {
+      
+            if(${{steps.quality.outputs.result}} == 'ERROR') {
               boby = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
               [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
-            } else if(output == 'SUCCESS') {
+            } else if(${{steps.quality.outputs.result}} == 'SUCCESS') {
               boby = `## [![Quality Gate Passed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-passed-20px.png 'Quality Gate Passed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate passed**  
               [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
             }
