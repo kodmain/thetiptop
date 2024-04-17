@@ -120,7 +120,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { SONAR_QUALITY } = process.env;
-            let body = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
+            var body = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
             [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
             
             if (`${SONAR_QUALITY}` == 'OK') {
