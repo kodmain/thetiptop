@@ -50,4 +50,4 @@ func main() {
 }
 
 // test bug sonar.
-func doNothing() {}
+func tydoNothing() {}
