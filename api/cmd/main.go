@@ -49,6 +49,5 @@ func main() {
 	Helper.Execute()
 }
 
-// test bug sonar
-func doNothing() {
-}
+// test bug sonar.
+func doNothing() {}
