@@ -120,11 +120,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { SONAR_QUALITY } = process.env;
-            body = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
-            [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
             
             if (`${SONAR_QUALITY}` == 'OK') {
               boby = `## [![Quality Gate Passed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-passed-20px.png 'Quality Gate Passed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate passed**  
+              [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
+            } else {
+              body = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
               [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
             }
             
