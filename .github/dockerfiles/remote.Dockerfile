@@ -1,25 +1,21 @@
-FROM --platform=$BUILDPLATFORM scratch AS runner
+FROM --platform=$BUILDPLATFORM alpine:edge AS builder
 
-ARG BUILDPLATFORM
-ENV BUILDPLATFORM=$BUILDPLATFORM
+RUN apk update && apk upgrade --no-cache &&\
+    apk add --no-cache go go-task git alpine-sdk && \
+    GOBIN=/bin go install github.com/go-task/task/v3/cmd/task@latest && \
+    GOBIN=/bin go install golang.org/x/tools/cmd/goimports@latest && \
+    GOBIN=/bin go install github.com/swaggo/swag/cmd/swag@latest
 
-ARG BINARY_VERSION
-ENV BINARY_VERSION=$BINARY_VERSION
+WORKDIR /builder
+COPY / /builder
 
-ARG TARGETARCH
-ENV TARGETARCH=$TARGETARCH
+RUN task api:build
 
-ARG PROJECT_NAME
-ENV PROJECT_NAME=$PROJECT_NAME
+FROM --platform=$BUILDPLATFORM alpine AS runner
 
-ARG REPOSITORY_NAME
-ENV REPOSITORY_NAME=$REPOSITORY_NAME
-
-WORKDIR /var/run
-ADD --chmod=0777 https://github.com/$REPOSITORY_NAME/releases/download/$BINARY_VERSION/$PROJECT_NAME-$TARGETARCH /var/run/project
-HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/v1/status/healthcheck || exit 1
+COPY --chmod=0777 --from=builder /builder/.build/api/thetiptop /thetiptop
+HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/status/healthcheck || exit 1
 EXPOSE 80 443
 
-LABEL org.opencontainers.image.source https://github.com/$REPOSITORY_NAME
-
-ENTRYPOINT [ "/var/run/project" ]
+LABEL org.opencontainers.image.source https://github.com/kodmain/thetiptop
+ENTRYPOINT [ "/thetiptop" ]
