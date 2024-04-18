@@ -128,30 +128,20 @@ tasks:
     desc: Build the docker image
     cmds:
       - docker buildx build --platform linux/amd64,linux/arm64 -t testing -f {{.TASKFILE_DIR}}/.github/dockerfiles/local.Dockerfile .
-  extract:
+
+  extract: 
     desc: Docker image to extract
-    vars:
-      MD5_IMAGE_TAG: $(echo -n "{{.IMAGE_TAG}}" | md5sum | cut -d' ' -f1)
     cmds:
       - |
-        docker image inspect {{.IMAGE_TAG}} > /dev/null 2>&1 || { docker pull {{.IMAGE_TAG}}; }
-        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
-        docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
-        tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
-        entrypoint=$(cat {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/index.json | jq -r '.manifests[0].digest' | sed 's/sha256://')
-        cat {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs/sha256/$entrypoint | jq -r '.manifests[] | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
-          if [ "$arch" = "unknown" ] || [ "$os" = "unknown" ]; then
-            continue
-          fi
+        docker manifest inspect {{.IMAGE_TAG}} | jq -r '.manifests[] | select(.platform.os != "unknown" and .platform.architecture != "unknown") | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
           docker pull --platform $os/$arch {{.IMAGE_TAG}}
         done
 
+        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
+        docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
         tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
 
-        cat {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs/sha256/$entrypoint | jq -r '.manifests[] | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
-          if [ "$arch" = "unknown" ] || [ "$os" = "unknown" ]; then
-            continue
-          fi
+        docker manifest inspect {{.IMAGE_TAG}} | jq -r '.manifests[] | select(.platform.os != "unknown" and .platform.architecture != "unknown") | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
           new_digest=$(echo $new_digest | sed 's/sha256://')
           mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside/$os/$arch
           echo "OS: $os, ARCH: $arch, DIGEST: $new_digest"
