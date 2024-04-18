@@ -5,8 +5,6 @@ package main
 //go:generate go fmt ../internal/interfaces/api.gen.go
 
 import (
-	"fmt"
-
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
@@ -48,6 +46,10 @@ var Helper *cobra.Command = &cobra.Command{
 // @host		localhost
 // @BasePath
 func main() {
-	fmt.Println("TheTipTop API Server")
 	Helper.Execute()
+}
+
+// test bug sonar.
+func doNothing() {
+
 }
