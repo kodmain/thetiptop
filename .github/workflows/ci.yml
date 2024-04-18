@@ -98,25 +98,6 @@ jobs:
           branch: main
           skipInvalidTags: true
           noNewCommitBehavior: 'current'
-
-      #######
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Image
-        uses: docker/build-push-action@v5
-        with:
-          file: .github/dockerfiles/remote.Dockerfile
-          context: .
-          load: true
-          platforms: linux/arm64, linux/amd64
-          build-args: |
-            BINARY_VERSION=PREV
-          tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:PREV
-  
   
   Build:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -153,14 +134,14 @@ jobs:
         with:
           file: .github/dockerfiles/remote.Dockerfile
           context: .
-          load: true
+          push: true
           platforms: linux/arm64, linux/amd64
           build-args: |
             BINARY_VERSION=${{ needs.Analyze.outputs.version }}
-          tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.Analyze.outputs.version }}
+          tags: ghcr.io/${{ github.repository }}:PREVIEW
 
       - name: Extract release from build
-        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:latest" 
+        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW" 
 
       - name: Upload release
         uses: ncipollo/release-action@v1
