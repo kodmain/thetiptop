@@ -134,6 +134,7 @@ jobs:
         with:
           file: .github/dockerfiles/remote.Dockerfile
           context: .
+          load: true
           platforms: linux/arm64, linux/amd64
           build-args: |
             BINARY_VERSION=${{ needs.Analyze.outputs.version }}
