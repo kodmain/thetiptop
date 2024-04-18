@@ -87,17 +87,14 @@ jobs:
           version: 3.19.3
 
       - name: SonarScanner Setup
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
           unzip sonar-scanner-cli-5.0.1.3006-linux.zip
           mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
           ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
-      
-      - name: SonarScanner Configuration
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
           echo "sonar.host.url=$SONAR_HOST_URL" > /opt/sonar-scanner/conf/sonar-scanner.properties
           echo "sonar.login=$SONAR_TOKEN" >> /opt/sonar-scanner/conf/sonar-scanner.properties
           echo "sonar.sourceEncoding=UTF-8" >> /opt/sonar-scanner/conf/sonar-scanner.properties
@@ -105,36 +102,43 @@ jobs:
       - name: SonarScanner Analyze
         run: sonar-scanner -X -Dsonar.qualitygate.wait=true -Dsonar.verbose=true
 
-      - name: SonarScanner Get Quality Gates
-        id: quality
+      - name: SonarQube Comment
         if: always()
-        run: |
-         echo "SONAR_QUALITY=$(curl --show-error --fail --silent --user ${{ secrets.SONAR_TOKEN }}: '${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=thetiptop' | jq -r '.projectStatus.status')" >> "$GITHUB_OUTPUT"
-
-      - name: Comment PR
-        if: always()
-        uses: actions/github-script@v7
-        env:
-          SONAR_QUALITY: ${{ steps.quality.outputs.SONAR_QUALITY }}
+        uses: ibex-code/sonarqube-pull-request-comment@master
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { SONAR_QUALITY } = process.env;
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          GITHUB-TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: SonarScanner Get Quality Gates
+      #   id: quality
+      #   if: always()
+      #   run: |
+      #    echo "SONAR_QUALITY=$(curl --show-error --fail --silent --user ${{ secrets.SONAR_TOKEN }}: '${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=thetiptop' | jq -r '.projectStatus.status')" >> "$GITHUB_OUTPUT"
+
+      # - name: Comment PR
+      #   if: always()
+      #   uses: actions/github-script@v7
+      #   env:
+      #     SONAR_QUALITY: ${{ steps.quality.outputs.SONAR_QUALITY }}
+      #   with:
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     script: |
+      #       const { SONAR_QUALITY } = process.env;
+      #       body = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
+      #       [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
             
-            if (`${SONAR_QUALITY}` == 'OK') {
-              boby = `## [![Quality Gate Passed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-passed-20px.png 'Quality Gate Passed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate passed**  
-              [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
-            } else {
-              body = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
-              [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
-            }
+      #       if (`${SONAR_QUALITY}` == 'OK') {
+      #         body = `## [![Quality Gate Passed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-passed-20px.png 'Quality Gate Passed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate passed**  
+      #         [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
+      #       }
             
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: boby
-            })
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: body
+      #       })
 
   
   Binaries:
