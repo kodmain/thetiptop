@@ -135,13 +135,24 @@ jobs:
           file: .github/dockerfiles/remote.Dockerfile
           context: .
           push: true
-          platforms: linux/arm64, linux/amd64
+          platforms: linux/arm64
           build-args: |
             BINARY_VERSION=${{ needs.Analyze.outputs.version }}
-          tags: ghcr.io/${{ github.repository }}:PREVIEW
+          tags: ghcr.io/${{ github.repository }}:PREVIEW-arm64
+      
+      - name: Build Image
+        uses: docker/build-push-action@v5
+        with:
+          file: .github/dockerfiles/remote.Dockerfile
+          context: .
+          push: true
+          platforms: linux/amd64
+          build-args: |
+            BINARY_VERSION=${{ needs.Analyze.outputs.version }}
+          tags: ghcr.io/${{ github.repository }}:PREVIEW-amd64
 
       - name: Extract release from build
-        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW" 
+        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW-arm64" && task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW-amd64" 
 
       - name: Upload project to Artifacts
         uses: actions/upload-artifact@v4
