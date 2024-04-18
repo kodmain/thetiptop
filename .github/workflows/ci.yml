@@ -140,14 +140,14 @@ jobs:
             BINARY_VERSION=${{ needs.Analyze.outputs.version }}
           tags: ghcr.io/${{ github.repository }}:PREVIEW
 
+      - name: Extract release from build
+        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW" 
+
       - name: Upload project to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artefacts
-          path: .build
-
-      - name: Extract release from build
-        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW" 
+          path: .
 
       - name: Upload release
         uses: ncipollo/release-action@v1
