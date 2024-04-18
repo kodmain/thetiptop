@@ -134,8 +134,7 @@ tasks:
       MD5_IMAGE_TAG: $(echo -n "{{.IMAGE_TAG}}" | md5sum | cut -d' ' -f1)
     cmds:
       - |
-        echo {{.IMAGE_TAG}}
-        docker image inspect {{.IMAGE_TAG}} > /dev/null 2>&1 || { docker pull --quiet {{.IMAGE_TAG}}; }
+        docker image inspect {{.IMAGE_TAG}} > /dev/null 2>&1 || { docker pull --quiet  {{.IMAGE_TAG}}; }
         mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
         docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
         tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}} > /dev/null 2>&1
@@ -144,7 +143,15 @@ tasks:
           if [ "$arch" = "unknown" ] || [ "$os" = "unknown" ]; then
             continue
           fi
-          docker pull --quiet --platform $os/$arch {{.IMAGE_TAG}}
+          docker pull --quiet --platform $os/$arch {{.IMAGE_TAG}} > /dev/null 2>&1
+        done
+
+        tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}} > /dev/null 2>&1
+
+        cat {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs/sha256/$entrypoint | jq -r '.manifests[] | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
+          if [ "$arch" = "unknown" ] || [ "$os" = "unknown" ]; then
+            continue
+          fi
           new_digest=$(echo $new_digest | sed 's/sha256://')
           mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside/$os/$arch
           echo "OS: $os, ARCH: $arch, DIGEST: $new_digest"
