@@ -11,11 +11,11 @@ COPY . /builder
 
 RUN task api:build
 
-FROM alpine:edge AS runner
+FROM scratch AS runner
 
-COPY --chmod=0700 --from=builder /builder/.build/api/thetiptop /thetiptop
+COPY --chmod=0700 --from=builder /builder/.build/api/project /project
 HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/status/healthcheck || exit 1
 EXPOSE 80 443
 
 LABEL org.opencontainers.image.source https://github.com/kodmain/thetiptop
-ENTRYPOINT [ "/thetiptop" ]
+ENTRYPOINT [ "/project" ]
