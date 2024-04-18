@@ -157,3 +157,5 @@ tasks:
           arch=$(echo "$filepath" | awk -F'/' '{print $(NF-3)}')
           mv "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
+
+        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build/
