@@ -134,7 +134,6 @@ jobs:
           file: .github/dockerfiles/remote.Dockerfile
           context: .
           platforms: linux/arm64, linux/amd64
-          load: true
           build-args: |
             BINARY_VERSION=${{ needs.Analyze.outputs.version }}
           tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.Analyze.outputs.version }}
