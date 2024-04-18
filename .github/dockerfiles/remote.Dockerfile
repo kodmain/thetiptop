@@ -7,13 +7,13 @@ RUN apk update && apk upgrade --no-cache &&\
     GOBIN=/bin go install github.com/swaggo/swag/cmd/swag@latest
 
 WORKDIR /builder
-COPY / /builder
+COPY . /builder
 
 RUN task api:build
 
-FROM alpine AS runner
+FROM alpine:edge AS runner
 
-COPY --chmod=0777 --from=builder /builder/.build/api/thetiptop /thetiptop
+COPY --chmod=0700 --from=builder /builder/.build/api/thetiptop /thetiptop
 HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/status/healthcheck || exit 1
 EXPOSE 80 443
 
