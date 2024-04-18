@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM alpine:edge AS builder
+FROM alpine:edge AS builder
 
 RUN apk update && apk upgrade --no-cache &&\
     apk add --no-cache go go-task git alpine-sdk && \
@@ -7,15 +7,15 @@ RUN apk update && apk upgrade --no-cache &&\
     GOBIN=/bin go install github.com/swaggo/swag/cmd/swag@latest
 
 WORKDIR /builder
-COPY / /builder
+COPY . /builder
 
 RUN task api:build
 
-FROM --platform=$BUILDPLATFORM alpine AS runner
+FROM scratch AS runner
 
-COPY --chmod=0777 --from=builder /builder/.build/api/thetiptop /thetiptop
+COPY --chmod=0700 --from=builder /builder/.build/api/project /project
 HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/status/healthcheck || exit 1
 EXPOSE 80 443
 
 LABEL org.opencontainers.image.source https://github.com/kodmain/thetiptop
-ENTRYPOINT [ "/thetiptop" ]
+ENTRYPOINT [ "/project" ]

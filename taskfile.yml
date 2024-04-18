@@ -93,7 +93,7 @@ tasks:
         swag init -g cmd/main.go -o ./internal/docs/generated
         rm -rf {{.TASKFILE_DIR}}/.build/api || true
         ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
-        CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/thetiptop cmd/main.go
+        CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/project cmd/main.go
   api:run:
     dir: api
     desc: Build the api
@@ -128,23 +128,20 @@ tasks:
     desc: Build the docker image
     cmds:
       - docker buildx build --platform linux/amd64,linux/arm64 -t testing -f {{.TASKFILE_DIR}}/.github/dockerfiles/local.Dockerfile .
-  extract:
+
+  extract: 
     desc: Docker image to extract
-    vars:
-      MD5_IMAGE_TAG: $(echo -n "{{.IMAGE_TAG}}" | md5sum | cut -d' ' -f1)
     cmds:
       - |
-        echo {{.IMAGE_TAG}}
-        docker image inspect {{.IMAGE_TAG}} > /dev/null 2>&1 || { echo "Image not found locally"; exit 1; }
+        docker manifest inspect {{.IMAGE_TAG}} | jq -r '.manifests[] | select(.platform.os != "unknown" and .platform.architecture != "unknown") | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
+          docker pull --platform $os/$arch {{.IMAGE_TAG}}
+        done
+
         mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
         docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
-        tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}} > /dev/null 2>&1
-        entrypoint=$(cat {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/index.json | jq -r '.manifests[0].digest' | sed 's/sha256://')
+        tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
 
-        cat {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs/sha256/$entrypoint | jq -r '.manifests[] | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
-          if [ "$arch" = "unknown" ] || [ "$os" = "unknown" ]; then
-            continue
-          fi
+        docker manifest inspect {{.IMAGE_TAG}} | jq -r '.manifests[] | select(.platform.os != "unknown" and .platform.architecture != "unknown") | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
           new_digest=$(echo $new_digest | sed 's/sha256://')
           mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside/$os/$arch
           echo "OS: $os, ARCH: $arch, DIGEST: $new_digest"
@@ -158,5 +155,7 @@ tasks:
         mkdir -p "{{.TASKFILE_DIR}}/.build/api"
         find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside -type f -name 'project' | while read filepath; do
           arch=$(echo "$filepath" | awk -F'/' '{print $(NF-3)}')
-          mv "$filepath" "{{.TASKFILE_DIR}}/.build/api/project-${arch}"
+          mv "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
+
+        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build/
