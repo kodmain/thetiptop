@@ -154,8 +154,8 @@ tasks:
 
         mkdir -p "{{.TASKFILE_DIR}}/.build/api"
         find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside -type f -name 'project' | while read filepath; do
-          arch=$(echo "$filepath" | awk -F'/' '{print $(NF-3)}')
-          mv "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
+          arch=$(echo "$filepath" | awk -F'/' '{print $(NF-1)}')
+          cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
 
-        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build/
+        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build/images
