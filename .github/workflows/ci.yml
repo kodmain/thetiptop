@@ -32,7 +32,7 @@ jobs:
         uses: flutter-actions/setup-flutter@v2
         with:
           channel: stable
-          version: 3.19.3
+          version: 3.19.5
 
       - name: Setup Task
         uses: arduino/setup-task@v2
@@ -57,6 +57,9 @@ jobs:
     name: Analyze
     needs: Tests
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.semver.outputs.next }}
+      prev_version: ${{ steps.semver.outputs.current }}
     steps:
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
@@ -71,7 +74,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       
       - name: GitGuardian
-        uses: GitGuardian/ggshield/actions/secret@v1.25.0
+        uses: GitGuardian/ggshield/actions/secret@v1.26.0
         env:
           GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
           GITHUB_PUSH_BASE_SHA: ${{ github.event.base_ref }}
@@ -85,33 +88,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./api.out,./flutter.lcov
           fail_ci_if_error: true 
-  
-  Binaries:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    name: Build binaries for ${{ matrix.arch }}
-    needs: [Tests, Analyze]
-    outputs:
-      version: ${{ steps.semver.outputs.next }}
-      prev_version: ${{ steps.semver.outputs.current }}
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [amd64, arm64]
-    permissions:
-      contents: write
-    steps:
-      - name: Install build dependencies
-        run: |
-          sudo apt-get -qq update
-          sudo apt-get install -y --no-install-recommends build-essential musl-dev musl-tools gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-x86-64-linux-gnu g++-x86-64-linux-gnu
 
-      - name: Download project from Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: project
-          path: .
-
-      - name: Get Version
+      - name: What is next version?
         id: semver
         uses: ietf-tools/semver-action@v1
         with:
@@ -119,38 +97,11 @@ jobs:
           branch: main
           skipInvalidTags: true
           noNewCommitBehavior: 'current'
-          
-      - name: Build
-        run: |
-          ldflags="-linkmode external -extldflags '-static' -s -w -X github.com/kodmain/thetiptop/api/config.BUILD_VERSION=${{ steps.semver.outputs.next }} -X github.com/kodmain/thetiptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
-          if [ "${{ matrix.arch }}" == "arm64" ]; then
-            CC=aarch64-linux-musl-gcc CXX=aarch64-linux-musl-g++ go build -tags "libsqlite3 linux arm64" -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
-          else
-            CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ go build -tags "libsqlite3 linux amd64" -trimpath -buildvcs=false -ldflags="$ldflags" -o .build/api/thetiptop-${{ matrix.arch }} api/cmd/main.go
-          fi
-        env:
-          CGO_ENABLED: 1
-          GOOS: linux
-          GOARCH: ${{ matrix.arch }}
-          VERSION: ${{ steps.semver.outputs.next }}
-          GWD: ${{ github.workspace }}
-
-      - name: Upload release
-        uses: ncipollo/release-action@v1
-        with:
-          name: TheTipTop ${{ steps.semver.outputs.next }}
-          makeLatest: true
-          tag: ${{ steps.semver.outputs.next }}
-          artifacts: ".build/api/*"
-          allowUpdates: true
-          skipIfReleaseExists: false
-          replacesArtifacts: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-  Docker:
-    name: Build docker image
+  
+  Build:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: Binaries
+    needs: Analyze
     steps:
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
@@ -158,9 +109,11 @@ jobs:
           name: project
           path: .
 
-      - name: Extract repository name
-        id: repo_name
-        run: echo "REPO_NAME=$(echo ${{ github.repository }} | awk -F '/' '{print $2}')" >> $GITHUB_OUTPUT
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -175,36 +128,54 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.PAT_TOKEN }}
 
-      - name: Build and Push Image
+      - name: Build Image
         uses: docker/build-push-action@v5
         with:
           file: .github/dockerfiles/remote.Dockerfile
           context: .
           platforms: linux/arm64, linux/amd64
-          push: true
-          provenance: false
+          load: true
           build-args: |
-            BINARY_VERSION=${{ needs.binaries.outputs.version }}
-            BINARY_OS=linux
-            PROJECT_NAME=${{ steps.repo_name.outputs.REPO_NAME }}
-            REPOSITORY_NAME=${{ github.repository }}
-          tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
+            BINARY_VERSION=${{ needs.Analyze.outputs.version }}
+          tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.Analyze.outputs.version }}
+
+      - name: Extract release from build
+        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:latest" 
+
+      - name: Upload release
+        uses: ncipollo/release-action@v1
+        with:
+          name: TheTipTop ${{ needs.Analyze.outputs.version }}
+          makeLatest: true
+          tag: ${{ needs.Analyze.outputs.version }}
+          artifacts: ".build/api/*"
+          allowUpdates: true
+          skipIfReleaseExists: false
+          replacesArtifacts: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.Analyze.outputs.version }}
 
       - name: Authenticate to Docker
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+  
       - name: Check vulnerabilities
         uses: docker/scout-action@v1
         with:
           dockerhub-user: ${{secrets.DOCKERHUB_USERNAME}}
           dockerhub-password: ${{secrets.DOCKERHUB_TOKEN}}
-          command: cves,compare
+          command: cves
           organization: ${{ github.repository_owner }}
-          image: ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.version }}
-          to: ghcr.io/${{ github.repository }}:${{ needs.binaries.outputs.prev_version }}
+          image: ghcr.io/${{ github.repository }}:${{ needs.Analyze.outputs.version }}
           ignore-base: true
           ignore-unchanged: true
           only-fixed: true

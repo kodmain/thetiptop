@@ -1,4 +1,4 @@
-module github.com/kodmain/thetiptop
+module github.com/kodmain/thetiptop/api
 
 go 1.19
 

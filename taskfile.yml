@@ -1,51 +1,40 @@
 version: '3'
-
 silent: true
-
-dotenv: [ 'deploy/aws/token.env' ]
-
+dotenv:
+  - deploy/aws/token.env
 tasks:
-  ## Common
   default:
     cmds:
       - task -l
-
   login:aws:
     desc: Se connecter à AWS SSO
     cmds:
       - aws --profile=kodmain s3 ls > /dev/null 2>&1 && { echo "Déjà connecté à AWS SSO."; } || { echo "Connexion à AWS SSO requise."; aws sso login --profile=kodmain; }
-
   update:
     desc: Update the dependencies
     cmds:
       - task api:update
       - task app:update
-
   build:
     desc: Build the app and the api
     cmds:
       - task api:build
       - task app:build
-
   tests:
     desc: Run the tests
     cmds:
       - task app:tests
       - task api:tests
-
-  ## APP
   app:update:
     dir: app
     desc: Update the dependencies for the app
     cmds:
       - flutter pub upgrade
-
   app:tests:
     dir: app
     desc: Run the tests for the app
     cmds:
       - flutter test -r github --coverage --coverage-path {{.TASKFILE_DIR}}/flutter.lcov
-
   app:build:
     dir: app
     desc: Build the app
@@ -54,90 +43,120 @@ tasks:
         rm -rf {{.TASKFILE_DIR}}/.build/app || true
         flutter build web -d {{.TASKFILE_DIR}}/.build/app --release --web-renderer canvaskit
         mv build {{.TASKFILE_DIR}}/.build/app
-  
   app:arch:rebuild:
     dir: deploy/aws/app
     desc: rebuild the app
     cmds:
       - task app:arch:destroy
       - task app:arch:deploy
-
   app:arch:deploy:
     dir: deploy/aws/app
-    deps: [ login:aws ]
-    desc: deploy the app 
+    deps:
+      - login:aws
+    desc: deploy the app
     cmds:
       - terraform init -upgrade
       - terraform apply -auto-approve
-  
   app:arch:destroy:
     dir: deploy/aws/app
-    deps: [ login:aws ]
-    desc: destroy the app 
+    deps:
+      - login:aws
+    desc: destroy the app
     cmds:
       - terraform init -upgrade
       - terraform apply -auto-approve -destroy
-
   app:run:
     dir: app
     desc: Run the app
     cmds:
       - flutter run -d chrome
 
-  ## API 
   api:update:
     dir: api
     desc: Update the dependencies for the api
     cmds:
-      - go get -u {{.TASKFILE_DIR}}/...
+      - go get -u {{.TASKFILE_DIR}}/api/...
       - go mod vendor
       - go mod tidy
-
   api:tests:
     dir: api
     desc: Run the tests for the api
     cmds:
       - gotestsum -f github-actions -- -v $(go list ./... | grep -vE "vendor") -coverprofile={{.TASKFILE_DIR}}/api.out -covermode=atomic
-
   api:build:
     dir: api
     desc: Build the api
     cmds:
-      - | 
-        go generate ./... 
+      - |
+        go mod tidy
+        go generate ./...
         swag init -g cmd/main.go -o ./internal/docs/generated
         rm -rf {{.TASKFILE_DIR}}/.build/api || true
         ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
         CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/thetiptop cmd/main.go
-
   api:run:
     dir: api
     desc: Build the api
     cmds:
-      - | 
-        go generate ./... 
+      - |
+        go generate ./...
         swag init -g cmd/main.go -o ./internal/docs/generated
         go run cmd/main.go
-
   api:arch:rebuild:
     dir: deploy/aws/api
     desc: rebuild the app
     cmds:
       - task api:arch:destroy
       - task api:arch:deploy
-
   api:arch:deploy:
     dir: deploy/aws/api
-    deps: [ login:aws ]
+    deps:
+      - login:aws
     desc: deploy the app
     cmds:
       - terraform init -var="github_token=$GH_TOKEN" -upgrade
       - terraform apply -auto-approve -var="github_token=$GH_TOKEN"
-
   api:arch:destroy:
     dir: deploy/aws/api
-    deps: [ login:aws ]
+    deps:
+      - login:aws
     desc: destroy the app
     cmds:
       - terraform init -var="github_token=$GH_TOKEN" -upgrade
       - terraform apply -auto-approve -destroy -var="github_token=$GH_TOKEN"
+  docker:build:
+    desc: Build the docker image
+    cmds:
+      - docker buildx build --platform linux/amd64,linux/arm64 -t testing -f {{.TASKFILE_DIR}}/.github/dockerfiles/local.Dockerfile .
+  extract:
+    desc: Docker image to extract
+    vars:
+      MD5_IMAGE_TAG: $(echo -n "{{.IMAGE_TAG}}" | md5sum | cut -d' ' -f1)
+    cmds:
+      - |
+        echo {{.IMAGE_TAG}}
+        docker image inspect {{.IMAGE_TAG}} > /dev/null 2>&1 || { echo "Image not found locally"; exit 1; }
+        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
+        docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
+        tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}} > /dev/null 2>&1
+        entrypoint=$(cat {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/index.json | jq -r '.manifests[0].digest' | sed 's/sha256://')
+
+        cat {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs/sha256/$entrypoint | jq -r '.manifests[] | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
+          if [ "$arch" = "unknown" ] || [ "$os" = "unknown" ]; then
+            continue
+          fi
+          new_digest=$(echo $new_digest | sed 's/sha256://')
+          mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside/$os/$arch
+          echo "OS: $os, ARCH: $arch, DIGEST: $new_digest"
+          cat {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs/sha256/$new_digest | jq -r '.layers[].digest' | while read digest; do
+            tar_digest=$(echo $digest | sed 's/sha256://')
+            echo "Extraction de $tar_digest"
+            tar -xf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs/sha256/$tar_digest -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside/$os/$arch
+          done
+        done
+
+        mkdir -p "{{.TASKFILE_DIR}}/.build/api"
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside -type f -name 'project' | while read filepath; do
+          arch=$(echo "$filepath" | awk -F'/' '{print $(NF-3)}')
+          mv "$filepath" "{{.TASKFILE_DIR}}/.build/api/project-${arch}"
+        done
