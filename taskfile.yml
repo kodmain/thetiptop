@@ -93,7 +93,7 @@ tasks:
         swag init -g cmd/main.go -o ./internal/docs/generated
         rm -rf {{.TASKFILE_DIR}}/.build/api || true
         ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
-        CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/thetiptop cmd/main.go
+        CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/project cmd/main.go
   api:run:
     dir: api
     desc: Build the api
@@ -155,5 +155,5 @@ tasks:
         mkdir -p "{{.TASKFILE_DIR}}/.build/api"
         find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside -type f -name 'project' | while read filepath; do
           arch=$(echo "$filepath" | awk -F'/' '{print $(NF-3)}')
-          mv "$filepath" "{{.TASKFILE_DIR}}/.build/api/project-${arch}"
+          mv "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
