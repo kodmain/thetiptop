@@ -147,7 +147,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artefacts
-          path: .
+          path: ./artefacts.zip
 
       - name: Upload release
         uses: ncipollo/release-action@v1
