@@ -27,6 +27,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22.x
+          cache-dependency-path: api/go.sum
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v2
@@ -133,13 +134,14 @@ jobs:
         with:
           file: .github/dockerfiles/remote.Dockerfile
           context: .
+          push: true
           platforms: linux/arm64, linux/amd64
           build-args: |
             BINARY_VERSION=${{ needs.Analyze.outputs.version }}
-          tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.Analyze.outputs.version }}
+          tags: ghcr.io/${{ github.repository }}:PREVIEW
 
       - name: Extract release from build
-        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:latest" 
+        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW" 
 
       - name: Upload release
         uses: ncipollo/release-action@v1
