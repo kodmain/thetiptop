@@ -9,17 +9,11 @@ ENV BINARY_VERSION=$BINARY_VERSION
 ARG TARGETARCH
 ENV TARGETARCH=$TARGETARCH
 
-ARG PROJECT_NAME
-ENV PROJECT_NAME=$PROJECT_NAME
+FROM scratch AS runner
 
-ARG REPOSITORY_NAME
-ENV REPOSITORY_NAME=$REPOSITORY_NAME
-
-WORKDIR /var/run
-ADD --chmod=0777 https://github.com/$REPOSITORY_NAME/releases/download/$BINARY_VERSION/$PROJECT_NAME-$TARGETARCH /var/run/project
-HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/v1/status/healthcheck || exit 1
+COPY --chmod=0700 --from=builder /builder/.build/api/project /project
+HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/status/healthcheck || exit 1
 EXPOSE 80 443
 
-LABEL org.opencontainers.image.source https://github.com/$REPOSITORY_NAME
-
-ENTRYPOINT [ "/var/run/project" ]
+LABEL org.opencontainers.image.source https://github.com/kodmain/thetiptop
+ENTRYPOINT [ "/project" ]
