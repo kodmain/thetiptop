@@ -27,6 +27,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.22.x
+          cache-dependency-path: api/go.sum
 
       - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v2
