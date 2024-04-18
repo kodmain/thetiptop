@@ -107,9 +107,9 @@ jobs:
         if: always()
         uses: ibex-code/sonarqube-pull-request-comment@master
         with:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
+          sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       # - name: SonarScanner Get Quality Gates
       #   id: quality
