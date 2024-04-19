@@ -152,7 +152,9 @@ jobs:
           tags: ghcr.io/${{ github.repository }}:PREVIEW-amd64
 
       - name: Extract release from build
-        run: task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW-arm64" && task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW-amd64" 
+        run: |
+          task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW-arm64" 
+          task extract "IMAGE_TAG=ghcr.io/${{ github.repository }}:PREVIEW-amd64" 
 
       - name: Upload project to Artifacts
         uses: actions/upload-artifact@v4
