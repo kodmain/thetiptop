@@ -107,42 +107,10 @@ jobs:
         if: always()
         uses: ibex-code/sonarqube-pull-request-comment@master
         with:
-          sonar_token: ${{ secrets.SONAR_TOKEN }}
+          sonar_token: azaza
           sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
-          sonar_project_key: opo
           github_token: ${{ secrets.GITHUB_TOKEN }} 
 
-
-
-      # - name: SonarScanner Get Quality Gates
-      #   id: quality
-      #   if: always()
-      #   run: |
-      #    echo "SONAR_QUALITY=$(curl --show-error --fail --silent --user ${{ secrets.SONAR_TOKEN }}: '${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=thetiptop' | jq -r '.projectStatus.status')" >> "$GITHUB_OUTPUT"
-
-      # - name: Comment PR
-      #   if: always()
-      #   uses: actions/github-script@v7
-      #   env:
-      #     SONAR_QUALITY: ${{ steps.quality.outputs.SONAR_QUALITY }}
-      #   with:
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     script: |
-      #       const { SONAR_QUALITY } = process.env;
-      #       body = `## [![Quality Gate Failed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-failed-20px.png 'Quality Gate Failed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate failed**  
-      #       [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
-            
-      #       if (`${SONAR_QUALITY}` == 'OK') {
-      #         body = `## [![Quality Gate Passed](https://sonarsource.github.io/sonarcloud-github-static-resources/v2/checks/QualityGateBadge/qg-passed-20px.png 'Quality Gate Passed')](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name}) **Quality Gate passed**  
-      #         [See analysis details on SonarQube](${{ secrets.SONAR_HOST_URL }}/dashboard?id=${context.payload.repository.name})`;
-      #       }
-            
-      #       github.rest.issues.createComment({
-      #         issue_number: context.issue.number,
-      #         owner: context.repo.owner,
-      #         repo: context.repo.repo,
-      #         body: body
-      #       })
 
   
   Binaries:
