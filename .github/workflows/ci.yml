@@ -63,8 +63,8 @@ jobs:
     name: Analyze
     needs: Tests
     runs-on: ubuntu-latest
-    # permissions:
-    #   pull-requests: write
+    permissions:
+      pull-requests: write
     steps:
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
