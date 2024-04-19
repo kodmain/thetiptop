@@ -1,15 +1,13 @@
-FROM alpine:edge AS builder
+FROM --platform=$BUILDPLATFORM scratch AS runner
 
-RUN apk update && apk upgrade --no-cache &&\
-    apk add --no-cache go go-task git alpine-sdk && \
-    GOBIN=/bin go install github.com/go-task/task/v3/cmd/task@latest && \
-    GOBIN=/bin go install golang.org/x/tools/cmd/goimports@latest && \
-    GOBIN=/bin go install github.com/swaggo/swag/cmd/swag@latest
+ARG BUILDPLATFORM
+ENV BUILDPLATFORM=$BUILDPLATFORM
 
-WORKDIR /builder
-COPY . /builder
+ARG BINARY_VERSION
+ENV BINARY_VERSION=$BINARY_VERSION
 
-RUN task api:build
+ARG TARGETARCH
+ENV TARGETARCH=$TARGETARCH
 
 FROM scratch AS runner
 

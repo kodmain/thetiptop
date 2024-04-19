@@ -1,7 +1,7 @@
 {
 	"files.exclude": {
 		".github": false,
-		"**/vendor": true,
+		"vendor": true,
 		".maker": false,
 		"deploy/**/*terraform*": true,
 		"**/*_test.go": false,
