@@ -129,7 +129,25 @@ tasks:
     cmds:
       - docker buildx build --platform linux/amd64,linux/arm64 -t testing -f {{.TASKFILE_DIR}}/.github/dockerfiles/local.Dockerfile .
 
-  extract: 
+  extract:
+    desc: Docker image to extract
+    cmds: |
+      docker manifest inspect {{.IMAGE_TAG}} | jq -r '.manifests[] | select(.platform.os != "unknown" and .platform.architecture != "unknown") | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
+        docker pull --platform $os/$arch {{.IMAGE_TAG}}
+      done
+
+      mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
+      docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
+      tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
+      find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/extract \;
+      mkdir -p "{{.TASKFILE_DIR}}/.build/api"
+      find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/extract -type f -name 'project' | while read filepath; do
+        arch=$(docker inspect --format='{{.Architecture}} {{.IMAGE_TAG}})
+        cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
+      done
+
+      zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build/images
+  extract2: 
     desc: Docker image to extract
     cmds:
       - |
@@ -139,7 +157,7 @@ tasks:
 
         mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
         docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
-        tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
+        tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
 
         docker manifest inspect {{.IMAGE_TAG}} | jq -r '.manifests[] | select(.platform.os != "unknown" and .platform.architecture != "unknown") | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
           new_digest=$(echo $new_digest | sed 's/sha256://')
