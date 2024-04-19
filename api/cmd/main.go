@@ -49,8 +49,5 @@ func main() {
 	Helper.Execute()
 }
 
-func azzaz() {
-}
-
-func zeze() {
+func ccc() {
 }
