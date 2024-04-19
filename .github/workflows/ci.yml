@@ -101,7 +101,7 @@ jobs:
 
       - name: SonarQube Comment
         if: always()
-        uses: ibex-code/sonarqube-pull-request-comment@master
+        uses: ibex-code/sonarqube-pull-request-comment@v1
         with:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
