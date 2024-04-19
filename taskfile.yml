@@ -143,7 +143,7 @@ tasks:
         find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/extract \;
         mkdir -p "{{.TASKFILE_DIR}}/.build/api"
         find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/extract -type f -name 'project' | while read filepath; do
-          arch=$(docker inspect --format='{{.Architecture}} {{.IMAGE_TAG}})
+          arch=$(docker inspect --format '{{.Architecture}}' {{.IMAGE_TAG}})
           cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
 
