@@ -51,3 +51,6 @@ func main() {
 
 func azzaz() {
 }
+
+func zeze() {
+}
