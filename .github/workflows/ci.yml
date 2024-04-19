@@ -96,7 +96,7 @@ jobs:
         
 
       - name: SonarScanner Analyze
-        run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_TOKEN }} -Dsonar.qualitygate.wait=true 
+        run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true 
 
 
       - name: SonarQube Comment
