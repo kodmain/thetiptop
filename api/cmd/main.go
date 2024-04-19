@@ -49,5 +49,5 @@ func main() {
 	Helper.Execute()
 }
 
-func ccc() {
+func kkk() {
 }
