@@ -108,8 +108,8 @@ jobs:
         uses: ibex-code/sonarqube-pull-request-comment@master
         with:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
-          sonar_host_url: azaza
-          github_token: ${{ secrets.GITHUB_TOKEN }} 
+          sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
+          github_token: aaaa
 
 
   
