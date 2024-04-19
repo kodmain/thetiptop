@@ -63,8 +63,8 @@ jobs:
     name: Analyze
     needs: Tests
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
+    # permissions:
+    #   pull-requests: write
     steps:
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
@@ -109,7 +109,7 @@ jobs:
         with:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
-          github_token: aaaa
+          github_token: ${{ secrets.GITHUB_TOKEN }} 
 
 
   
