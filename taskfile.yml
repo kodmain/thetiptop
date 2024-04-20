@@ -146,6 +146,8 @@ tasks:
           arch=$(docker inspect --format='{{"{{"}}.Architecture{{"}}"}}' {{.IMAGE_TAG}})
           cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
+
+        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build/images
   extract2: 
     desc: Docker image to extract
     cmds:
