@@ -139,15 +139,18 @@ tasks:
 
         mkdir -p {{.TASKFILE_DIR}}/.build/api
         mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
+        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside
+        
         docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
         tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
-        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs \;
-        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name 'project' | while read filepath; do
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside \;
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside -type f -name 'project' | while read filepath; do
           arch=$(docker inspect --format='{{"{{"}}.Architecture{{"}}"}}' {{.IMAGE_TAG}})
+          echo cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
           cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
 
-        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build/images
+        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build
   extract2: 
     desc: Docker image to extract
     cmds:
