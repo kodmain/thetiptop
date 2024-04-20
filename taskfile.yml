@@ -137,17 +137,15 @@ tasks:
           docker pull --platform $os/$arch {{.IMAGE_TAG}}
         done
 
-        mkdir -p {{.TASKFILE_DIR}}/.build/api
-        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
-        docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
-        tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
-        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/extract \;
-        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/extract -type f -name 'project' | while read filepath; do
-          arch=$(docker inspect --format '{{.Architecture}}' {{.IMAGE_TAG}})
+        #mkdir -p {{.TASKFILE_DIR}}/.build/api
+        #mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
+        #docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
+        #tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs \;
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name 'project' | while read filepath; do
+          arch=$(docker inspect --format='{{"{{"}}.Architecture{{"}}"}}' {{.IMAGE_TAG}})
           cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
-
-        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build/images
   extract2: 
     desc: Docker image to extract
     cmds:
