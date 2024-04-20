@@ -7,7 +7,7 @@ ARG TARGETARCH
 ENV TARGETARCH=$TARGETARCH
 
 WORKDIR /var/run
-ADD --chmod=0777 https://github.com/kodmain/releases/download/$BINARY_VERSION/thetiptop-$TARGETARCH /var/run/project
+ADD --chmod=0777 https://github.com/kodmain/thetiptop/releases/download/$BINARY_VERSION/thetiptop-$TARGETARCH /var/run/project
 HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/v1/status/healthcheck || exit 1
 EXPOSE 80 443
 
