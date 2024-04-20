@@ -129,10 +129,10 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.PAT_TOKEN }}
 
-      - name: Build Image
+      - name: Build Image ARM64
         uses: docker/build-push-action@v5
         with:
-          file: .github/dockerfiles/remote.Dockerfile
+          file: .github/dockerfiles/builder.Dockerfile
           context: .
           push: true
           platforms: linux/arm64
@@ -140,10 +140,10 @@ jobs:
             BINARY_VERSION=${{ needs.Analyze.outputs.version }}
           tags: ghcr.io/${{ github.repository }}:PREVIEW-arm64
       
-      - name: Build Image
+      - name: Build Image AMD64
         uses: docker/build-push-action@v5
         with:
-          file: .github/dockerfiles/remote.Dockerfile
+          file: .github/dockerfiles/builder.Dockerfile
           context: .
           push: true
           platforms: linux/amd64
@@ -159,6 +159,19 @@ jobs:
         with:
           name: artefacts
           path: ./artefacts.zip
+
+      - name: Delete PREVIEW image from GHCR
+        run: |
+          # Define the repository name and the tags to be deleted
+          TAGS_TO_DELETE=("PREVIEW-arm64" "PREVIEW-amd64")
+          # Loop through the tags and delete them
+          for TAG in "${TAGS_TO_DELETE[@]}"; do
+            # Use GitHub API to delete the tag
+            curl -X DELETE \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/user/packages/container/${{ github.repository }}/versions?package_type=container&query=$TAG"
+          done
 
       - name: Upload release
         uses: ncipollo/release-action@v1
@@ -176,8 +189,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: .github/dockerfiles/runner.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+            BINARY_VERSION=${{ needs.Analyze.outputs.version }}
           tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ needs.Analyze.outputs.version }}
 
       - name: Authenticate to Docker
