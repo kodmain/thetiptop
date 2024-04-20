@@ -9,8 +9,8 @@ on:
       - '*'
 
 permissions:
-  pull-requests: read
-  contents: read
+  pull-requests: write
+  contents: write
   packages: write
 
 jobs:
