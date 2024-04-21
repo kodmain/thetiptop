@@ -34,7 +34,8 @@ tasks:
     dir: app
     desc: Run the tests for the app
     cmds:
-      - flutter test -r github --coverage --coverage-path {{.TASKFILE_DIR}}/flutter.lcov
+      - flutter test -r github --coverage --coverage-path {{.TASKFILE_DIR}}/coverage_app.lcov
+
   app:build:
     dir: app
     desc: Build the app
@@ -82,7 +83,8 @@ tasks:
     dir: api
     desc: Run the tests for the api
     cmds:
-      - gotestsum -f github-actions -- -v $(go list ./... | grep -vE "vendor") -coverprofile={{.TASKFILE_DIR}}/api.out -covermode=atomic
+      - gotestsum -f github-actions -- -v $(go list ./... | grep -vE "vendor") -coverprofile={{.TASKFILE_DIR}}/coverage_api.out -covermode=atomic
+
   api:build:
     dir: api
     desc: Build the api
@@ -109,7 +111,7 @@ tasks:
         go run cmd/main.go
   api:arch:rebuild:
     dir: deploy/aws/api
-    desc: rebuild the app
+    desc: rebuild the api
     cmds:
       - task api:arch:destroy
       - task api:arch:deploy
