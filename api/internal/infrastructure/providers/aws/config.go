@@ -14,6 +14,7 @@ func Connect(profil ...string) (*aws.Config, error) {
 	if instance == nil {
 		optFns := []func(*config.LoadOptions) error{
 			config.WithDefaultRegion("eu-west-3"),
+			config.WithEC2IMDSEndpoint("http://169.254.169.254/latest/meta-data/"),
 		}
 
 		for _, p := range profil {
