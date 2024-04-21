@@ -6,6 +6,9 @@ RUN apk update && apk upgrade --no-cache &&\
     GOBIN=/bin go install golang.org/x/tools/cmd/goimports@latest && \
     GOBIN=/bin go install github.com/swaggo/swag/cmd/swag@latest
 
+ARG BINARY_VERSION=build
+ENV BINARY_VERSION=${BINARY_VERSION}
+
 WORKDIR /builder
 COPY . /builder
 
