@@ -94,8 +94,13 @@ tasks:
         go generate ./...
         swag init -g cmd/main.go -o ./internal/docs/generated
         rm -rf {{.TASKFILE_DIR}}/.build/api || true
-        ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
-        CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/project cmd/main.go
+        if [ "$(uname)" == "Darwin" ]; then
+          ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_VERSION=$BINARY_VERSION -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
+        else
+          ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_VERSION=$BINARY_VERSION -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD) -extldflags '-static'"
+        fi
+        CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo,osusergo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/project cmd/main.go
+
   api:run:
     dir: api
     desc: Build the api
@@ -139,17 +144,20 @@ tasks:
           docker pull --platform $os/$arch {{.IMAGE_TAG}}
         done
 
-        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}
+        mkdir -p {{.TASKFILE_DIR}}/.build/api
+        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
+        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside
+        
         docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
         tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
-        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/extract \;
-        mkdir -p "{{.TASKFILE_DIR}}/.build/api"
-        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/extract -type f -name 'project' | while read filepath; do
-          arch=$(docker inspect --format='{{.Architecture}} {{.IMAGE_TAG}})
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside \;
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside -type f -name 'project' | while read filepath; do
+          arch=$(docker inspect --format='{{"{{"}}.Architecture{{"}}"}}' {{.IMAGE_TAG}})
+          echo cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
           cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
 
-        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build/images
+        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build
   extract2: 
     desc: Docker image to extract
     cmds:
