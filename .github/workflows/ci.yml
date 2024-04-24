@@ -99,7 +99,7 @@ jobs:
         run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true 
 
       - name: SonarQube Comment
-        if: always()
+        if: always() && github.event.action == 'pull_request'
         uses: ibex-code/sonarqube-pull-request-comment@v1
         with:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
