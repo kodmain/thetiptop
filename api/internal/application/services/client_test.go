@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
@@ -27,7 +28,7 @@ func setup() error {
 		return err
 	}
 
-	return config.Load(workingDir + "/../../../config.test.yml")
+	return config.Load(aws.String(workingDir + "/../../../config.test.yml"))
 }
 
 func TestClient(t *testing.T) {
