@@ -26,7 +26,7 @@ var Helper *cobra.Command = &cobra.Command{
 		logger.Info("loading configuration")
 		generated.SwaggerInfo.Version = env.BUILD_VERSION
 		logger.SetLevel(levels.DEBUG)
-		// cfg, err := config.Load("config.yml")
+
 		return config.Load(env.CONFIG_URI)
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -47,5 +47,10 @@ var Helper *cobra.Command = &cobra.Command{
 // @host		localhost
 // @BasePath
 func main() {
+	env.CONFIG_URI = Helper.Flags().String("config", env.DEFAULT_CONFIG_URI, "URI de la configuration")
+	env.AWS_PROFILE = Helper.Flags().String("profile", env.DEFAULT_AWS_PROFILE, "Profil AWS")
+	env.PORT_HTTP = Helper.Flags().Int("http-port", env.DEFAULT_PORT_HTTP, "Port HTTP")
+	env.PORT_HTTPS = Helper.Flags().Int("https-port", env.DEFAULT_PORT_HTTPS, "Port HTTPS")
+
 	Helper.Execute()
 }

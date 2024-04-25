@@ -33,12 +33,16 @@ const (
 
 var srv *server.Server
 
-func start(http, https string) error {
+func start(http, https int) error {
+	env.DEFAULT_PORT_HTTP = http
+	env.DEFAULT_PORT_HTTPS = https
+	env.PORT_HTTP = &env.DEFAULT_PORT_HTTP
+	env.PORT_HTTPS = &env.DEFAULT_PORT_HTTPS
 	config.Load(aws.String("../../../../config.test.yml"))
 	logger.Info("starting application")
-	env.PORT_HTTP = &http
-	env.PORT_HTTPS = &https
 	srv = server.Create()
+
+	logger.Warn(*env.PORT_HTTP)
 	srv.Register(interfaces.Endpoints)
 	return srv.Start()
 }
@@ -83,11 +87,11 @@ func request(method, uri string, token string, values ...map[string][]string) ([
 
 	content, err := buffer.Read(resp.Body)
 
-	return content.Bytes(), resp.StatusCode, nil
+	return content.Bytes(), resp.StatusCode, err
 }
 
 func TestSignUp(t *testing.T) {
-	assert.Nil(t, start(":8081", ":8444"))
+	assert.Nil(t, start(8888, 8444))
 
 	users := []struct {
 		email    string
@@ -105,18 +109,18 @@ func TestSignUp(t *testing.T) {
 			"password": {user.password},
 		}
 
-		_, status, err := request("POST", "http://localhost:8081/sign/up", "", values)
+		_, status, err := request("POST", "http://localhost:8888/sign/up", "", values)
 		assert.Nil(t, err)
-		assert.Equal(t, status, user.status)
+		assert.Equal(t, user.status, status)
 	}
 
 	assert.Nil(t, stop())
 }
 
 func TestSignIn(t *testing.T) {
-	assert.Nil(t, start(":8082", ":8445"))
+	assert.Nil(t, start(8889, 8445))
 
-	request("POST", "http://localhost:8082/sign/up", "", map[string][]string{
+	request("POST", "http://localhost:8889/sign/up", "", map[string][]string{
 		"email":    {GOOD_EMAIL},
 		"password": {GOOD_PASS},
 	})
@@ -137,23 +141,23 @@ func TestSignIn(t *testing.T) {
 			"password": {user.password},
 		}
 
-		_, status, err := request("POST", "http://localhost:8082/sign/in", "", values)
+		_, status, err := request("POST", "http://localhost:8889/sign/in", "", values)
 		assert.Nil(t, err)
-		assert.Equal(t, status, user.status)
+		assert.Equal(t, user.status, status)
 	}
 
 	assert.Nil(t, stop())
 }
 
 func TestSignRenew(t *testing.T) {
-	assert.Nil(t, start(":8083", ":8446"))
+	assert.Nil(t, start(8890, 8446))
 
-	request("POST", "http://localhost:8083/sign/up", "", map[string][]string{
+	request("POST", "http://localhost:8890/sign/up", "", map[string][]string{
 		"email":    {GOOD_EMAIL},
 		"password": {GOOD_PASS},
 	})
 
-	content, _, _ := request("POST", "http://localhost:8083/sign/in", "", map[string][]string{
+	content, _, _ := request("POST", "http://localhost:8890/sign/in", "", map[string][]string{
 		"email":    {GOOD_EMAIL},
 		"password": {GOOD_PASS},
 	})
@@ -179,9 +183,9 @@ func TestSignRenew(t *testing.T) {
 	}
 
 	for _, user := range users {
-		_, status, err := request("GET", "http://localhost:8083/sign/renew", user.token)
+		_, status, err := request("GET", "http://localhost:8890/sign/renew", user.token)
 		assert.Nil(t, err)
-		assert.Equal(t, status, user.status)
+		assert.Equal(t, user.status, status)
 	}
 
 	assert.Nil(t, stop())

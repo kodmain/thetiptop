@@ -2,6 +2,7 @@
 package application
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,6 +22,7 @@ func Wait() error {
 	for {
 		select {
 		case err := <-PANIC:
+			fmt.Println(err)
 			if logger.Panic(err) {
 				return err
 			}
