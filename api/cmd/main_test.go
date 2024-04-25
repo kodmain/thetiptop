@@ -24,8 +24,8 @@ func TestHelperPreRunE(t *testing.T) {
 }
 
 func TestHelperRunE(t *testing.T) {
-	env.PORT_HTTP = aws.String(":8080")
-	env.PORT_HTTPS = aws.String(":8443")
+	env.PORT_HTTP = aws.Int(8080)
+	env.PORT_HTTPS = aws.Int(8443)
 
 	cmd := Helper
 	b := bytes.NewBufferString("")
