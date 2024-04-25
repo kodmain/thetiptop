@@ -76,7 +76,7 @@ tasks:
     dir: api
     desc: Update the dependencies for the api
     cmds:
-      - go get -u {{.TASKFILE_DIR}}/api/...
+      - go get -u ./...
       - go mod vendor
       - go mod tidy
   api:tests:
@@ -95,9 +95,9 @@ tasks:
         swag init -g cmd/main.go -o ./internal/docs/generated
         rm -rf {{.TASKFILE_DIR}}/.build/api || true
         if [ "$(uname)" == "Darwin" ]; then
-          ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_VERSION=$BINARY_VERSION -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
+          ldflags="-s -w -X github.com/kodmain/thetoptop/api/env.BUILD_VERSION=$BINARY_VERSION -X github.com/kodmain/thetoptop/api/env.BUILD_COMMIT=$(git rev-parse --short HEAD)"
         else
-          ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_VERSION=$BINARY_VERSION -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD) -extldflags '-static'"
+          ldflags="-s -w -X github.com/kodmain/thetoptop/api/env.BUILD_VERSION=$BINARY_VERSION -X github.com/kodmain/thetoptop/api/env.BUILD_COMMIT=$(git rev-parse --short HEAD) -extldflags '-static'"
         fi
         CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo,osusergo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/project cmd/main.go
 
@@ -108,7 +108,7 @@ tasks:
       - |
         go generate ./...
         swag init -g cmd/main.go -o ./internal/docs/generated
-        go run cmd/main.go
+        go run cmd/main.go -config config.dev.yml
   api:arch:rebuild:
     dir: deploy/aws/api
     desc: rebuild the api

@@ -8,7 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/buffer"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
@@ -32,10 +34,10 @@ const (
 var srv *server.Server
 
 func start(http, https string) error {
-	config.Load("../../../../config.test.yml")
+	config.Load(aws.String("../../../../config.test.yml"))
 	logger.Info("starting application")
-	config.PORT_HTTP = http
-	config.PORT_HTTPS = https
+	env.PORT_HTTP = &http
+	env.PORT_HTTPS = &https
 	srv = server.Create()
 	srv.Register(interfaces.Endpoints)
 	return srv.Start()
