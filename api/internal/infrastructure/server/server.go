@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application"
 	"github.com/kodmain/thetiptop/api/internal/docs"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
@@ -131,11 +131,11 @@ func getOperationID(pathItem *docs.PathItem, method string) (string, bool) {
 }
 
 func (server *Server) http() {
-	application.PANIC <- server.app.Listen(config.PORT_HTTP)
+	application.PANIC <- server.app.Listen(*env.PORT_HTTP)
 	logger.Info("Server started on port 80")
 }
 
 func (server *Server) https() {
-	application.PANIC <- server.app.ListenTLSWithCertificate(config.PORT_HTTPS, server.certs.Certificates[0])
+	application.PANIC <- server.app.ListenTLSWithCertificate(*env.PORT_HTTPS, server.certs.Certificates[0])
 	logger.Info("Server started on port 443")
 }

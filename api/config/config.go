@@ -15,17 +15,7 @@ import (
 )
 
 var (
-	BUILD_COMMIT  string               // The commit hash of the build, useful for tracking specific builds in version control.
-	BUILD_VERSION string = "dev"       // The version of the build, defaults to the value in DEFAULT_VERSION.
-	APP_NAME      string = "TheTipTop" // The name of the application, defaults to the value in DEFAULT_APP_NAME.
-	HOSTNAME      string = "localhost" // The hostname of the server, used for generating TLS certificates.
-	cfg           *Config
-
-	DEFAULT_DB_NAME string = "default"
-	DEFAULT_CONFIG  string = "s3://config.kodmain/config.yml"
-
-	PORT_HTTP  string = ":80"
-	PORT_HTTPS string = ":443"
+	cfg *Config
 )
 
 type Config struct {
@@ -73,21 +63,21 @@ func Reset() {
 	cfg = nil
 }
 
-func Load(path string) error {
-	if path == "" {
+func Load(path *string) error {
+	if path == nil || *path == "" {
 		return fmt.Errorf("path is required")
 	}
 
 	var fileContents []byte
 	var err error
 
-	if strings.HasPrefix(path, "s3://") {
-		fileContents, err = loadFromS3(path)
+	if strings.HasPrefix(*path, "s3://") {
+		fileContents, err = loadFromS3(*path)
 		if err != nil {
 			return err
 		}
 	} else {
-		fileContents, err = os.ReadFile(path)
+		fileContents, err = os.ReadFile(*path)
 		if err != nil {
 			return err
 		}

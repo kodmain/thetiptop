@@ -6,14 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kodmain/thetiptop/api/config"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestHelperPreRunE tests the PreRunE function for configuration loading
 func TestHelperPreRunE(t *testing.T) {
-	config.DEFAULT_CONFIG = "../config.test.yml"
+	env.CONFIG_URI = aws.String("../config.test.yml")
 	cmd := Helper
 	b := bytes.NewBufferString("")
 	cmd.SetOut(b)
@@ -23,8 +24,8 @@ func TestHelperPreRunE(t *testing.T) {
 }
 
 func TestHelperRunE(t *testing.T) {
-	config.PORT_HTTP = ":8080"
-	config.PORT_HTTPS = ":8443"
+	env.PORT_HTTP = aws.String(":8080")
+	env.PORT_HTTPS = aws.String(":8443")
 
 	cmd := Helper
 	b := bytes.NewBufferString("")
