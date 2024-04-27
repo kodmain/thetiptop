@@ -27,8 +27,6 @@ type Service struct {
 	From      string
 	Expeditor string
 	Auth      smtp.Auth
-	Sender    SenderInterface
-	Disable   bool
 }
 
 var instance *Service
@@ -69,17 +67,9 @@ func New(cfg *Service) error {
 		instance.Auth = smtp.PlainAuth("", instance.Username, instance.Password, instance.Host)
 	}
 
-	if cfg.Sender == nil {
-		SetSender(&Sender{})
-	}
-
 	instance = cfg
 
 	return nil
-}
-
-func SetSender(s SenderInterface) {
-	instance.Sender = s
 }
 
 // Send Envoie un e-mail en utilisant la configuration du service.
@@ -98,19 +88,11 @@ func Send(mail *Mail) error {
 		return errors.New("invalid mail")
 	}
 
-	if instance.Disable {
-		return nil
-	}
-
 	msg, to, err := mail.Prepare()
 	if err != nil {
 		return err
 	}
 
 	logger.Info("Sending mail to: ", to)
-	err = instance.Sender.SendMail(instance.Host+":"+instance.Port, instance.Auth, instance.From, to, msg)
-
-	logger.Error(err)
-
-	return err
+	return smtp.SendMail(instance.Host+":"+instance.Port, instance.Auth, instance.From, to, msg)
 }

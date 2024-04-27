@@ -33,10 +33,6 @@ func setup() error {
 		return err
 	}
 
-	config.Inject(func(c *config.Config) {
-		c.Mail.Disable = true
-	})
-
 	return nil
 }
 

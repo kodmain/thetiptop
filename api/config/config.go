@@ -63,10 +63,6 @@ func Reset() {
 	cfg = nil
 }
 
-func Inject(f func(*Config)) {
-	f(cfg)
-}
-
 func Load(path *string) error {
 	if path == nil || *path == "" {
 		return fmt.Errorf("path is required")

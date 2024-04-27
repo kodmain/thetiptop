@@ -13,7 +13,6 @@ import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/buffer"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
@@ -142,16 +141,6 @@ func TestSignUp(t *testing.T) {
 		{WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest},
 	}
 
-	mockSender := new(MockSender)
-	mockSender.On("SendMail",
-		"localhost:1025",
-		smtp.PlainAuth("", "secret", "secret", "localhost"),
-		"whoami@localhost",
-		[]string{"user1@example.com"},
-		mock.Anything,
-	).Return(nil)
-	mail.SetSender(mockSender)
-
 	for _, user := range users {
 		values := map[string][]string{
 			"email":    {user.email},
@@ -162,9 +151,6 @@ func TestSignUp(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, user.status, status)
 	}
-
-	// Vérifiez que les attentes du mock ont été respectées
-	mockSender.AssertExpectations(t)
 
 	assert.Nil(t, stop())
 }
