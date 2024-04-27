@@ -105,20 +105,8 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
-      tags:
-      - Sign
-  /sign/out:
-    get:
-      consumes:
-      - '*/*'
-      operationId: jwt.Auth => client.SignOut
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
       tags:
       - Sign
   /sign/renew:
@@ -129,8 +117,8 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
+        "209":
+          description: ""
       tags:
       - Sign
   /sign/up:

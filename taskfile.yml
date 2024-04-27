@@ -108,7 +108,7 @@ tasks:
       - |
         go generate ./...
         swag init -g cmd/main.go -o ./internal/docs/generated
-        go run cmd/main.go --config config.dev.yml --http-port 8080 --https-port 8443
+        go run cmd/main.go --config config.test.yml
   api:arch:rebuild:
     dir: deploy/aws/api
     desc: rebuild the api
