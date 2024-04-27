@@ -30,7 +30,7 @@ func SignUp(c *fiber.Ctx) error {
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address"
 // @Param		password	formData	string	true	"Password"
-// @Success		204	{object}	nil
+// @Success		200	{object}	nil
 // @Router		/sign/in [post]
 // @Id			client.SignIn
 func SignIn(c *fiber.Ctx) error {
@@ -45,7 +45,7 @@ func SignIn(c *fiber.Ctx) error {
 // @Tags		Sign
 // @Accept		*/*
 // @Produce		application/json
-// @Success		204	{object}	nil
+// @Success		209	{object}	nil
 // @Router		/sign/renew [get]
 // @Id			client.SignRenew
 func SignRenew(c *fiber.Ctx) error {
@@ -57,15 +57,4 @@ func SignRenew(c *fiber.Ctx) error {
 	status, response := services.SignRenew(token.(*serializer.Token))
 
 	return c.Status(status).JSON(response)
-}
-
-// @Tags		Sign
-// @Accept		*/*
-// @Produce		application/json
-// @Success		204	{object}	nil
-// @Router		/sign/out [get]
-// @Id			jwt.Auth => client.SignOut
-func SignOut(c *fiber.Ctx) error {
-	// TODO: Implement SignOut
-	return c.Status(fiber.StatusNoContent).Send(nil)
 }

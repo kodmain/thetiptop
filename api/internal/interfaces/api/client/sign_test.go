@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/smtp"
 	"net/url"
 	"strings"
 	"testing"
@@ -12,16 +13,14 @@ import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/buffer"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
-
-type TokenStructure struct {
-	JWT string `json:"jwt"`
-}
 
 const (
 	GOOD_EMAIL = "user1@example.com"
@@ -30,6 +29,20 @@ const (
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
 )
+
+type TokenStructure struct {
+	JWT string `json:"jwt"`
+}
+
+// MockSender est une implémentation mock de MailSender
+type MockSender struct {
+	mock.Mock
+}
+
+func (m *MockSender) SendMail(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	args := m.Called(addr, a, from, to, msg)
+	return args.Error(0)
+}
 
 var srv *server.Server
 
@@ -44,6 +57,32 @@ func start(http, https int) error {
 
 	logger.Warn(*env.PORT_HTTP)
 	srv.Register(interfaces.Endpoints)
+
+	/*
+		tpl := mail.NewTemplate("signup")
+		text, html, err := tpl.Inject(mail.Data{
+			"AppName": "ThéTipTop",
+			"Url":     "https://thetiptop.com",
+		})
+
+		if err != nil {
+			return err
+		}
+
+		m := &mail.Mail{
+			To:      []string{GOOD_EMAIL},
+			Subject: "Welcome to The Tip Top",
+			Text:    text,
+			Html:    html,
+		}
+
+
+		msg, to, err := m.Prepare()
+		if err != nil {
+			return err
+		}
+	*/
+
 	return srv.Start()
 }
 
@@ -103,6 +142,16 @@ func TestSignUp(t *testing.T) {
 		{WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest},
 	}
 
+	mockSender := new(MockSender)
+	mockSender.On("SendMail",
+		"localhost:1025",
+		smtp.PlainAuth("", "secret", "secret", "localhost"),
+		"whoami@localhost",
+		[]string{"user1@example.com"},
+		mock.Anything,
+	).Return(nil)
+	mail.SetSender(mockSender)
+
 	for _, user := range users {
 		values := map[string][]string{
 			"email":    {user.email},
@@ -113,6 +162,9 @@ func TestSignUp(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, user.status, status)
 	}
+
+	// Vérifiez que les attentes du mock ont été respectées
+	mockSender.AssertExpectations(t)
 
 	assert.Nil(t, stop())
 }

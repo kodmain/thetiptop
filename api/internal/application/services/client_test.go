@@ -28,7 +28,16 @@ func setup() error {
 		return err
 	}
 
-	return config.Load(aws.String(workingDir + "/../../../config.test.yml"))
+	err = config.Load(aws.String(workingDir + "/../../../config.test.yml"))
+	if err != nil {
+		return err
+	}
+
+	config.Inject(func(c *config.Config) {
+		c.Mail.Disable = true
+	})
+
+	return nil
 }
 
 func TestClient(t *testing.T) {
