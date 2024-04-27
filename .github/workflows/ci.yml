@@ -95,13 +95,22 @@ jobs:
           mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
           ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
 
+      - name: What is next version?
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        with:
+          token: ${{ github.token }}
+          branch: main
+          skipInvalidTags: true
+          noNewCommitBehavior: 'current'
+
       - name: SonarScanner Analyze
-        run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true || echo "EXIT_STATUS=$?" >> $GITHUB_ENV
+        run: sonar-scanner -Dsonar.projectVersion=${{ steps.semver.outputs.next }} -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true || echo "EXIT_STATUS=$?" >> $GITHUB_ENV
 
       - name: Fail under specific conditions
         if: github.event_name != 'push'
         run: |
-          if [ "${{ env.EXIT_STATUS }}" != "0" ]; then
+          if [ "${{ env.EXIT_STATUS }}" != "" ]; then
             exit 1
           fi
 
@@ -112,16 +121,6 @@ jobs:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
           github_token: ${{ secrets.GITHUB_TOKEN }} 
-
-
-      - name: What is next version?
-        id: semver
-        uses: ietf-tools/semver-action@v1
-        with:
-          token: ${{ github.token }}
-          branch: main
-          skipInvalidTags: true
-          noNewCommitBehavior: 'current'
   
   Build:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
