@@ -96,6 +96,7 @@ jobs:
           ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
 
       - name: SonarScanner Analyze
+        if: always() && github.event_name == 'pull_request'
         run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true 
 
       - name: SonarQube Comment
