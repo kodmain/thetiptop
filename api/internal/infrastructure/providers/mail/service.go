@@ -3,6 +3,8 @@ package mail
 import (
 	"errors"
 	"net/smtp"
+
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
 // Service Gère la configuration du service de messagerie et l'envoi des mails.
@@ -24,7 +26,6 @@ type Service struct {
 	Password  string
 	From      string
 	Expeditor string
-	Disable   bool
 	Auth      smtp.Auth
 }
 
@@ -57,21 +58,16 @@ func New(cfg *Service) error {
 		errs = append(errs, errors.New("mail from is empty"))
 	}
 
-	if cfg.Username == "" {
-		errs = append(errs, errors.New("mail username is empty"))
-	}
-
-	if cfg.Password == "" {
-		errs = append(errs, errors.New("mail password is empty"))
-	}
-
 	if len(errs) > 0 {
 		instance = nil
 		return errors.Join(errs...)
 	}
 
+	if cfg.Username != "" && cfg.Password != "" {
+		instance.Auth = smtp.PlainAuth("", instance.Username, instance.Password, instance.Host)
+	}
+
 	instance = cfg
-	instance.Auth = smtp.PlainAuth("", instance.Username, instance.Password, instance.Host)
 
 	return nil
 }
@@ -92,14 +88,11 @@ func Send(mail *Mail) error {
 		return errors.New("invalid mail")
 	}
 
-	if instance.Disable {
-		return nil
-	}
-
 	msg, to, err := mail.Prepare()
 	if err != nil {
 		return err
 	}
 
+	logger.Info("Sending mail to: ", to)
 	return smtp.SendMail(instance.Host+":"+instance.Port, instance.Auth, instance.From, to, msg)
 }
