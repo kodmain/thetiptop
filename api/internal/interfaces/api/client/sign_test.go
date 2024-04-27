@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/smtp"
 	"net/url"
 	"strings"
 	"testing"
@@ -17,11 +18,8 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
-
-type TokenStructure struct {
-	JWT string `json:"jwt"`
-}
 
 const (
 	GOOD_EMAIL = "user1@example.com"
@@ -30,6 +28,20 @@ const (
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
 )
+
+type TokenStructure struct {
+	JWT string `json:"jwt"`
+}
+
+// MockSender est une implémentation mock de MailSender
+type MockSender struct {
+	mock.Mock
+}
+
+func (m *MockSender) SendMail(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	args := m.Called(addr, a, from, to, msg)
+	return args.Error(0)
+}
 
 var srv *server.Server
 
@@ -44,6 +56,7 @@ func start(http, https int) error {
 
 	logger.Warn(*env.PORT_HTTP)
 	srv.Register(interfaces.Endpoints)
+
 	return srv.Start()
 }
 

@@ -28,7 +28,12 @@ func setup() error {
 		return err
 	}
 
-	return config.Load(aws.String(workingDir + "/../../../config.test.yml"))
+	err = config.Load(aws.String(workingDir + "/../../../config.test.yml"))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func TestClient(t *testing.T) {

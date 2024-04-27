@@ -1,11 +1,10 @@
 mail:
-  username: secret
+  username: secret 
   password: secret
-  host: smtp.world.com
-  port: 0
+  host: localhost
+  port: 1025
   expeditor: Whoami
-  from: hello@world.com
-  disable: true
+  from: whoami@localhost
 
 databases:
   default:

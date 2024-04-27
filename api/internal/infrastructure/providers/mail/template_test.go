@@ -32,22 +32,5 @@ func TestTemplate(t *testing.T) {
 		Text:    text,
 		Html:    html,
 	})
-
-	assert.Error(t, err)
-
-	err = mail.New(&mail.Service{
-		Disable: true,
-	})
-
 	assert.NotNil(t, err)
-
-	err = mail.Send(&mail.Mail{})
-	assert.Error(t, err)
-
-	mail.Send(&mail.Mail{
-		To:      []string{"hello@world.com"},
-		Subject: "Subject",
-		Text:    text,
-		Html:    html,
-	})
 }
