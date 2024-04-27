@@ -100,7 +100,7 @@ jobs:
         run: sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true || echo "EXIT_STATUS=$?" >> $GITHUB_ENV
 
       - name: Fail under specific conditions
-        if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged != true }}
+        if: always() && ${{ github.event_name == 'pull_request' && github.event.pull_request.merged == true }}
         run: |
           if [ "${{ env.EXIT_STATUS }}" != "0" ]; then
             exit 1
