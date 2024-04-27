@@ -171,27 +171,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/sign/out": {
-            "get": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Sign"
-                ],
-                "operationId": "jwt.Auth =\u003e client.SignOut",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -209,8 +190,8 @@ const docTemplate = `{
                 ],
                 "operationId": "client.SignRenew",
                 "responses": {
-                    "204": {
-                        "description": "No Content"
+                    "209": {
+                        "description": ""
                     }
                 }
             }
