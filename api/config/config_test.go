@@ -25,18 +25,6 @@ func TestLoad(t *testing.T) {
 	assert.Error(t, err) // This test will fail because no credentials are provided
 }
 
-func TestInject(t *testing.T) {
-	err := config.Load(aws.String("../config.test.yml"))
-	assert.Nil(t, err)
-
-	assert.Nil(t, config.Get("mail.disable"))
-	config.Inject(func(cfg *config.Config) {
-		cfg.Mail.Disable = true
-	})
-
-	assert.True(t, config.Get("mail.disable").(bool))
-}
-
 func TestGet(t *testing.T) {
 	config.Reset()
 	assert.Nil(t, config.Get("mail"))

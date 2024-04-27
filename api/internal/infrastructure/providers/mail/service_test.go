@@ -23,7 +23,6 @@ func TestService(t *testing.T) {
 		Password:  "secret",
 		From:      "hello@world.com",
 		Expeditor: "Whoami",
-		Disable:   true,
 	})
 
 	assert.Nil(t, err)
