@@ -110,7 +110,7 @@ jobs:
       - name: Fail under specific conditions
         if: github.event_name != 'push'
         run: |
-          if [ "${{ env.EXIT_STATUS }}" != "0" ]; then
+          if [ "${{ env.EXIT_STATUS }}" != "" ]; then
             exit 1
           fi
 
