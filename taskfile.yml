@@ -100,6 +100,20 @@ tasks:
           ldflags="-s -w -X github.com/kodmain/thetoptop/api/env.BUILD_VERSION=$BINARY_VERSION -X github.com/kodmain/thetoptop/api/env.BUILD_COMMIT=$(git rev-parse --short HEAD) -extldflags '-static'"
         fi
         CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo,osusergo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/project cmd/main.go
+  
+  api:mail:
+    dir: api
+    desc: Run the api with maildev
+    cmds:
+      - |
+        docker run -ti \
+          -p 1025:1025 \
+          -p 1080:1080 \
+          -e MAILDEV_OUTGOING_USER=secret \
+          -e MAILDEV_OUTGOING_USER=secret \
+          -e MAILDEV_INCOMING_USER=secret \
+          -e MAILDEV_INCOMING_PASS=secret \
+          maildev/maildev -v
 
   api:run:
     dir: api
