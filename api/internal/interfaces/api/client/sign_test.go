@@ -57,31 +57,6 @@ func start(http, https int) error {
 	logger.Warn(*env.PORT_HTTP)
 	srv.Register(interfaces.Endpoints)
 
-	/*
-		tpl := mail.NewTemplate("signup")
-		text, html, err := tpl.Inject(mail.Data{
-			"AppName": "ThéTipTop",
-			"Url":     "https://thetiptop.com",
-		})
-
-		if err != nil {
-			return err
-		}
-
-		m := &mail.Mail{
-			To:      []string{GOOD_EMAIL},
-			Subject: "Welcome to The Tip Top",
-			Text:    text,
-			Html:    html,
-		}
-
-
-		msg, to, err := m.Prepare()
-		if err != nil {
-			return err
-		}
-	*/
-
 	return srv.Start()
 }
 
