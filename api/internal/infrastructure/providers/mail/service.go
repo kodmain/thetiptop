@@ -3,6 +3,8 @@ package mail
 import (
 	"errors"
 	"net/smtp"
+
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
 // Service Gère la configuration du service de messagerie et l'envoi des mails.
@@ -24,8 +26,9 @@ type Service struct {
 	Password  string
 	From      string
 	Expeditor string
-	Disable   bool
 	Auth      smtp.Auth
+	Sender    SenderInterface
+	Disable   bool
 }
 
 var instance *Service
@@ -57,23 +60,26 @@ func New(cfg *Service) error {
 		errs = append(errs, errors.New("mail from is empty"))
 	}
 
-	if cfg.Username == "" {
-		errs = append(errs, errors.New("mail username is empty"))
-	}
-
-	if cfg.Password == "" {
-		errs = append(errs, errors.New("mail password is empty"))
-	}
-
 	if len(errs) > 0 {
 		instance = nil
 		return errors.Join(errs...)
 	}
 
+	if cfg.Username != "" && cfg.Password != "" {
+		instance.Auth = smtp.PlainAuth("", instance.Username, instance.Password, instance.Host)
+	}
+
+	if cfg.Sender == nil {
+		SetSender(&Sender{})
+	}
+
 	instance = cfg
-	instance.Auth = smtp.PlainAuth("", instance.Username, instance.Password, instance.Host)
 
 	return nil
+}
+
+func SetSender(s SenderInterface) {
+	instance.Sender = s
 }
 
 // Send Envoie un e-mail en utilisant la configuration du service.
@@ -101,5 +107,10 @@ func Send(mail *Mail) error {
 		return err
 	}
 
-	return smtp.SendMail(instance.Host+":"+instance.Port, instance.Auth, instance.From, to, msg)
+	logger.Info("Sending mail to: ", to)
+	err = instance.Sender.SendMail(instance.Host+":"+instance.Port, instance.Auth, instance.From, to, msg)
+
+	logger.Error(err)
+
+	return err
 }
