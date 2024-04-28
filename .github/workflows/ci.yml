@@ -105,7 +105,7 @@ jobs:
           noNewCommitBehavior: 'current'
 
       - name: SonarScanner Analyze
-        run: sonar-scanner -Dsonar.projectVersion=${{ steps.semver.outputs.next }} -Dsonar.login=${{ secrets.SONAR_TOKEN_TEST }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_TEST }} -Dsonar.qualitygate.wait=true || echo "EXIT_STATUS=$?" >> $GITHUB_ENV
+        run: sonar-scanner -Dsonar.projectVersion=${{ steps.semver.outputs.next }} -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true || echo "EXIT_STATUS=$?" >> $GITHUB_ENV
 
       - name: Fail under specific conditions
         if: github.event_name != 'push'
@@ -118,8 +118,8 @@ jobs:
         if: always() && github.event_name == 'pull_request'
         uses: ibex-code/sonarqube-pull-request-comment@v1
         with:
-          sonar_token: ${{ secrets.SONAR_TOKEN_TEST }}
-          sonar_host_url: ${{ secrets.SONAR_HOST_URL_TEST }}
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
+          sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
           github_token: ${{ secrets.GITHUB_TOKEN }} 
   
   Build:
