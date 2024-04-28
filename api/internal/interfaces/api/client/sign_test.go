@@ -4,22 +4,22 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/smtp"
 	"net/url"
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/buffer"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
-
-type TokenStructure struct {
-	JWT string `json:"jwt"`
-}
 
 const (
 	GOOD_EMAIL = "user1@example.com"
@@ -29,15 +29,34 @@ const (
 	WRONG_PASS  = "secret"
 )
 
+type TokenStructure struct {
+	JWT string `json:"jwt"`
+}
+
+// MockSender est une implémentation mock de MailSender
+type MockSender struct {
+	mock.Mock
+}
+
+func (m *MockSender) SendMail(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	args := m.Called(addr, a, from, to, msg)
+	return args.Error(0)
+}
+
 var srv *server.Server
 
-func start(http, https string) error {
-	config.Load("../../../../config.test.yml")
+func start(http, https int) error {
+	env.DEFAULT_PORT_HTTP = http
+	env.DEFAULT_PORT_HTTPS = https
+	env.PORT_HTTP = &env.DEFAULT_PORT_HTTP
+	env.PORT_HTTPS = &env.DEFAULT_PORT_HTTPS
+	config.Load(aws.String("../../../../config.test.yml"))
 	logger.Info("starting application")
-	config.PORT_HTTP = http
-	config.PORT_HTTPS = https
 	srv = server.Create()
+
+	logger.Warn(*env.PORT_HTTP)
 	srv.Register(interfaces.Endpoints)
+
 	return srv.Start()
 }
 
@@ -81,11 +100,11 @@ func request(method, uri string, token string, values ...map[string][]string) ([
 
 	content, err := buffer.Read(resp.Body)
 
-	return content.Bytes(), resp.StatusCode, nil
+	return content.Bytes(), resp.StatusCode, err
 }
 
 func TestSignUp(t *testing.T) {
-	assert.Nil(t, start(":8081", ":8444"))
+	assert.Nil(t, start(8888, 8444))
 
 	users := []struct {
 		email    string
@@ -103,18 +122,18 @@ func TestSignUp(t *testing.T) {
 			"password": {user.password},
 		}
 
-		_, status, err := request("POST", "http://localhost:8081/sign/up", "", values)
+		_, status, err := request("POST", "http://localhost:8888/sign/up", "", values)
 		assert.Nil(t, err)
-		assert.Equal(t, status, user.status)
+		assert.Equal(t, user.status, status)
 	}
 
 	assert.Nil(t, stop())
 }
 
 func TestSignIn(t *testing.T) {
-	assert.Nil(t, start(":8082", ":8445"))
+	assert.Nil(t, start(8889, 8445))
 
-	request("POST", "http://localhost:8082/sign/up", "", map[string][]string{
+	request("POST", "http://localhost:8889/sign/up", "", map[string][]string{
 		"email":    {GOOD_EMAIL},
 		"password": {GOOD_PASS},
 	})
@@ -135,23 +154,23 @@ func TestSignIn(t *testing.T) {
 			"password": {user.password},
 		}
 
-		_, status, err := request("POST", "http://localhost:8082/sign/in", "", values)
+		_, status, err := request("POST", "http://localhost:8889/sign/in", "", values)
 		assert.Nil(t, err)
-		assert.Equal(t, status, user.status)
+		assert.Equal(t, user.status, status)
 	}
 
 	assert.Nil(t, stop())
 }
 
 func TestSignRenew(t *testing.T) {
-	assert.Nil(t, start(":8083", ":8446"))
+	assert.Nil(t, start(8890, 8446))
 
-	request("POST", "http://localhost:8083/sign/up", "", map[string][]string{
+	request("POST", "http://localhost:8890/sign/up", "", map[string][]string{
 		"email":    {GOOD_EMAIL},
 		"password": {GOOD_PASS},
 	})
 
-	content, _, _ := request("POST", "http://localhost:8083/sign/in", "", map[string][]string{
+	content, _, _ := request("POST", "http://localhost:8890/sign/in", "", map[string][]string{
 		"email":    {GOOD_EMAIL},
 		"password": {GOOD_PASS},
 	})
@@ -177,9 +196,9 @@ func TestSignRenew(t *testing.T) {
 	}
 
 	for _, user := range users {
-		_, status, err := request("GET", "http://localhost:8083/sign/renew", user.token)
+		_, status, err := request("GET", "http://localhost:8890/sign/renew", user.token)
 		assert.Nil(t, err)
-		assert.Equal(t, status, user.status)
+		assert.Equal(t, user.status, status)
 	}
 
 	assert.Nil(t, stop())

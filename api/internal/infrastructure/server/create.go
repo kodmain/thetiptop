@@ -4,7 +4,7 @@ package server
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
-	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server/certs"
@@ -18,7 +18,7 @@ func getConfig(cfgs ...fiber.Config) fiber.Config {
 	}
 
 	cfg := fiber.Config{
-		AppName:               config.APP_NAME,
+		AppName:               env.APP_NAME,
 		DisableStartupMessage: true,  // Disable Prefork to prevent bug in container and because SO_REUSEPORT can give false metrics in prometheus, maybe in the future we can use REDIS to store metrics
 		Prefork:               false, // Disable multithreading
 	}
@@ -36,14 +36,14 @@ func Create(cfgs ...fiber.Config) *Server {
 
 	server := &Server{
 		app:   fiber.New(cfg),
-		certs: certs.TLSConfigFor(config.HOSTNAME),
+		certs: certs.TLSConfigFor(env.HOSTNAME),
 	}
 
 	server.app.Use(setGoToDoc)         // register middleware setGoToDoc
 	server.app.Use(setSecurityHeaders) // register middleware setSecurityHeaders
 	server.app.Use(jwt.Parser)         // register middleware security.Parser
 	server.app.Get("/docs/*", swagger.New(swagger.Config{
-		Title:                    config.APP_NAME,
+		Title:                    env.APP_NAME,
 		Layout:                   "BaseLayout",
 		DocExpansion:             "list",
 		DefaultModelsExpandDepth: 2,

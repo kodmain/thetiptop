@@ -4,10 +4,11 @@ package server
 import (
 	"crypto/tls"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application"
 	"github.com/kodmain/thetiptop/api/internal/docs"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
@@ -131,11 +132,11 @@ func getOperationID(pathItem *docs.PathItem, method string) (string, bool) {
 }
 
 func (server *Server) http() {
-	application.PANIC <- server.app.Listen(config.PORT_HTTP)
-	logger.Info("Server started on port 80")
+	logger.Info("Server http started on port " + strconv.Itoa(*env.PORT_HTTP))
+	application.PANIC <- server.app.Listen(":" + strconv.Itoa(*env.PORT_HTTP))
 }
 
 func (server *Server) https() {
-	application.PANIC <- server.app.ListenTLSWithCertificate(config.PORT_HTTPS, server.certs.Certificates[0])
-	logger.Info("Server started on port 443")
+	logger.Info("Server https started on port " + strconv.Itoa(*env.PORT_HTTPS))
+	application.PANIC <- server.app.ListenTLSWithCertificate(":"+strconv.Itoa(*env.PORT_HTTPS), server.certs.Certificates[0])
 }
