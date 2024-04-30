@@ -1,13 +1,17 @@
 {
 	"files.exclude": {
 		".github": false,
-		"vendor": true,
+		"**/vendor": true,
 		".maker": false,
 		"deploy/**/*terraform*": true,
+		"**/*_test.go": false,
 		".vscode": false
 	},
     "sonarlint.connectedMode.project": {
         "connectionId": "kodmain",
         "projectKey": "kodmain_thetiptop"
-    }
+	},
+	"yaml.schemas": {
+		"https://json.schemastore.org/yamllint.json": "file:///Users/florent/Documents/thetiptop/api/config.test.yml"
+	}
 }
