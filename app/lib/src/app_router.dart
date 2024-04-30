@@ -13,7 +13,6 @@ import 'package:thetiptop_client/src/presentation/screens/client/signup_screen.d
 class AppRouter {
   static const String clientRouteName = '/admin/client';
   static const String adminSigninRouteName = '/admin/signin';
-
   static const String profilRouteName = '/profil';
   static const String historyRouteName = '/history';
   static const String gameRouteName = '/game';
