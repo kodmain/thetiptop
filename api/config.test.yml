@@ -1,0 +1,18 @@
+mail:
+  username: secret 
+  password: secret
+  host: localhost
+  port: 1025
+  expeditor: Whoami
+  from: whoami@localhost
+
+databases:
+  default:
+    protocol: sqlite
+    dbname: ':memory:'
+
+jwt: 
+  #tz: Europe/Paris
+  secret: secret
+  expire: 15
+  refresh: 30

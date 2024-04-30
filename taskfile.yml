@@ -1,50 +1,40 @@
 version: '3'
-
 silent: true
-
-dotenv: [ 'deploy/aws/token.env' ]
-
+dotenv:
+  - deploy/aws/token.env
 tasks:
-  ## Common
   default:
     cmds:
       - task -l
-
   login:aws:
     desc: Se connecter à AWS SSO
     cmds:
       - aws --profile=kodmain s3 ls > /dev/null 2>&1 && { echo "Déjà connecté à AWS SSO."; } || { echo "Connexion à AWS SSO requise."; aws sso login --profile=kodmain; }
-
   update:
     desc: Update the dependencies
     cmds:
       - task api:update
       - task app:update
-
   build:
     desc: Build the app and the api
     cmds:
       - task api:build
       - task app:build
-
   tests:
     desc: Run the tests
     cmds:
       - task app:tests
       - task api:tests
-
-  ## APP
   app:update:
     dir: app
     desc: Update the dependencies for the app
     cmds:
       - flutter pub upgrade
-
   app:tests:
     dir: app
     desc: Run the tests for the app
     cmds:
-      - flutter test -r github --coverage-path {{.TASKFILE_DIR}}
+      - flutter test -r github --coverage --coverage-path {{.TASKFILE_DIR}}/coverage_app.lcov
 
   app:build:
     dir: app
@@ -54,84 +44,144 @@ tasks:
         rm -rf {{.TASKFILE_DIR}}/.build/app || true
         flutter build web -d {{.TASKFILE_DIR}}/.build/app --release --web-renderer canvaskit
         mv build {{.TASKFILE_DIR}}/.build/app
-  
   app:arch:rebuild:
     dir: deploy/aws/app
     desc: rebuild the app
     cmds:
       - task app:arch:destroy
       - task app:arch:deploy
-
   app:arch:deploy:
     dir: deploy/aws/app
-    deps: [ login:aws ]
-    desc: deploy the app 
+    deps:
+      - login:aws
+    desc: deploy the app
     cmds:
       - terraform init -upgrade
       - terraform apply -auto-approve
-  
   app:arch:destroy:
     dir: deploy/aws/app
-    deps: [ login:aws ]
-    desc: destroy the app 
+    deps:
+      - login:aws
+    desc: destroy the app
     cmds:
       - terraform init -upgrade
       - terraform apply -auto-approve -destroy
-
   app:run:
     dir: app
     desc: Run the app
     cmds:
       - flutter run -d chrome
 
-  ## API 
   api:update:
     dir: api
     desc: Update the dependencies for the api
     cmds:
-      - go get -u {{.TASKFILE_DIR}}/...
+      - go get -u ./...
       - go mod vendor
-
+      - go mod tidy
   api:tests:
     dir: api
     desc: Run the tests for the api
-    cmds:
-      - gotestsum -f github-actions -- -v $(go list ./... | grep -vE "vendor") -coverprofile={{.TASKFILE_DIR}}/coverage.out -covermode=atomic
+    cmds: 
+      - |
+        docker rm -f maildev || true
+        docker run -d \
+          --name maildev \
+          -p 1025:1025 \
+          -p 1080:1080 \
+          -e MAILDEV_OUTGOING_USER=secret \
+          -e MAILDEV_OUTGOING_USER=secret \
+          -e MAILDEV_INCOMING_USER=secret \
+          -e MAILDEV_INCOMING_PASS=secret \
+          maildev/maildev -v
+        gotestsum -f github-actions -- -v $(go list ./... | grep -vE "vendor") -coverprofile={{.TASKFILE_DIR}}/coverage_api.out -covermode=atomic
+        docker rm -f maildev
 
   api:build:
     dir: api
     desc: Build the api
     cmds:
-      - | 
+      - |
+        go mod tidy
+        go generate ./...
+        swag init -g cmd/main.go -o ./internal/docs/generated
         rm -rf {{.TASKFILE_DIR}}/.build/api || true
-        ldflags="-s -w -X github.com/kodmain/thetoptop/api/config.BUILD_COMMIT=$(git rev-parse --short HEAD)"
-        GOOS=linux go build -trimpath -buildvcs=false -tags netgo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/thetiptop cmd/main.go
+        if [ "$(uname)" == "Darwin" ]; then
+          ldflags="-s -w -X github.com/kodmain/thetoptop/api/env.BUILD_VERSION=$BINARY_VERSION -X github.com/kodmain/thetoptop/api/env.BUILD_COMMIT=$(git rev-parse --short HEAD)"
+        else
+          ldflags="-s -w -X github.com/kodmain/thetoptop/api/env.BUILD_VERSION=$BINARY_VERSION -X github.com/kodmain/thetoptop/api/env.BUILD_COMMIT=$(git rev-parse --short HEAD) -extldflags '-static'"
+        fi
+        CGO_ENABLED=1 go build -trimpath -buildvcs=false -tags netgo,osusergo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/project cmd/main.go
+  
+  api:mail:
+    dir: api
+    desc: Run the api with maildev
+    cmds:
+      - |
+        docker run -ti \
+          --name maildev \
+          -p 1025:1025 \
+          -p 1080:1080 \
+          -e MAILDEV_OUTGOING_USER=secret \
+          -e MAILDEV_OUTGOING_USER=secret \
+          -e MAILDEV_INCOMING_USER=secret \
+          -e MAILDEV_INCOMING_PASS=secret \
+          maildev/maildev -v
 
+  api:run:
+    dir: api
+    desc: Build the api
+    cmds:
+      - |
+        go generate ./...
+        swag init -g cmd/main.go -o ./internal/docs/generated
+        go run cmd/main.go --config config.test.yml
   api:arch:rebuild:
     dir: deploy/aws/api
-    desc: rebuild the app
+    desc: rebuild the api
     cmds:
       - task api:arch:destroy
       - task api:arch:deploy
-
   api:arch:deploy:
     dir: deploy/aws/api
-    deps: [ login:aws ]
+    deps:
+      - login:aws
     desc: deploy the app
     cmds:
       - terraform init -var="github_token=$GH_TOKEN" -upgrade
       - terraform apply -auto-approve -var="github_token=$GH_TOKEN"
-
   api:arch:destroy:
     dir: deploy/aws/api
-    deps: [ login:aws ]
+    deps:
+      - login:aws
     desc: destroy the app
     cmds:
       - terraform init -var="github_token=$GH_TOKEN" -upgrade
       - terraform apply -auto-approve -destroy -var="github_token=$GH_TOKEN"
-
-  api:run:
-    dir: api
-    desc: Run the api
+  docker:build:
+    desc: Build the docker image
     cmds:
-      - go run cmd/main.go
+      - docker buildx build --platform linux/amd64,linux/arm64 -t testing -f {{.TASKFILE_DIR}}/.github/dockerfiles/local.Dockerfile .
+
+  extract:
+    desc: Docker image to extract
+    cmds: 
+      - |
+        docker manifest inspect {{.IMAGE_TAG}} | jq -r '.manifests[] | select(.platform.os != "unknown" and .platform.architecture != "unknown") | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
+          docker pull --platform $os/$arch {{.IMAGE_TAG}}
+        done
+
+        mkdir -p {{.TASKFILE_DIR}}/.build/api
+        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
+        mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside
+        
+        docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
+        tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside \;
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside -type f -name 'project' | while read filepath; do
+          arch=$(docker inspect --format='{{"{{"}}.Architecture{{"}}"}}' {{.IMAGE_TAG}})
+          echo cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
+          cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
+        done
+
+        zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build

@@ -2,39 +2,55 @@
 package main
 
 //go:generate go run ../internal/docs/generator.go
-//go:generate go fmt ../../api/internal/api/api.gen.go
+//go:generate go fmt ../internal/interfaces/api.gen.go
 
 import (
-	"github.com/kodmain/thetiptop/api/internal/api"
-	"github.com/kodmain/thetiptop/api/internal/application/observability/logger"
-	"github.com/kodmain/thetiptop/api/internal/application/observability/logger/levels"
-	"github.com/kodmain/thetiptop/api/internal/architecture/kernel"
-	"github.com/kodmain/thetiptop/api/internal/architecture/server"
+	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/env"
+	"github.com/kodmain/thetiptop/api/internal/application"
+	"github.com/kodmain/thetiptop/api/internal/docs/generated"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
+	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/spf13/cobra"
 )
 
 // Helper use Cobra package to create a CLI and give Args gesture
 var Helper *cobra.Command = &cobra.Command{
-	Use:                   "fizzbuzz",
-	Short:                 "Fizzbuzz API Server",
+	Use:                   "thetiptop",
+	Short:                 "TheTipTop API Server",
 	DisableAutoGenTag:     true,
 	DisableFlagsInUseLine: true,
-	PreRun: func(cmd *cobra.Command, args []string) {
-		logger.SetLevel(levels.DEBUG)
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("loading configuration")
+		generated.SwaggerInfo.Version = env.BUILD_VERSION
+		logger.SetLevel(levels.DEBUG)
+
+		return config.Load(env.CONFIG_URI)
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("starting application")
 		srv := server.Create()
-		srv.Register(api.Endpoints)
-		srv.Start()
+		srv.Register(interfaces.Endpoints)
+		return srv.Start()
 	},
-	PostRun: func(cmd *cobra.Command, args []string) {
+	PostRunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("waiting for application to shutdown")
-		kernel.Wait()
+		return application.Wait()
 	},
 }
 
+// @title		TheTipTop
+// @version		1.0 // BUILD_VERSION
+// @description	TheTipTop API
+// @host		localhost
+// @BasePath
 func main() {
+	env.CONFIG_URI = Helper.Flags().String("config", env.DEFAULT_CONFIG_URI, "URI de la configuration")
+	env.AWS_PROFILE = Helper.Flags().String("profile", env.DEFAULT_AWS_PROFILE, "Profil AWS")
+	env.PORT_HTTP = Helper.Flags().Int("http-port", env.DEFAULT_PORT_HTTP, "Port HTTP")
+	env.PORT_HTTPS = Helper.Flags().Int("https-port", env.DEFAULT_PORT_HTTPS, "Port HTTPS")
+
 	Helper.Execute()
 }
