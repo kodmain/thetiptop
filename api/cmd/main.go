@@ -42,7 +42,7 @@ var Helper *cobra.Command = &cobra.Command{
 }
 
 // @title		TheTipTop
-// @version		1.0 // BUILD_VERSION
+// @version		dev
 // @description	TheTipTop API
 // @host		localhost
 // @BasePath
