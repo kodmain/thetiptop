@@ -158,10 +158,11 @@ tasks:
     cmds:
       - terraform init -var="github_token=$GH_TOKEN" -upgrade
       - terraform apply -auto-approve -destroy -var="github_token=$GH_TOKEN"
+
   docker:build:
     desc: Build the docker image
     cmds:
-      - docker buildx build --platform linux/amd64,linux/arm64 -t testing -f {{.TASKFILE_DIR}}/.github/dockerfiles/local.Dockerfile .
+      - docker buildx build --platform linux/amd64,linux/arm64 -t testing -f {{.TASKFILE_DIR}}/.github/dockerfiles/builder.Dockerfile .
 
   extract:
     desc: Docker image to extract
