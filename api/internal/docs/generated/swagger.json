@@ -4,7 +4,7 @@
         "description": "TheTipTop API",
         "title": "TheTipTop",
         "contact": {},
-        "version": "1.0 // BUILD_VERSION"
+        "version": "dev"
     },
     "host": "localhost",
     "paths": {
