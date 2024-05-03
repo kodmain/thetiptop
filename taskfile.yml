@@ -164,7 +164,7 @@ tasks:
   docker:build:
     desc: Build the docker image
     cmds:
-      - docker buildx build --platform linux/amd64,linux/arm64 -t testing -f {{.TASKFILE_DIR}}/.github/dockerfiles/builder.Dockerfile .
+      - docker buildx build --platform linux/arm64,linux/amd64 -t testing --build-arg BINARY_VERSION="${BINARY_VERSION}" -f {{.TASKFILE_DIR}}/.github/dockerfiles/builder.Dockerfile .
 
   extract:
     desc: Docker image to extract
