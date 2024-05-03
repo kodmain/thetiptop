@@ -5,6 +5,8 @@ package main
 //go:generate go fmt ../internal/interfaces/api.gen.go
 
 import (
+	"fmt"
+
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application"
@@ -41,6 +43,20 @@ var Helper *cobra.Command = &cobra.Command{
 	},
 }
 
+// Version de l'application
+var Version = generated.SwaggerInfo.Version
+
+// versionCmd représente la commande de version
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "show version",
+	Long:  "show version of the application",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("Version %s \n", env.BUILD_VERSION)
+		fmt.Printf("Commit %s \n", env.BUILD_COMMIT)
+	},
+}
+
 // @title		TheTipTop
 // @version		dev
 // @description	TheTipTop API
@@ -52,5 +68,6 @@ func main() {
 	env.PORT_HTTP = Helper.Flags().Int("http-port", env.DEFAULT_PORT_HTTP, "Port HTTP")
 	env.PORT_HTTPS = Helper.Flags().Int("https-port", env.DEFAULT_PORT_HTTPS, "Port HTTPS")
 
+	Helper.AddCommand(versionCmd)
 	Helper.Execute()
 }
