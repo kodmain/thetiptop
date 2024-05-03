@@ -47,3 +47,11 @@ func TestHelperPostRunE(t *testing.T) {
 	err := cmd.PostRunE(cmd, nil)
 	assert.Nil(t, err)
 }
+
+func TestVersionCmd(t *testing.T) {
+	cmd := versionCmd
+	b := bytes.NewBufferString("")
+	cmd.SetOut(b)
+	cmd.SetErr(b)
+	cmd.Run(cmd, nil)
+}
