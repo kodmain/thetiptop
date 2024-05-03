@@ -10,7 +10,8 @@ import (
 // @Tags		Sign
 // @Accept		multipart/form-data
 // @Produce		application/json
-// @Param		email		formData	string	true	"Email address"
+// @Param		email		formData	string	true	"Email address" format(email)
+// @Param		password	formData	string	true	"Password"
 // @Success		201	{object}	nil "Client created"
 // @Failure		400	{object}	nil "Invalid email or password"
 // @Failure		409	{object}	nil "Client already exists"
@@ -28,7 +29,7 @@ func SignUp(c *fiber.Ctx) error {
 // @Tags		Sign
 // @Accept		*/*
 // @Produce		application/json
-// @Param		email		formData	string	true	"Email address"
+// @Param		email		formData	string	true	"Email address" format(email)
 // @Param		password	formData	string	true	"Password"
 // @Success		200	{object}	nil
 // @Router		/sign/in [post]

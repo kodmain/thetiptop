@@ -93,6 +93,7 @@ paths:
       operationId: client.SignIn
       parameters:
       - description: Email address
+        format: email
         in: formData
         name: email
         required: true
@@ -128,8 +129,14 @@ paths:
       operationId: client.SignUp
       parameters:
       - description: Email address
+        format: email
         in: formData
         name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
         required: true
         type: string
       produces:

@@ -157,6 +157,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "email",
                         "description": "Email address",
                         "name": "email",
                         "in": "formData",
@@ -211,8 +212,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "email",
                         "description": "Email address",
                         "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
                         "in": "formData",
                         "required": true
                     }
