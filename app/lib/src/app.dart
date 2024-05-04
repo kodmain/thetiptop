@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
+import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 
 class TheTipTop extends ConsumerWidget {
   const TheTipTop({super.key});
@@ -35,7 +36,7 @@ class TheTipTop extends ConsumerWidget {
       restorationScopeId: 'thetiptop',
 
       // Configuration de ThemeMode.
-      theme: ThemeData(),
+      theme: DefaultTheme.theme, //ThemeData(),
 
       // Gestion des routes, a partir de la déclaration faites dans app_router.
       //

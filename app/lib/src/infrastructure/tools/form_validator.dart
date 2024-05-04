@@ -1,6 +1,6 @@
 class FormValidator {
   static const String regexrComplexFormat = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\d\s:])([^\s]){8,}$";
-  static const String regexrEmailFormat = r"^[a-z0-9!#$%&*+/=?^_|~-]+(\.[a-z0-9!#$%&*+/=?^_|~-]+)*@([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z0-9]([a-z0-9-]*[a-z0-9])?$";
+  static const String regexrEmailFormat = r"^[a-zA-Z0-9!#$%&*+/=?^_|~-]+(\.[a-zA-Z0-9!#$%&*+/=?^_|~-]+)*@([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$";
 
   String? notEmpty({value, message}) {
     if (value == null || value.isEmpty) {
@@ -12,6 +12,16 @@ class FormValidator {
   String? isEmail({value, message}) {
     if (!RegExp(regexrEmailFormat).hasMatch(value ?? "")) {
       return message ?? "Veuillez entrer votre email";
+    }
+
+    return null;
+  }
+
+  String? isTrue({value, message}) {
+    print(value);
+
+    if (value != true) {
+      return message ?? "Cette confirmation est obligatoire";
     }
 
     return null;

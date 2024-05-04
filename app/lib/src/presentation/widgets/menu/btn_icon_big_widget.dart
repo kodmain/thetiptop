@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:thetiptop_client/src/domain/enums/app_color.dart';
+import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 
 class BtnIconBigWidget extends StatelessWidget {
   final VoidCallback onPressed;
@@ -8,8 +8,6 @@ class BtnIconBigWidget extends StatelessWidget {
   final String asset;
   final double? iconWidth;
   final double? iconHeight;
-  // final Color? backgroundColor;
-  //final Color? foregroundColor;
 
   const BtnIconBigWidget({
     super.key,
@@ -18,48 +16,41 @@ class BtnIconBigWidget extends StatelessWidget {
     required this.asset,
     this.iconWidth = 40,
     this.iconHeight = 40,
-    // this.backgroundColor,
-    // this.foregroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    final ThemeData themeData = Theme.of(context);
+
+    return ElevatedButton(
       onPressed: onPressed,
-      style: ButtonStyle(
-        //  backgroundColor: MaterialStatePropertyAll(AppColor.blackGreen.color),
-        //  foregroundColor: MaterialStatePropertyAll(AppColor.white.color),
-        minimumSize: const MaterialStatePropertyAll(Size(0, 65)),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+      style: const ButtonStyle(
+          padding: MaterialStatePropertyAll(
+            EdgeInsets.fromLTRB(0, DefaultTheme.spacer, 0, DefaultTheme.spacer),
           ),
-        ),
-      ),
-      icon: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            SvgPicture.asset(
-              asset,
-              width: iconWidth,
-              height: iconHeight,
-              colorFilter: ColorFilter.mode(
-                AppColor.white.color,
-                BlendMode.srcIn,
-              ),
+          shape: MaterialStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero,
             ),
-            const SizedBox(
-              height: 10,
+          ),
+          elevation: MaterialStatePropertyAll(0)),
+      child: Column(
+        children: [
+          SvgPicture.asset(
+            asset,
+            width: iconWidth,
+            height: iconHeight,
+            colorFilter: const ColorFilter.mode(
+              DefaultTheme.whiteCream,
+              BlendMode.srcIn,
             ),
-            Text(
-              label,
-              style: TextStyle(
-                color: AppColor.white.color,
-              ),
-            ),
-          ],
-        ),
+          ), // Icône
+          const SizedBox(height: DefaultTheme.smallSpacer),
+          Text(
+            label,
+            style: themeData.textTheme.bodySmall,
+          ),
+        ],
       ),
     );
   }
