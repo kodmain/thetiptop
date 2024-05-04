@@ -2,22 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
-import 'package:thetiptop_client/src/domain/enums/app_color.dart';
 import 'package:thetiptop_client/src/infrastructure/tools/form_validator.dart';
+import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_action_widget.dart';
-import 'package:thetiptop_client/src/presentation/widgets/form/checkbox_widget.dart';
-import 'package:thetiptop_client/src/presentation/widgets/form/input_text_widget.dart';
+import 'package:thetiptop_client/src/presentation/widgets/form/checkbox_form_field.dart';
 import 'package:thetiptop_client/src/presentation/widgets/form/separator_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/layouts/layout_client_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/menu/menu_client_widget.dart';
 
-class ProfilScreen extends HookConsumerWidget {
+class ProfilScreen extends ConsumerStatefulWidget {
   const ProfilScreen({super.key});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final formKey = GlobalKey<FormState>();
-    double screenWidth = MediaQuery.of(context).size.width;
+  ProfilScreenState createState() => ProfilScreenState();
+}
+
+class ProfilScreenState extends ConsumerState<ProfilScreen> {
+  @override
+  Widget build(BuildContext context) {
+    // Clé globale pour le widget Form
+    final _formKey = GlobalKey<FormState>();
+
+    // État pour le champ texte
+    String _email = '';
+    String _password = '';
+    bool _isAgreeNewsletter = true;
 
     return Semantics(
       header: true,
@@ -29,37 +37,51 @@ class ProfilScreen extends HookConsumerWidget {
             const SizedBox(
               height: 40,
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
               child: Text(
                 "Éditer votre profil",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: "Raleway",
-                  fontSize: 22,
-                ),
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             Form(
-              key: formKey,
+              key: _formKey,
               child: Column(
                 children: [
-                  InputText(
-                    labelText: "Adresse email",
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Adresse email'),
                     initialValue: "steeve.dupond@gmail.com",
                     validator: (value) => FormValidator().isEmail(value: value),
-                  ),
-                  CheckboxWidget(
-                    value: true,
-                    onChanged: (value) {
-                      print("ok$value");
+                    onSaved: (value) {
+                      _email = value!;
                     },
-                    text: "J’accepte de recevoir les newsletters de ThéTipTop.",
                   ),
-                  InputText(
-                    obscureText: true,
-                    labelText: "Mot de passe",
+                  const SizedBox(
+                    height: DefaultTheme.smallSpacer,
+                  ),
+                  CheckboxFormField(
+                    textLabel: "J’accepte de recevoir les newsletters de ThéTipTop.",
+                    textStyle: Theme.of(context).textTheme.bodyMedium,
+                    initialValue: _isAgreeNewsletter,
+                    onChanged: (value) {
+                      setState(() {
+                        _isAgreeNewsletter = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(
+                    height: DefaultTheme.smallSpacer,
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Mot de passe'),
                     validator: (value) => FormValidator().notEmpty(value: value),
+                    onSaved: (value) {
+                      _password = value!;
+                    },
+                  ),
+                  const SizedBox(
+                    height: DefaultTheme.spacer,
                   ),
                   Row(
                     children: [
@@ -67,19 +89,17 @@ class ProfilScreen extends HookConsumerWidget {
                         onPressed: () {
                           context.go(AppRouter.signinRouteName);
                         },
-                        backgroundColor: AppColor.greyCancel.color,
-                        foregroundColor: AppColor.whiteCream.color,
+                        style: Theme.of(context).filledButtonTheme.style,
                         text: "Annuler",
                       ),
                       const SizedBox(
-                        width: 10,
+                        width: DefaultTheme.smallSpacer,
                       ),
                       BtnActionWidget(
                         onPressed: () {
                           context.go(AppRouter.passwordResetRouteName);
                         },
-                        backgroundColor: AppColor.red.color,
-                        foregroundColor: AppColor.whiteCream.color,
+                        style: Theme.of(context).outlinedButtonTheme.style,
                         text: "Enregistrer",
                       ),
                     ],
@@ -93,12 +113,13 @@ class ProfilScreen extends HookConsumerWidget {
                         onPressed: () {
                           context.go(AppRouter.passwordResetRouteName);
                         },
-                        padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
-                        backgroundColor: AppColor.blackGreen.color,
-                        foregroundColor: AppColor.whiteCream.color,
+                        style: Theme.of(context).elevatedButtonTheme.style,
                         text: "Éditer mon mot de passe",
                       ),
                     ],
+                  ),
+                  const SizedBox(
+                    height: DefaultTheme.smallSpacer,
                   ),
                   Row(
                     children: [
@@ -106,12 +127,13 @@ class ProfilScreen extends HookConsumerWidget {
                         onPressed: () {
                           print("get user data");
                         },
-                        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                        backgroundColor: AppColor.blackGreen.color,
-                        foregroundColor: AppColor.whiteCream.color,
+                        style: Theme.of(context).elevatedButtonTheme.style,
                         text: "Récupérer mes données",
                       ),
                     ],
+                  ),
+                  const SizedBox(
+                    height: DefaultTheme.smallSpacer,
                   ),
                   Row(
                     children: [
@@ -119,9 +141,7 @@ class ProfilScreen extends HookConsumerWidget {
                         onPressed: () {
                           print("delete account");
                         },
-                        padding: EdgeInsets.zero,
-                        backgroundColor: AppColor.red.color,
-                        foregroundColor: AppColor.whiteCream.color,
+                        style: Theme.of(context).outlinedButtonTheme.style,
                         text: "Supprimer mon compte",
                       ),
                     ],

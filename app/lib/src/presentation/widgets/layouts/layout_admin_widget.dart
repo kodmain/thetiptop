@@ -1,9 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:thetiptop_client/src/domain/enums/app_color.dart';
-import 'package:thetiptop_client/src/presentation/widgets/btn/btn_simple_widget.dart';
+import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/menu/menu_admin_widget.dart';
 
 class LayoutAdminWidget extends StatelessWidget {
@@ -16,11 +13,8 @@ class LayoutAdminWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: AppColor.whiteCream.color,
       body: CustomScrollView(
         slivers: [
           SliverFillRemaining(
@@ -34,29 +28,29 @@ class LayoutAdminWidget extends StatelessWidget {
                       SizedBox(
                         width: 200,
                         child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColor.blackGreen.color,
+                          decoration: const BoxDecoration(
+                            color: DefaultTheme.blackGreen,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               const SizedBox(
-                                height: 25,
+                                height: DefaultTheme.spacer,
                               ),
                               SvgPicture.asset(
                                 'assets/images/parts_logo.svg',
                                 height: 60,
                                 semanticsLabel: "Logo ThéTipTop",
-                                colorFilter: ColorFilter.mode(
-                                  AppColor.white.color,
+                                colorFilter: const ColorFilter.mode(
+                                  DefaultTheme.white,
                                   BlendMode.srcIn,
                                 ),
                               ),
                               const SizedBox(
                                 height: 25,
                               ),
-                              MenuAdminWidget(),
+                              const MenuAdminWidget(),
                             ],
                           ),
                         ),

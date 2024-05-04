@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:thetiptop_client/src/domain/enums/app_color.dart';
 import 'package:thetiptop_client/src/domain/enums/gain_status.dart';
 import 'package:thetiptop_client/src/domain/enums/gain_type.dart';
+import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 
 class ItemGainWidget extends StatelessWidget {
   final GainType type;
@@ -21,7 +21,7 @@ class ItemGainWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColor.greyLight.color,
+      //color: AppColor.greyLight.color,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Wrap(
@@ -37,7 +37,7 @@ class ItemGainWidget extends StatelessWidget {
                 SvgPicture.asset(
                   type.getAssets(),
                   colorFilter: ColorFilter.mode(
-                    AppColor.greyCancel.color,
+                    DefaultTheme.greyCancel,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -94,7 +94,7 @@ class ItemGainWidget extends StatelessWidget {
                 child: Text(
                   status.getLabel(),
                   style: TextStyle(
-                    color: AppColor.white.color,
+                    color: DefaultTheme.whiteCream,
                     fontFamily: "Raleway",
                     fontSize: 14,
                   ),
