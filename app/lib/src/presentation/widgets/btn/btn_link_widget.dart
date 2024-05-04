@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:thetiptop_client/src/domain/enums/app_color.dart';
+import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 
 class BtnLinkWidget extends StatelessWidget {
   final VoidCallback onPressed;
@@ -11,42 +11,24 @@ class BtnLinkWidget extends StatelessWidget {
     super.key,
     required this.onPressed,
     required this.text,
-    this.fontSize = 16,
-    this.fontFamily = "Raleway",
+    this.fontSize = DefaultTheme.fontSize,
+    this.fontFamily = DefaultTheme.fontFamily,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onPressed,
-      style: const ButtonStyle(
-        overlayColor: MaterialStatePropertyAll(
-          Colors.transparent,
-        ),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-        minimumSize: MaterialStatePropertyAll<Size>(
-          Size(0, 0),
-        ),
-        padding: MaterialStatePropertyAll<EdgeInsetsGeometry>(
-          EdgeInsets.zero,
-        ),
-        shape: MaterialStatePropertyAll<OutlinedBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero,
-          ),
-        ),
-      ),
       child: RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
           style: TextStyle(
-            color: AppColor.textLink.color,
+            color: DefaultTheme.textLink,
             fontSize: fontSize,
             fontFamily: fontFamily,
             decoration: TextDecoration.underline,
             decorationStyle: TextDecorationStyle.solid,
-            decorationColor: AppColor.textLink.color,
+            decorationColor: DefaultTheme.textLink,
           ),
           text: text,
         ),

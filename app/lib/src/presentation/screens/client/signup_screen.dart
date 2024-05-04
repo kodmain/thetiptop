@@ -1,60 +1,107 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
-import 'package:thetiptop_client/src/domain/enums/app_color.dart';
+import 'package:thetiptop_client/src/domain/models/response.dart';
 import 'package:thetiptop_client/src/infrastructure/tools/form_validator.dart';
+import 'package:thetiptop_client/src/presentation/providers/user_provider.dart';
+import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_action_widget.dart';
-import 'package:thetiptop_client/src/presentation/widgets/form/checkbox_widget.dart';
-import 'package:thetiptop_client/src/presentation/widgets/form/input_text_widget.dart';
+import 'package:thetiptop_client/src/presentation/widgets/form/checkbox_form_field.dart';
 import 'package:thetiptop_client/src/presentation/widgets/layouts/layout_client_widget.dart';
 
-class SignupScreen extends HookConsumerWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final formKey = GlobalKey<FormState>();
-    String? password;
+  SignupScreenState createState() => SignupScreenState();
+}
 
+class SignupScreenState extends ConsumerState<SignupScreen> {
+  // Clé globale pour le widget Form
+  final _formKey = GlobalKey<FormState>();
+
+  // État pour le champ texte
+  String _email = '';
+  String _password = '';
+  String _passwordConf = '';
+
+  // État pour la case à cocher
+  bool _isAgreeNewsletter = false;
+  bool _isAgreeTerms = false;
+
+  @override
+  Widget build(BuildContext context) {
     return LayoutClientWidget(
       child: Form(
-        key: formKey,
+        key: _formKey,
         child: Column(
           children: [
             const SizedBox(
-              height: 75,
+              height: DefaultTheme.bigSpacer,
             ),
-            InputText(
-              labelText: "Adresse email",
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Adresse email'),
               validator: (value) => FormValidator().isEmail(value: value),
+              onSaved: (value) {
+                _email = value!;
+              },
             ),
-            InputText(
+            const SizedBox(
+              height: DefaultTheme.spacer,
+            ),
+            TextFormField(
               obscureText: true,
-              labelText: "Mot de passe",
+              decoration: const InputDecoration(labelText: "Mot de passe"),
               validator: (value) {
-                password = value;
+                _password = value!;
                 return FormValidator().isComplex(value: value);
               },
-            ),
-            InputText(
-              obscureText: true,
-              labelText: "Confirmation du mot de passe",
-              validator: (value) => FormValidator().isEqual(firstValue: value, secondValue: password, message: "Erreur de confirmation de mot de passe"),
-            ),
-            CheckboxWidget(
-              onChanged: (value) {
-                print("ok$value");
+              onSaved: (value) {
+                _password = value!;
               },
-              text: "J’accepte les conditions générales d’utilisation.",
+            ),
+            const SizedBox(
+              height: DefaultTheme.spacer,
+            ),
+            TextFormField(
+              obscureText: true,
+              decoration: const InputDecoration(labelText: "Confirmation du mot de passe"),
+              validator: (value) => FormValidator().isEqual(
+                firstValue: value,
+                secondValue: _password,
+                message: "Erreur de confirmation de mot de passe",
+              ),
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            CheckboxFormField(
+              textLabel: "J’accepte les conditions générales d’utilisation. ",
               linkLabel: "CGU",
               linkUrl: "https://concours.thetiptop.fr/cgu",
-            ),
-            CheckboxWidget(
+              textStyle: Theme.of(context).textTheme.bodyMedium,
+              validator: (value) => FormValidator().isTrue(value: value),
+              initialValue: false,
               onChanged: (value) {
-                print("ok$value");
+                setState(() {
+                  _isAgreeTerms = value;
+                });
               },
-              text: "J’accepte de recevoir les newsletters de ThéTipTop.",
+            ),
+            CheckboxFormField(
+              textLabel: "J’accepte de recevoir les newsletters de ThéTipTop.",
+              textStyle: Theme.of(context).textTheme.bodyMedium,
+              initialValue: false,
+              onChanged: (value) {
+                setState(() {
+                  _isAgreeNewsletter = value;
+                });
+              },
+            ),
+            const SizedBox(
+              height: DefaultTheme.smallSpacer,
             ),
             Row(
               children: [
@@ -62,19 +109,19 @@ class SignupScreen extends HookConsumerWidget {
                   onPressed: () {
                     context.go(AppRouter.signinRouteName);
                   },
-                  backgroundColor: AppColor.greyCancel.color,
-                  foregroundColor: AppColor.whiteCream.color,
+                  style: Theme.of(context).filledButtonTheme.style,
                   text: "Annuler",
                 ),
                 const SizedBox(
-                  width: 10,
+                  width: DefaultTheme.smallSpacer,
                 ),
                 BtnActionWidget(
                   onPressed: () {
-                    print("ok");
+                    if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+                    }
                   },
-                  backgroundColor: AppColor.red.color,
-                  foregroundColor: AppColor.whiteCream.color,
+                  style: Theme.of(context).outlinedButtonTheme.style,
                   text: "Enregistrer",
                 ),
               ],
