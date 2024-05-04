@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:thetiptop_client/src/domain/enums/app_color.dart';
-import 'package:thetiptop_client/src/presentation/widgets/btn/btn_simple_widget.dart';
+import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 
 class LayoutClientWidget extends StatelessWidget {
   final Widget child;
@@ -16,7 +15,6 @@ class LayoutClientWidget extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: AppColor.whiteCream.color,
       body: Column(
         children: [
           Expanded(
@@ -52,8 +50,8 @@ class LayoutClientWidget extends StatelessWidget {
                               'assets/images/parts_logo.svg',
                               height: 150,
                               semanticsLabel: "Logo ThéTipTop",
-                              colorFilter: ColorFilter.mode(
-                                AppColor.blackGreen.color,
+                              colorFilter: const ColorFilter.mode(
+                                DefaultTheme.blackGreen,
                                 BlendMode.srcIn,
                               ),
                             ),
@@ -90,36 +88,60 @@ class LayoutClientWidget extends StatelessWidget {
           ),
           Container(
             height: 50,
-            decoration: BoxDecoration(
-              color: AppColor.greyDark.color,
+            decoration: const BoxDecoration(
+              color: DefaultTheme.greyDark,
               shape: BoxShape.rectangle,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                BtnSimpleWidget(
+                TextButton(
                   onPressed: () {
                     print("ok");
                   },
-                  text: "boutique ThéTipTop",
+                  style: Theme.of(context).menuButtonTheme.style,
+                  child: const Text(
+                    "boutique thétiptop",
+                  ),
                 ),
-                BtnSimpleWidget(
-                  onPressed: () {
-                    print("ok");
-                  },
-                  text: "règlement",
+                const SizedBox(
+                  width: DefaultTheme.smallSpacer,
                 ),
-                BtnSimpleWidget(
+                TextButton(
                   onPressed: () {
                     print("ok");
                   },
-                  text: "cgu",
+                  style: Theme.of(context).menuButtonTheme.style,
+                  child: const Text(
+                    "règlement",
+                  ),
                 ),
-                BtnSimpleWidget(
+                const SizedBox(
+                  width: DefaultTheme.smallSpacer,
+                ),
+                TextButton(
                   onPressed: () {
                     print("ok");
                   },
-                  text: "aide",
+                  style: Theme.of(context).menuButtonTheme.style,
+                  child: const Text(
+                    "cgu",
+                  ),
+                ),
+                const SizedBox(
+                  width: DefaultTheme.smallSpacer,
+                ),
+                TextButton(
+                  onPressed: () {
+                    print("ok");
+                  },
+                  style: Theme.of(context).menuButtonTheme.style,
+                  child: const Text(
+                    "aide",
+                  ),
+                ),
+                const SizedBox(
+                  width: DefaultTheme.smallSpacer,
                 ),
               ],
             ),

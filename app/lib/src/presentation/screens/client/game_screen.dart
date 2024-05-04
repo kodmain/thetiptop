@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rive/rive.dart';
-import 'package:thetiptop_client/src/domain/enums/app_color.dart';
+import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_link_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/layouts/layout_client_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/menu/menu_client_widget.dart';
@@ -71,7 +71,7 @@ class GameScreen extends HookConsumerWidget {
                       Container(
                         height: 140,
                         decoration: BoxDecoration(
-                          color: AppColor.blackGreen.color,
+                          color: DefaultTheme.blackGreen,
                           borderRadius: BorderRadius.circular(15),
                         ),
                         child: Padding(
@@ -87,9 +87,9 @@ class GameScreen extends HookConsumerWidget {
                             maxLength: 10,
                             textAlign: TextAlign.center,
                             textAlignVertical: TextAlignVertical.center,
-                            cursorColor: AppColor.white.color,
+                            cursorColor: DefaultTheme.white,
                             style: TextStyle(
-                              color: AppColor.white.color,
+                              color: DefaultTheme.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 25,
                               textBaseline: TextBaseline.ideographic,
@@ -101,12 +101,12 @@ class GameScreen extends HookConsumerWidget {
                                 alignLabelWithHint: true,
                                 filled: true,
                                 fillColor: const Color.fromARGB(20, 217, 217, 217),
-                                focusColor: AppColor.inputFill.color,
+                                focusColor: DefaultTheme.inputFill,
                                 focusedBorder: OutlineInputBorder(
                                   gapPadding: 25,
                                   borderRadius: BorderRadius.circular(10.0),
                                   borderSide: BorderSide(
-                                    color: AppColor.whiteCream.color,
+                                    color: DefaultTheme.whiteCream,
                                     width: 2,
                                   ),
                                 ),
@@ -114,7 +114,7 @@ class GameScreen extends HookConsumerWidget {
                                   gapPadding: 25,
                                   borderRadius: BorderRadius.circular(10.0),
                                   borderSide: BorderSide(
-                                    color: AppColor.whiteCream.color,
+                                    color: DefaultTheme.whiteCream,
                                     width: 2,
                                   ),
                                 ),
@@ -122,7 +122,7 @@ class GameScreen extends HookConsumerWidget {
                                   gapPadding: 25,
                                   borderRadius: BorderRadius.circular(10.0),
                                   borderSide: BorderSide(
-                                    color: AppColor.whiteCream.color,
+                                    color: DefaultTheme.whiteCream,
                                     width: 2,
                                   ),
                                 ),
@@ -130,28 +130,28 @@ class GameScreen extends HookConsumerWidget {
                                   gapPadding: 25,
                                   borderRadius: BorderRadius.circular(10.0),
                                   borderSide: BorderSide(
-                                    color: AppColor.whiteCream.color,
+                                    color: DefaultTheme.whiteCream,
                                     width: 2,
                                   ),
                                 ),
                                 hintText: "",
                                 labelText: "Entrez votre numéro de ticket",
                                 labelStyle: TextStyle(
-                                  color: AppColor.white.color,
+                                  color: DefaultTheme.white,
                                   fontWeight: FontWeight.bold,
-                                  fontFamily: "Raleway",
+                                  fontFamily: DefaultTheme.fontFamily,
                                   fontSize: 20,
                                 ),
                                 floatingLabelStyle: TextStyle(
-                                  color: AppColor.white.color,
+                                  color: DefaultTheme.white,
                                   fontWeight: FontWeight.bold,
-                                  fontFamily: "Raleway",
+                                  fontFamily: DefaultTheme.fontFamily,
                                   fontSize: 20,
                                 ),
                                 errorStyle: TextStyle(
-                                  color: AppColor.white.color,
+                                  color: DefaultTheme.white,
                                   fontWeight: FontWeight.bold,
-                                  fontFamily: "Raleway",
+                                  fontFamily: DefaultTheme.fontFamily,
                                   fontSize: 13,
                                 )),
                             validator: (value) {
@@ -179,7 +179,7 @@ class GameScreen extends HookConsumerWidget {
                     text: const TextSpan(
                       text: "Votre n’avez pas de numéro de ticket ?",
                       style: TextStyle(
-                        fontFamily: "Raleway",
+                        fontFamily: DefaultTheme.fontFamily,
                         fontSize: 18,
                       ),
                     ),
@@ -193,7 +193,7 @@ class GameScreen extends HookConsumerWidget {
                     },
                     text: "Obtenez votre numéro de ticket pour tout achat supérieur à 49€ sur notre boutique ThéTipTop",
                     fontSize: 18,
-                    fontFamily: "Raleway-Bold",
+                    fontFamily: DefaultTheme.fontFamilyBold,
                   ),
                 ],
               ),
