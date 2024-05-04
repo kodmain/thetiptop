@@ -141,10 +141,20 @@ class DefaultTheme {
         errorMaxLines: 8,
       ),
 
+      iconTheme: const IconThemeData(
+        size: 40,
+      ),
+
       // Text du theme
       textTheme: const TextTheme(
         // Text par default
         bodyMedium: TextStyle(
+          fontSize: fontSize,
+          fontFamily: fontFamily,
+        ),
+
+        bodySmall: TextStyle(
+          color: whiteCream,
           fontSize: fontSize,
           fontFamily: fontFamily,
         ),

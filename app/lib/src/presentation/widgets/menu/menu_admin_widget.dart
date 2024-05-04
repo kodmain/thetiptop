@@ -41,21 +41,6 @@ class MenuAdminWidget extends StatelessWidget {
           label: "Paramètres",
           asset: "assets/images/parts_icon-param.svg",
         ),
-        BtnIconBigWidget(
-          onPressed: () {},
-          label: "Paramètres",
-          asset: "assets/images/parts_icon-param.svg",
-        ),
-        BtnIconBigWidget(
-          onPressed: () {},
-          label: "Paramètres",
-          asset: "assets/images/parts_icon-param.svg",
-        ),
-        BtnIconBigWidget(
-          onPressed: () {},
-          label: "Paramètres",
-          asset: "assets/images/parts_icon-param.svg",
-        ),
       ],
     );
   }

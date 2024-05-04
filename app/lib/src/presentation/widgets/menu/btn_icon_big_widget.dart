@@ -22,54 +22,36 @@ class BtnIconBigWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
 
-    return IconButton(
+    return ElevatedButton(
       onPressed: onPressed,
-
-      /*style: ButtonStyle(
-        // minimumSize: const MaterialStatePropertyAll(Size(0, 65)),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+      style: const ButtonStyle(
+          padding: MaterialStatePropertyAll(
+            EdgeInsets.fromLTRB(0, DefaultTheme.spacer, 0, DefaultTheme.spacer),
           ),
-        ),
-      ),*/
-
-      icon: SvgPicture.asset(
-        asset,
-        width: iconWidth,
-        height: iconHeight,
-        colorFilter: const ColorFilter.mode(
-          DefaultTheme.white,
-          BlendMode.srcIn,
-        ),
-      ),
-
-      /*
-      icon: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
+          shape: MaterialStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero,
+            ),
+          ),
+          elevation: MaterialStatePropertyAll(0)),
+      child: Column(
         children: [
           SvgPicture.asset(
             asset,
             width: iconWidth,
             height: iconHeight,
-            fit: BoxFit.cover,
             colorFilter: const ColorFilter.mode(
-              DefaultTheme.white,
+              DefaultTheme.whiteCream,
               BlendMode.srcIn,
             ),
-          ),
-          const SizedBox(
-            height: DefaultTheme.smallSpacer,
-          ),
+          ), // Icône
+          const SizedBox(height: DefaultTheme.smallSpacer),
           Text(
             label,
-            style: themeData.textTheme.bodySmall!.copyWith(
-              color: themeData.colorScheme.onBackground,
-            ),
+            style: themeData.textTheme.bodySmall,
           ),
         ],
-      ),*/
+      ),
     );
   }
 }
