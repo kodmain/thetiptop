@@ -32,7 +32,7 @@ class BtnIconBigWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-      ),**/
+      ),*/
 
       icon: SvgPicture.asset(
         asset,
