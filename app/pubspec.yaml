@@ -20,7 +20,7 @@ dependencies:
 
   # UX-UI
   flutter_svg: ^2.0.10+1
-  rive: ^0.13.1
+  rive: ^0.13.3
   flutter_screenutil: ^5.9.0
 
   # Data immutable
