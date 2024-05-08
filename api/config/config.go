@@ -19,9 +19,11 @@ var (
 )
 
 type Config struct {
-	Mail      *mail.Service       `yaml:"mail"`
-	Databases *database.Databases `yaml:"databases"`
-	JWT       *jwt.JWT            `yaml:"jwt"`
+	Providers struct {
+		Mails     map[string]*mail.Config     `yaml:"mails"`
+		Databases map[string]*database.Config `yaml:"databases"`
+	} `yaml:"providers"`
+	JWT *jwt.JWT `yaml:"jwt"`
 }
 
 func Get(key string) interface{} {
@@ -71,35 +73,33 @@ func Load(path *string) error {
 	var fileContents []byte
 	var err error
 
-	if strings.HasPrefix(*path, "s3://") {
+	switch {
+	case strings.HasPrefix(*path, "s3://"):
 		fileContents, err = loadFromS3(*path)
-		if err != nil {
-			return err
-		}
-	} else {
+	default:
 		fileContents, err = os.ReadFile(*path)
-		if err != nil {
-			return err
-		}
 	}
 
-	configuration := &Config{}
-	err = yaml.Unmarshal(fileContents, configuration)
 	if err != nil {
 		return err
 	}
 
-	cfg = configuration
+	cfg = &Config{}
+	err = yaml.Unmarshal(fileContents, cfg)
+
+	if err != nil {
+		return err
+	}
 
 	return cfg.Initialize()
 }
 
 func (cfg *Config) Initialize() error {
-	if err := database.New(cfg.Databases); err != nil {
+	if err := database.New(cfg.Providers.Databases); err != nil {
 		return err
 	}
 
-	if err := mail.New(cfg.Mail); err != nil {
+	if err := mail.New(cfg.Providers.Mails); err != nil {
 		return err
 	}
 

@@ -27,7 +27,6 @@ func Connect(profil ...string) (*aws.Config, error) {
 		optFns := []func(*config.LoadOptions) error{
 			config.WithDefaultRegion("eu-west-3"),
 			config.WithSharedConfigProfile(env.DEFAULT_AWS_PROFILE),
-			//config.WithEC2IMDSEndpoint("http://169.254.169.254/latest/meta-data/"),
 			config.WithHTTPClient(httpClient),
 		}
 

@@ -32,11 +32,12 @@ func TestGet(t *testing.T) {
 
 	assert.Nil(t, config.Get("toto"))
 
-	assert.NotNil(t, config.Get("mail"))
-	assert.NotNil(t, config.Get("databases"))
 	assert.NotNil(t, config.Get("jwt"))
+	assert.NotNil(t, config.Get("providers"))
 
-	assert.NotNil(t, config.Get("mail.host"))
-	assert.NotNil(t, config.Get("databases.default"))
-	assert.NotNil(t, config.Get("jwt.secret"))
+	assert.NotNil(t, config.Get("providers.mails"))
+	assert.NotNil(t, config.Get("providers.databases"))
+
+	assert.NotNil(t, config.Get("providers.mails.default"))
+	assert.NotNil(t, config.Get("providers.databases.default"))
 }

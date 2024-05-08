@@ -11,8 +11,8 @@ import (
 
 func TestClientRepository(t *testing.T) {
 
-	err := database.New(&database.Databases{
-		"default": &database.Database{
+	err := database.New(map[string]*database.Config{
+		"default": {
 			Protocol: database.SQLite,
 			DBname:   ":memory:",
 		},

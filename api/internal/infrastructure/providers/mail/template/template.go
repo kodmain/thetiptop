@@ -1,35 +1,65 @@
-package mail
+package template
 
 import (
 	"bytes"
-	"embed"
+	"fmt"
 	"html/template"
 	"io/fs"
-	"path"
 	"path/filepath"
-	"strings"
 
+	"github.com/kodmain/thetiptop/api/assets"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
-const templatesPath = "templates"
-
-// Utilisez `go:embed` pour embarquer les fichiers de template.
-//
-//go:embed templates/*.html
-var htmls embed.FS
-
-//go:embed templates/*.txt
-var txts embed.FS
+const templatesPath = "mails"
 
 // templates stocke les templates HTML et texte compilés.
 var templates = make(map[string]*Template)
 
 func init() {
-	loadHTMLTemplates()
-	loadTextTemplates()
+	fmt.Println("init template")
+	templates, err := fs.ReadDir(assets.Mails, templatesPath)
+	logger.Error(err)
+	fmt.Println(templates)
+
+	loadTemplates()
+	//loadHTMLTemplates()
+	//loadTextTemplates()
 }
 
+func loadTemplates() {
+	files, err := fs.ReadDir(assets.Mails, templatesPath)
+	logger.Error(err)
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		name := file.Name()
+		tmpl, err := template.ParseFS(assets.Mails, fmt.Sprintf("%s/%s", templatesPath, name))
+		if logger.Error(err) {
+			continue
+		}
+
+		ext := filepath.Ext(name)
+		name = name[:len(name)-len(ext)]
+
+		if ext == ".txt" {
+			if existing, exists := templates[name]; exists {
+				existing.Text = tmpl
+			} else {
+				templates[name] = &Template{Text: tmpl}
+			}
+		} else {
+			if existing, exists := templates[name]; exists {
+				existing.Html = tmpl
+			} else {
+				templates[name] = &Template{Html: tmpl}
+			}
+		}
+	}
+}
+
+/*
 func loadHTMLTemplates() {
 	htmlFiles, err := fs.ReadDir(htmls, templatesPath)
 	logger.Error(err)
@@ -73,6 +103,7 @@ func loadTextTemplates() {
 		}
 	}
 }
+*/
 
 // Template représente un template HTML et texte.
 type Template struct {

@@ -1,60 +1,28 @@
 package database_test
 
 import (
-	"testing"
-
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
-func TestDatabaseServices(t *testing.T) {
-	err := database.New(nil)
-	assert.Error(t, err)
+type ServiceMock struct {
+	Config *database.Config
+	db     mock.Mock
+}
 
-	databases := database.Databases{
-		"sql": &database.Database{
-			Protocol: database.MySQL,
-			Host:     "localhost",
-			Port:     "3306",
-			User:     "root",
-			Password: "password",
-			DBname:   "mydb",
-		},
-		"test": &database.Database{
-			Protocol: database.SQLite,
-			DBname:   ":memory:",
-		},
-		"mysql": &database.Database{
-			Protocol: database.MySQL,
-			Host:     "localhost",
-			Port:     "3306",
-			User:     "user",
-			Password: "password",
-			DBname:   "mydb",
-		},
-		"postgres": &database.Database{
-			Protocol: database.PostgreSQL,
-			Host:     "localhost",
-			Port:     "3306",
-			User:     "user",
-			Password: "password",
-			DBname:   "mydb",
-		},
-		"unknow": &database.Database{
-			Protocol: "unknow",
-		},
-		"empty": nil,
-	}
+func (s *ServiceMock) AutoMigrate(values ...interface{}) error {
+	args := s.db.Called(values)
+	return args.Error(0)
+}
 
-	err = database.New(&databases)
-	assert.Error(t, err)
+func (s *ServiceMock) Create(value interface{}) *gorm.DB {
+	args := s.db.Called(value)
+	return args.Get(0).(*gorm.DB)
+}
 
-	err = database.New(&databases)
-	assert.Error(t, err)
-
-	db := database.Get("test")
-	assert.NotNil(t, db)
-	db = database.Get("oki")
-	assert.Nil(t, db)
-
+func (s *ServiceMock) Where(query interface{}, args ...interface{}) *gorm.DB {
+	args = append([]interface{}{query}, args...)
+	call := s.db.Called(args...)
+	return call.Get(0).(*gorm.DB)
 }

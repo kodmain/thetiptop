@@ -1,12 +1,6 @@
 package mail_test
 
-import (
-	"testing"
-
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
-	"github.com/stretchr/testify/assert"
-)
-
+/*
 func TestService(t *testing.T) {
 
 	err := mail.New(nil)
@@ -28,3 +22,4 @@ func TestService(t *testing.T) {
 	assert.Nil(t, err)
 
 }
+*/

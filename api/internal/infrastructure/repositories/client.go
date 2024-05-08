@@ -7,18 +7,17 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
-	"gorm.io/gorm"
 )
 
 type ClientRepository struct {
-	database *gorm.DB
+	service database.ServiceInterface
 }
 
 func NewClientRepository(name string) *ClientRepository {
-	database := database.Get(name)
-	database.AutoMigrate(&entities.Client{})
+	service := database.Get(name)
+	service.AutoMigrate(&entities.Client{})
 
-	return &ClientRepository{database}
+	return &ClientRepository{service}
 }
 
 func (r *ClientRepository) Create(obj *transfert.Client) (*entities.Client, error) {
@@ -27,7 +26,7 @@ func (r *ClientRepository) Create(obj *transfert.Client) (*entities.Client, erro
 		return nil, err
 	}
 
-	result := r.database.Create(client)
+	result := r.service.Create(client)
 
 	if result.Error != nil {
 		if result.Error.Error() == "UNIQUE constraint failed: clients.email" {
@@ -46,7 +45,7 @@ func (r *ClientRepository) Read(obj *transfert.Client) (*entities.Client, error)
 		return nil, err
 	}
 
-	result := r.database.Where(obj).First(client)
+	result := r.service.Where(obj).First(client)
 
 	if result.Error != nil {
 		return nil, result.Error

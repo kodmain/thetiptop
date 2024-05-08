@@ -58,17 +58,17 @@ func (m *Mail) IsValid() bool {
 // Returns:
 // - []byte: La représentation SMTP de l'e-mail.
 // - error: Une erreur si la construction échoue.
-func (m *Mail) Prepare() ([]byte, []string, error) {
+func (m *Mail) Prepare(service ServiceInterface) ([]byte, []string, error) {
 	// Création d'un buffer pour construire le message
 	var msg bytes.Buffer
 
 	//
-	fromHeader := instance.From
-	if instance.Expeditor != "" {
+	fromHeader := service.From()
+	if service.Expeditor() != "" {
 		// Si FromName contient des caractères non-ASCII, il doit être encodé.
 		// Sinon, il peut être utilisé tel quel.
-		encodedFromName := mime.QEncoding.Encode("UTF-8", instance.Expeditor)
-		fromHeader = fmt.Sprintf("%s <%s>", encodedFromName, instance.From)
+		encodedFromName := mime.QEncoding.Encode("UTF-8", service.Expeditor())
+		fromHeader = fmt.Sprintf("%s <%s>", encodedFromName, service.From())
 	}
 
 	// Header de base
