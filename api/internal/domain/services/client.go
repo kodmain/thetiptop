@@ -8,6 +8,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
 	interfaces "github.com/kodmain/thetiptop/api/internal/domain/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail/template"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/repositories"
 )
 
@@ -15,7 +16,7 @@ var instance *ClientService
 
 type ClientService struct {
 	repo interfaces.ClientRepository
-	mail *mail.Template
+	mail *template.Template
 }
 
 func Client() *ClientService {
@@ -25,7 +26,7 @@ func Client() *ClientService {
 
 	instance = &ClientService{
 		repo: repositories.NewClientRepository("default"),
-		mail: mail.NewTemplate("signup"),
+		mail: template.NewTemplate("signup"),
 	}
 
 	return instance
@@ -42,7 +43,7 @@ func (s *ClientService) SignUp(obj *transfert.Client) error {
 		return err
 	}
 
-	text, html, err := s.mail.Inject(mail.Data{
+	text, html, err := s.mail.Inject(template.Data{
 		"AppName": "ThéTipTop",
 		"Url":     "https://thetiptop.com",
 	})
@@ -58,7 +59,7 @@ func (s *ClientService) SignUp(obj *transfert.Client) error {
 		Html:    html,
 	}
 
-	return mail.Send(m)
+	return mail.Get().Send(m)
 }
 
 func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
