@@ -17,14 +17,7 @@ const templatesPath = "mails"
 var templates = make(map[string]*Template)
 
 func init() {
-	fmt.Println("init template")
-	templates, err := fs.ReadDir(assets.Mails, templatesPath)
-	logger.Error(err)
-	fmt.Println(templates)
-
 	loadTemplates()
-	//loadHTMLTemplates()
-	//loadTextTemplates()
 }
 
 func loadTemplates() {

@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 
+	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
@@ -44,8 +45,8 @@ func (s *ClientService) SignUp(obj *transfert.Client) error {
 	}
 
 	text, html, err := s.mail.Inject(template.Data{
-		"AppName": "ThéTipTop",
-		"Url":     "https://thetiptop.com",
+		"AppName": env.APP_NAME,
+		"Url":     env.HOSTNAME,
 	})
 
 	if err != nil {

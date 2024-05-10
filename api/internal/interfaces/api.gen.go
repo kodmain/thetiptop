@@ -20,17 +20,17 @@ func init() {
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
 		"client.FindOne":        client.FindOne,
-		"client.UpdateComplete": client.UpdateComplete,
-		"client.Delete":         client.Delete,
-		"status.HealthCheck":    status.HealthCheck,
-		"client.SignRenew":      client.SignRenew,
-		"status.IP":             status.IP,
 		"client.Find":           client.Find,
 		"client.UpdatePartial":  client.UpdatePartial,
+		"client.UpdateComplete": client.UpdateComplete,
+		"client.Delete":         client.Delete,
+		"client.SignUp":         client.SignUp,
 		"client.Renew":          client.Renew,
 		"client.Reset":          client.Reset,
-		"client.SignUp":         client.SignUp,
 		"client.SignIn":         client.SignIn,
+		"client.SignRenew":      client.SignRenew,
+		"status.HealthCheck":    status.HealthCheck,
+		"status.IP":             status.IP,
 	}
 	Mapping = &docs.Swagger{}
 	doc, _  = swag.ReadDoc()
