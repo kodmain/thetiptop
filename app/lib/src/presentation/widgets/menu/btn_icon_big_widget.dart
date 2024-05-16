@@ -48,7 +48,7 @@ class BtnIconBigWidget extends StatelessWidget {
           const SizedBox(height: DefaultTheme.smallSpacer),
           Text(
             label,
-            style: themeData.textTheme.bodySmall,
+            style: themeData.textTheme.displaySmall,
           ),
         ],
       ),
