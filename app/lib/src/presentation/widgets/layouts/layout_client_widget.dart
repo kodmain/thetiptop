@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
+import 'package:thetiptop_client/src/presentation/widgets/layouts/snack_bar_exception.dart';
 
 class LayoutClientWidget extends StatelessWidget {
   final Widget child;
@@ -46,6 +47,7 @@ class LayoutClientWidget extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(25, 25, 25, 25),
                         child: Column(
                           children: [
+                            const SnackBarException(),
                             SvgPicture.asset(
                               'assets/images/parts_logo.svg',
                               height: 150,

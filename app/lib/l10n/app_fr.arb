@@ -1,0 +1,16 @@
+{
+  "appTitle": "ThéTipTop jeu concours",
+  "@appTitle": {
+    "description": "ThéTipTop jeu concours"
+  },
+  "error": "{codeError, select, other{Erreur inconnue ':)}  du0002{Compte déjà existant}}",
+  "@error": {
+    "description": "error",
+    "placeholders": {
+      "codeError": {
+        "type": "String",
+        "example": "du0001"
+      }
+    }
+  }
+}

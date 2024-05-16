@@ -3,7 +3,7 @@ targets:
     builders:
       source_gen|combining_builder:
         generate_for:
-          - lib/src/domain/models/**.dart
+          - lib/*/**.dart
         options:
           build_extensions:
             'lib/{{path}}/{{file}}.dart': 'lib/{{path}}/generated/{{file}}.g.dart'

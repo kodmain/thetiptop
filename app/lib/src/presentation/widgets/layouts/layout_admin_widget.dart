@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
+import 'package:thetiptop_client/src/presentation/widgets/layouts/snack_bar_exception.dart';
 import 'package:thetiptop_client/src/presentation/widgets/menu/menu_admin_widget.dart';
 
 class LayoutAdminWidget extends StatelessWidget {
@@ -21,6 +22,7 @@ class LayoutAdminWidget extends StatelessWidget {
             hasScrollBody: false,
             child: Column(
               children: [
+                const SnackBarException(),
                 Expanded(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,

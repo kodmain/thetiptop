@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
-import 'package:thetiptop_client/src/infrastructure/tools/form_validator.dart';
+import 'package:thetiptop_client/src/infrastructure/tools/form/validator.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_action_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/layouts/layout_client_widget.dart';
@@ -41,7 +41,7 @@ class PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
             TextFormField(
               obscureText: true,
               decoration: const InputDecoration(labelText: "Code de Validation"),
-              validator: (value) => FormValidator().notEmpty(value: value),
+              validator: (value) => Validator().notEmpty(value: value),
               onSaved: (value) {
                 _codeValidation = value!;
               },
@@ -54,7 +54,7 @@ class PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
               decoration: const InputDecoration(labelText: "Nouveau mot de passe"),
               validator: (value) {
                 _password = value!;
-                return FormValidator().isComplex(value: value);
+                return Validator().isComplex(value: value);
               },
               onSaved: (value) {
                 _password = value!;
@@ -66,7 +66,7 @@ class PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
             TextFormField(
               obscureText: true,
               decoration: const InputDecoration(labelText: "Confirmation nouveau du mot de passe"),
-              validator: (value) => FormValidator().isEqual(
+              validator: (value) => Validator().isEqual(
                 firstValue: value,
                 secondValue: _password,
                 message: "Erreur de confirmation de mot de passe",

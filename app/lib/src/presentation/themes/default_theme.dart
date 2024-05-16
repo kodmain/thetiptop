@@ -153,7 +153,7 @@ class DefaultTheme {
           fontFamily: fontFamily,
         ),
 
-        bodySmall: TextStyle(
+        displaySmall: TextStyle(
           color: whiteCream,
           fontSize: fontSize,
           fontFamily: fontFamily,

@@ -32,7 +32,7 @@ class AppRouter {
   static GoRouter routes() {
     return GoRouter(
       debugLogDiagnostics: true,
-      initialLocation: '/admin/client',
+      initialLocation: '/signup',
       routes: [
         GoRoute(
           name: signinRouteName,

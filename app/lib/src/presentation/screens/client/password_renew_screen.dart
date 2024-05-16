@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
-import 'package:thetiptop_client/src/infrastructure/tools/form_validator.dart';
+import 'package:thetiptop_client/src/infrastructure/tools/form/validator.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_action_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/layouts/layout_client_widget.dart';
@@ -35,7 +35,7 @@ class PasswordRenewScreenState extends ConsumerState<PasswordRenewScreen> {
             ),
             TextFormField(
               decoration: const InputDecoration(labelText: 'Adresse email'),
-              validator: (value) => FormValidator().isEmail(value: value),
+              validator: (value) => Validator().isEmail(value: value),
               onSaved: (value) {
                 _email = value!;
               },

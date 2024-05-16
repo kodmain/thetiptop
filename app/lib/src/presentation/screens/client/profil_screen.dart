@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
-import 'package:thetiptop_client/src/infrastructure/tools/form_validator.dart';
+import 'package:thetiptop_client/src/infrastructure/tools/form/validator.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_action_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/form/checkbox_form_field.dart';
@@ -52,7 +52,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
                   TextFormField(
                     decoration: const InputDecoration(labelText: 'Adresse email'),
                     initialValue: "steeve.dupond@gmail.com",
-                    validator: (value) => FormValidator().isEmail(value: value),
+                    validator: (value) => Validator().isEmail(value: value),
                     onSaved: (value) {
                       _email = value!;
                     },
@@ -75,7 +75,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
                   ),
                   TextFormField(
                     decoration: const InputDecoration(labelText: 'Mot de passe'),
-                    validator: (value) => FormValidator().notEmpty(value: value),
+                    validator: (value) => Validator().notEmpty(value: value),
                     onSaved: (value) {
                       _password = value!;
                     },

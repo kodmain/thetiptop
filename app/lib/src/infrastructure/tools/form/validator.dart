@@ -1,4 +1,4 @@
-class FormValidator {
+class Validator {
   static const String regexrComplexFormat = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\d\s:])([^\s]){8,}$";
   static const String regexrEmailFormat = r"^[a-zA-Z0-9!#$%&*+/=?^_|~-]+(\.[a-zA-Z0-9!#$%&*+/=?^_|~-]+)*@([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$";
 
@@ -18,8 +18,6 @@ class FormValidator {
   }
 
   String? isTrue({value, message}) {
-    print(value);
-
     if (value != true) {
       return message ?? "Cette confirmation est obligatoire";
     }
