@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
+import 'package:thetiptop_client/src/domain/controllers/auth_controller.dart';
+import 'package:thetiptop_client/src/domain/controllers/client_controller.dart';
 import 'package:thetiptop_client/src/infrastructure/tools/form/validator.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_link_widget.dart';
@@ -20,18 +22,20 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
   // Clé globale pour le widget Form
   final _formKey = GlobalKey<FormState>();
 
-  // État pour le champ texte
-  String _email = '';
-  String _password = '';
+  // État du formulaire
+  Map<String, dynamic> formData = {
+    'email': '',
+    'password': '',
+  };
 
   @override
   Widget build(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
+    final state = ref.watch(clientControllerProvider);
     double screenWidth = MediaQuery.of(context).size.width;
 
     return LayoutClientWidget(
       child: Form(
-        key: formKey,
+        key: _formKey,
         child: Column(
           children: [
             const SizedBox(
@@ -41,7 +45,7 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
               decoration: const InputDecoration(labelText: 'Adresse email'),
               validator: (value) => Validator().isEmail(value: value),
               onSaved: (value) {
-                _email = value!;
+                formData['email'] = value!;
               },
             ),
             const SizedBox(
@@ -51,7 +55,7 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
               decoration: const InputDecoration(labelText: 'Mot de passe'),
               validator: (value) => Validator().notEmpty(value: value),
               onSaved: (value) {
-                _password = value!;
+                formData['password'] = value!;
               },
             ),
             const SizedBox(
@@ -74,11 +78,15 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
             Row(
               children: [
                 BtnActionWidget(
-                  onPressed: () {
-                    if (formKey.currentState != null && formKey.currentState!.validate()) {
-                      context.go(AppRouter.gameRouteName);
-                    }
-                  },
+                  isLoading: state.isLoading,
+                  onPressed: state.isLoading
+                      ? null
+                      : () {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            ref.read(authControllerProvider.notifier).signin(formData);
+                          }
+                        },
                   style: Theme.of(context).outlinedButtonTheme.style,
                   text: "Connexion",
                 ),
