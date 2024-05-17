@@ -15,16 +15,6 @@ class ClientController extends _$ClientController {
 
   /// Création d'un compte client
   ///
-  /* Future<void> signUp(Map<String, dynamic> formData) async {
-    state = const AsyncLoading<Client?>();
-    try {
-      final repo = ref.read(clientRepositoryProvider);
-      await repo.signUp(formData['email'], formData['password']);
-      state = const AsyncData(null);
-    } catch (error) {
-      state = AsyncError(error, StackTrace.current);
-    }
-  }*/
   Future<void> signUp(Map<String, dynamic> formData) async {
     final repo = ref.read(clientRepositoryProvider);
     state = const AsyncLoading<Client?>();
