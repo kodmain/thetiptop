@@ -34,6 +34,6 @@ Dio dioService(DioServiceRef ref) {
       ),
     );
   }
-  dio.interceptors.add(AuthInterceptor());
+  //dio.interceptors.add(AuthInterceptor());
   return dio;
 }
