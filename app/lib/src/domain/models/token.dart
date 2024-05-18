@@ -8,6 +8,7 @@ part 'generated/token.g.dart';
 
 @freezed
 class Token with _$Token {
+  @JsonSerializable(explicitToJson: true)
   const factory Token({
     @Default("") String jwt,
   }) = _Token;
