@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
-import 'package:thetiptop_client/src/infrastructure/services/exception/viewer_exception_provider.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 

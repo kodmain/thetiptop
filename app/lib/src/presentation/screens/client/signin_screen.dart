@@ -5,6 +5,7 @@ import 'package:thetiptop_client/src/app_router.dart';
 import 'package:thetiptop_client/src/domain/controllers/auth_controller.dart';
 import 'package:thetiptop_client/src/domain/controllers/client_controller.dart';
 import 'package:thetiptop_client/src/infrastructure/tools/form/validator.dart';
+import 'package:thetiptop_client/src/infrastructure/tools/localization/localization.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_link_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_action_widget.dart';
@@ -42,7 +43,7 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
               height: DefaultTheme.bigSpacer,
             ),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Adresse email'),
+              decoration: InputDecoration(labelText: context.loc.labelEmail),
               validator: (value) => Validator().isEmail(value: value),
               onSaved: (value) {
                 formData['email'] = value!;
@@ -52,7 +53,8 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
               height: DefaultTheme.spacer,
             ),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Mot de passe'),
+              obscureText: true,
+              decoration: InputDecoration(labelText: context.loc.labelPassword),
               validator: (value) => Validator().notEmpty(value: value),
               onSaved: (value) {
                 formData['password'] = value!;
@@ -68,7 +70,7 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
                   onPressed: () {
                     context.go(AppRouter.passwordRenewRouteName);
                   },
-                  text: "Mot de passe oublié",
+                  text: context.loc.linkLostPassword,
                 ),
               ],
             ),
@@ -88,12 +90,12 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
                           }
                         },
                   style: Theme.of(context).outlinedButtonTheme.style,
-                  text: "Connexion",
+                  text: context.loc.btnConnexion,
                 ),
               ],
             ),
-            const SeparatorWidget(
-              text: "ou",
+            SeparatorWidget(
+              text: context.loc.separatorOr,
             ),
             Row(
               children: [
@@ -106,7 +108,7 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
                           DefaultTheme.blueFC,
                         ),
                       ),
-                  text: screenWidth > 950 ? "Facebook Connect" : "Facebook\rConnect",
+                  text: screenWidth > 950 ? context.loc.btnFacebookConnect('') : context.loc.btnFacebookConnect('rl'),
                 ),
                 const SizedBox(
                   width: DefaultTheme.smallSpacer,
@@ -120,7 +122,7 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
                           DefaultTheme.blueGC,
                         ),
                       ),
-                  text: screenWidth > 950 ? "Google Connect" : "Google\rConnect",
+                  text: screenWidth > 950 ? context.loc.btnGoogleConnect('') : context.loc.btnGoogleConnect('rl'),
                 ),
               ],
             ),
@@ -131,14 +133,14 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Vous n'avez pas de compte ? ",
+                  Text(
+                    context.loc.textInscription,
                   ),
                   BtnLinkWidget(
                     onPressed: () {
                       context.go(AppRouter.signupRouteName);
                     },
-                    text: "Inscrivez-vous",
+                    text: context.loc.linkInscription,
                     fontFamily: DefaultTheme.fontFamilyBold,
                   ),
                 ],
