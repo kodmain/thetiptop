@@ -22,6 +22,8 @@ class TokenRepository {
     required this.sharedPreferences,
   });
 
+  /// Récupère depuis l'api un token d'authentification
+  ///
   Future<Token?> getToken(String email, String password) async {
     try {
       FormData formData = FormData();
@@ -46,15 +48,21 @@ class TokenRepository {
     return Token.fromJson(response.data);
   }
 
+  /// Récupère un token d'authentification local
+  ///
   Token getLocalToken() {
     Map<String, dynamic> json = jsonDecode(sharedPreferences.getString('token') ?? '{}');
     return Token.fromJson(json);
   }
 
+  /// Sauvegarde un token en local
+  ///
   void saveLocalToken(Token value) {
-    sharedPreferences.setString("token", value.toString());
+    sharedPreferences.setString("token", jsonEncode(value).toString());
   }
 
+  /// Supprime un token local
+  ///
   void removeLocalToken() {
     sharedPreferences.remove("token");
   }
@@ -65,6 +73,6 @@ TokenRepository tokenRepository(TokenRepositoryRef ref) {
   return TokenRepository(
     dioService: ref.read(dioServiceProvider),
     viewerExceptionService: ref.read(viewerExceptionServiceProvider.notifier),
-    sharedPreferences: ref.watch(sharedPreferencesProvider),
+    sharedPreferences: ref.read(sharedPreferencesProvider),
   );
 }

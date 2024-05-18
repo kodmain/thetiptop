@@ -22,6 +22,11 @@ Dio dioService(DioServiceRef ref) {
       followRedirects: false,
     ),
   );
+
+  ref.onDispose(dio.close);
+
+  dio.interceptors.add(AuthInterceptor(dioServiceRef: ref));
+
   if (!kReleaseMode) {
     dio.interceptors.add(
       PrettyDioLogger(
@@ -34,6 +39,9 @@ Dio dioService(DioServiceRef ref) {
       ),
     );
   }
-  //dio.interceptors.add(AuthInterceptor());
+
   return dio;
 }
+
+
+//Csign >> RepoToken >> dio >> Interceptor >> RepoToken
