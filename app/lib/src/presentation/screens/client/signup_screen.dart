@@ -43,7 +43,7 @@ class SignupScreenState extends ConsumerState<SignupScreen> {
             ),
             TextFormField(
               decoration: InputDecoration(
-                labelText: 'Adresse email'.hardcoded,
+                labelText: context.loc.labelEmail,
               ),
               validator: (value) => Validator().isEmail(value: value),
               onSaved: (value) {
@@ -56,7 +56,7 @@ class SignupScreenState extends ConsumerState<SignupScreen> {
             TextFormField(
               obscureText: true,
               decoration: InputDecoration(
-                labelText: "Mot de passe".hardcoded,
+                labelText: context.loc.labelPassword,
               ),
               validator: (value) {
                 formData['password'] = value;
@@ -72,20 +72,20 @@ class SignupScreenState extends ConsumerState<SignupScreen> {
             TextFormField(
               obscureText: true,
               decoration: InputDecoration(
-                labelText: "Confirmation du mot de passe".hardcoded,
+                labelText: context.loc.labelPasswordConfirm,
               ),
               validator: (value) => Validator().isEqual(
                 firstValue: value,
                 secondValue: formData['password'],
-                message: "Erreur de confirmation de mot de passe".hardcoded,
+                message: context.loc.errorPasswordConfirm,
               ),
             ),
             const SizedBox(
               height: 15,
             ),
             CheckboxFormField(
-              textLabel: "J’accepte les conditions générales d’utilisation. ".hardcoded,
-              linkLabel: "CGU",
+              textLabel: context.loc.checkBoxAgreeTerms,
+              linkLabel: context.loc.checkBoxAgreeTermsLink,
               linkUrl: "https://concours.thetiptop.fr/cgu",
               textStyle: Theme.of(context).textTheme.bodyMedium,
               validator: (value) => Validator().isTrue(value: value),
@@ -100,7 +100,7 @@ class SignupScreenState extends ConsumerState<SignupScreen> {
               },
             ),
             CheckboxFormField(
-              textLabel: "J’accepte de recevoir les newsletters de ThéTipTop.".hardcoded,
+              textLabel: context.loc.checkBoxAgreeNewsletter,
               textStyle: Theme.of(context).textTheme.bodyMedium,
               initialValue: false,
               onChanged: (value) {
@@ -122,7 +122,7 @@ class SignupScreenState extends ConsumerState<SignupScreen> {
                     context.go(AppRouter.signinRouteName);
                   },
                   style: Theme.of(context).filledButtonTheme.style,
-                  text: "Annuler".hardcoded,
+                  text: context.loc.btnAnnuler,
                 ),
                 const SizedBox(
                   width: DefaultTheme.smallSpacer,
@@ -138,7 +138,7 @@ class SignupScreenState extends ConsumerState<SignupScreen> {
                           }
                         },
                   style: Theme.of(context).outlinedButtonTheme.style,
-                  text: "Enregistrer".hardcoded,
+                  text: context.loc.btnEnregistrer,
                 ),
               ],
             ),

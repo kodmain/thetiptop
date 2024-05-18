@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
 import 'package:thetiptop_client/src/infrastructure/tools/form/validator.dart';
+import 'package:thetiptop_client/src/infrastructure/tools/localization/localization.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_action_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/layouts/layout_client_widget.dart';
@@ -33,14 +34,14 @@ class PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 50, 0, 50),
               child: Text(
-                "Un code de validation vient de vous \r être envoyé par email",
+                context.loc.infoValidationCode,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
             TextFormField(
               obscureText: true,
-              decoration: const InputDecoration(labelText: "Code de Validation"),
+              decoration: InputDecoration(labelText: context.loc.labelValidationCode),
               validator: (value) => Validator().notEmpty(value: value),
               onSaved: (value) {
                 _codeValidation = value!;
@@ -51,7 +52,7 @@ class PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
             ),
             TextFormField(
               obscureText: true,
-              decoration: const InputDecoration(labelText: "Nouveau mot de passe"),
+              decoration: InputDecoration(labelText: context.loc.labelNewPassword),
               validator: (value) {
                 _password = value!;
                 return Validator().isComplex(value: value);
@@ -65,11 +66,11 @@ class PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
             ),
             TextFormField(
               obscureText: true,
-              decoration: const InputDecoration(labelText: "Confirmation nouveau du mot de passe"),
+              decoration: InputDecoration(labelText: context.loc.labelNewPasswordConfirm),
               validator: (value) => Validator().isEqual(
                 firstValue: value,
                 secondValue: _password,
-                message: "Erreur de confirmation de mot de passe",
+                message: context.loc.errorPasswordConfirm,
               ),
             ),
             const SizedBox(
@@ -82,7 +83,7 @@ class PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                     context.go(AppRouter.signinRouteName);
                   },
                   style: Theme.of(context).filledButtonTheme.style,
-                  text: "Annuler",
+                  text: context.loc.btnAnnuler,
                 ),
                 const SizedBox(
                   width: DefaultTheme.smallSpacer,
@@ -92,7 +93,7 @@ class PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                     context.go(AppRouter.signinRouteName);
                   },
                   style: Theme.of(context).outlinedButtonTheme.style,
-                  text: "Enregistrer",
+                  text: context.loc.btnEnregistrer,
                 ),
               ],
             ),

@@ -88,7 +88,7 @@ class GameScreen extends HookConsumerWidget {
                             textAlign: TextAlign.center,
                             textAlignVertical: TextAlignVertical.center,
                             cursorColor: DefaultTheme.white,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: DefaultTheme.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 25,
@@ -105,7 +105,7 @@ class GameScreen extends HookConsumerWidget {
                                 focusedBorder: OutlineInputBorder(
                                   gapPadding: 25,
                                   borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(
+                                  borderSide: const BorderSide(
                                     color: DefaultTheme.whiteCream,
                                     width: 2,
                                   ),
@@ -113,7 +113,7 @@ class GameScreen extends HookConsumerWidget {
                                 enabledBorder: OutlineInputBorder(
                                   gapPadding: 25,
                                   borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(
+                                  borderSide: const BorderSide(
                                     color: DefaultTheme.whiteCream,
                                     width: 2,
                                   ),
@@ -121,7 +121,7 @@ class GameScreen extends HookConsumerWidget {
                                 errorBorder: OutlineInputBorder(
                                   gapPadding: 25,
                                   borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(
+                                  borderSide: const BorderSide(
                                     color: DefaultTheme.whiteCream,
                                     width: 2,
                                   ),
@@ -129,26 +129,26 @@ class GameScreen extends HookConsumerWidget {
                                 focusedErrorBorder: OutlineInputBorder(
                                   gapPadding: 25,
                                   borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(
+                                  borderSide: const BorderSide(
                                     color: DefaultTheme.whiteCream,
                                     width: 2,
                                   ),
                                 ),
                                 hintText: "",
                                 labelText: "Entrez votre numéro de ticket",
-                                labelStyle: TextStyle(
+                                labelStyle: const TextStyle(
                                   color: DefaultTheme.white,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: DefaultTheme.fontFamily,
                                   fontSize: 20,
                                 ),
-                                floatingLabelStyle: TextStyle(
+                                floatingLabelStyle: const TextStyle(
                                   color: DefaultTheme.white,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: DefaultTheme.fontFamily,
                                   fontSize: 20,
                                 ),
-                                errorStyle: TextStyle(
+                                errorStyle: const TextStyle(
                                   color: DefaultTheme.white,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: DefaultTheme.fontFamily,
