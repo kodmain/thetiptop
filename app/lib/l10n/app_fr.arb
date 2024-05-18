@@ -3,6 +3,116 @@
   "@appTitle": {
     "description": "ThéTipTop jeu concours"
   },
+  "pageProfilTitle": "Éditer votre profil",
+  "@pageProfilTitle": {
+    "description": "Titre de la page profil"
+  },
+  "labelEmail": "Adresse email",
+  "@labelEmail": {
+    "description": "label des input text email"
+  },
+  "labelValidationCode": "Code de Validation",
+  "@labelValidationCode": {
+    "description": "label des input text code de Validation"
+  },
+  "infoValidationCode": "Un code de validation vient de vous \r être envoyé par email",
+  "@infoValidationCode": {
+    "description": "text explicatif sur les codes de validations"
+  },
+  "labelPassword": "Password",
+  "@labelPassword": {
+    "description": "label des input text password"
+  },
+  "labelNewPassword": "Nouveau mot de passe",
+  "@labelNewPassword": {
+    "description": "label des input text de nouveau mot de passe"
+  },
+  "labelPasswordConfirm": "Confirmation du mot de passe",
+  "@labelPasswordConfirm": {
+    "description": "label des input text password confirmation"
+  },
+  "labelNewPasswordConfirm": "Confirmation du nouveau mot de passe",
+  "@labelNewPasswordConfirm": {
+    "description": "label des input text password confirmation du nouveau mot de passe"
+  },
+  "linkLostPassword": "Mot de passe oublié",
+  "@linkLostPassword": {
+    "description": "Text du lien pour la récupération du mot de passe"
+  },
+  "errorPasswordConfirm": "Erreur de confirmation de mot de passe",
+  "@errorPasswordConfirm": {
+    "description": "Message d'erreur si la confirmation du mot de passe n'est pas valide"
+  },
+  "textInscription": "Vous n'avez pas de compte ? ",
+  "@textInscription": {
+    "description": "Text juste avant le lien pour l'inscription d'un utilisateur"
+  },
+  "linkInscription": "Inscrivez-vous",
+  "@linkInscription": {
+    "description": "Text du lien pour l'inscription d'un utilisateur"
+  },
+  "btnConnexion": "Connexion",
+  "@btnConnexion": {
+    "description": "label des boutons connexion"
+  },
+  "btnAnnuler": "Annuler",
+  "@btnAnnuler": {
+    "description": "label des boutons annuler"
+  },
+  "btnSuivant": "Suivant",
+  "@btnSuivant": {
+    "description": "label des boutons suivant"
+  },
+  "btnEnregistrer": "Enregistrer",
+  "@btnEnregistrer": {
+    "description": "label des boutons enregistrer"
+  },
+  "btnChangePassword": "Éditer mon mot de passe",
+  "@btnChangePassword": {
+    "description": "label des boutons de changement de mot de passe"
+  },
+  "btnGetMyData": "Récupérer mes données",
+  "@btnGetMyData": {
+    "description": "label des boutons de récupération de données personnel"
+  },
+  "btnDeleteMyAccount": "Supprimer mon compte",
+  "@btnDeleteMyAccount": {
+    "description": "label des boutons de suppression de son compte personnel"
+  },
+  "btnFacebookConnect": "{rl, select, rl{Facebook\rConnect} other{Facebook Connect}}",
+  "@btnFacebookConnect": {
+    "description": "label des boutons Facebook Connect avec ou sans retour a la ligne",
+    "placeholders": {
+      "rl": {}
+    }
+  },
+  "btnGoogleConnect": "{rl, select, rl{Google\rConnect} other{Google Connect}}",
+  "@btnGoogleConnect": {
+    "description": "label des boutons Google Connect avec ou sans retour a la ligne",
+    "placeholders": {
+      "rl": {}
+    }
+  },
+  "checkBoxAgreeTerms": "J’accepte les conditions générales d’utilisation. ",
+  "@checkBoxAgreeTerms": {
+    "description": "label pour la checkbox d'acceptation des CGU"
+  },
+  "checkBoxAgreeTermsLink": "CGU",
+  "@checkBoxAgreeTermsLink": {
+    "description": "label pour le lien dans la checkbox d'acceptation des CGU"
+  },
+  "checkBoxAgreeNewsletter": "J’accepte de recevoir les newsletters de ThéTipTop.",
+  "@checkBoxAgreeNewsletter": {
+    "description": "label pour la checkbox d'acceptation des newsletters"
+  },
+  "separatorOr": "ou",
+  "@separatorOr": {
+    "description": "text au milieu du widget separator permettant de scinder les actions possibles en différents groupes"
+  },
+  "separatorOtherAction": "Autres Actions",
+  "@separatorOtherAction": {
+    "description": "text au milieu du widget separator permettant de scinder les actions possibles en différents groupes"
+  },
   "error": "{codeError, select, other{Erreur inconnue ':)}  du0002{Compte déjà existant}}",
   "@error": {
     "description": "error",

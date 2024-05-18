@@ -8,6 +8,9 @@ class AuthInterceptor extends Interceptor {
 
   AuthInterceptor({required this.dioServiceRef});
 
+  /// Intercepte les requêtes envoyées afin d'ajouter automatiquement
+  /// les headers d'authentification si un token existe en local
+  ///
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final repo = dioServiceRef.read(tokenRepositoryProvider);
