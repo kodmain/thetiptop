@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
 import 'package:thetiptop_client/src/infrastructure/tools/form/validator.dart';
+import 'package:thetiptop_client/src/infrastructure/tools/localization/localization.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_action_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/form/checkbox_form_field.dart';
@@ -29,7 +30,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
 
     return Semantics(
       header: true,
-      label: "page éditer votre profil",
+      label: "page ${context.loc.pageProfilTitle}",
       child: LayoutClientWidget(
         child: Column(
           children: [
@@ -40,7 +41,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
               child: Text(
-                "Éditer votre profil",
+                context.loc.pageProfilTitle,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
@@ -50,7 +51,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
               child: Column(
                 children: [
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Adresse email'),
+                    decoration: InputDecoration(labelText: context.loc.labelEmail),
                     initialValue: "steeve.dupond@gmail.com",
                     validator: (value) => Validator().isEmail(value: value),
                     onSaved: (value) {
@@ -61,7 +62,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
                     height: DefaultTheme.smallSpacer,
                   ),
                   CheckboxFormField(
-                    textLabel: "J’accepte de recevoir les newsletters de ThéTipTop.",
+                    textLabel: context.loc.checkBoxAgreeNewsletter,
                     textStyle: Theme.of(context).textTheme.bodyMedium,
                     initialValue: _isAgreeNewsletter,
                     onChanged: (value) {
@@ -74,7 +75,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
                     height: DefaultTheme.smallSpacer,
                   ),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Mot de passe'),
+                    decoration: InputDecoration(labelText: context.loc.labelPassword),
                     validator: (value) => Validator().notEmpty(value: value),
                     onSaved: (value) {
                       _password = value!;
@@ -90,7 +91,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
                           context.go(AppRouter.signinRouteName);
                         },
                         style: Theme.of(context).filledButtonTheme.style,
-                        text: "Annuler",
+                        text: context.loc.btnAnnuler,
                       ),
                       const SizedBox(
                         width: DefaultTheme.smallSpacer,
@@ -100,12 +101,12 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
                           context.go(AppRouter.passwordResetRouteName);
                         },
                         style: Theme.of(context).outlinedButtonTheme.style,
-                        text: "Enregistrer",
+                        text: context.loc.btnEnregistrer,
                       ),
                     ],
                   ),
-                  const SeparatorWidget(
-                    text: "Autres Actions",
+                  SeparatorWidget(
+                    text: context.loc.separatorOtherAction,
                   ),
                   Row(
                     children: [
@@ -114,7 +115,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
                           context.go(AppRouter.passwordResetRouteName);
                         },
                         style: Theme.of(context).elevatedButtonTheme.style,
-                        text: "Éditer mon mot de passe",
+                        text: context.loc.btnChangePassword,
                       ),
                     ],
                   ),
@@ -128,7 +129,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
                           print("get user data");
                         },
                         style: Theme.of(context).elevatedButtonTheme.style,
-                        text: "Récupérer mes données",
+                        text: context.loc.btnGetMyData,
                       ),
                     ],
                   ),
@@ -142,7 +143,7 @@ class ProfilScreenState extends ConsumerState<ProfilScreen> {
                           print("delete account");
                         },
                         style: Theme.of(context).outlinedButtonTheme.style,
-                        text: "Supprimer mon compte",
+                        text: context.loc.btnDeleteMyAccount,
                       ),
                     ],
                   ),

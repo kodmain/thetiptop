@@ -13,8 +13,8 @@ part 'generated/dio_service_provider.g.dart';
 Dio dioService(DioServiceRef ref) {
   final Dio dio = Dio(
     BaseOptions(
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
       headers: {
         Headers.acceptHeader: 'application/json',
         Headers.contentTypeHeader: 'multipart/form-data',
@@ -23,10 +23,17 @@ Dio dioService(DioServiceRef ref) {
     ),
   );
 
+  /// Arrête le client dio, juste avant la destruction du fournisseur.
+  ///
   ref.onDispose(dio.close);
 
+  /// Ajoute l'intercepteur d'authentication à l'instance.
+  ///
   dio.interceptors.add(AuthInterceptor(dioServiceRef: ref));
 
+  /// Ajoute l'intercepteur de log à l'instance.
+  /// Uniquement en mode debug et profil.
+  ///
   if (!kReleaseMode) {
     dio.interceptors.add(
       PrettyDioLogger(
@@ -42,6 +49,3 @@ Dio dioService(DioServiceRef ref) {
 
   return dio;
 }
-
-
-//Csign >> RepoToken >> dio >> Interceptor >> RepoToken

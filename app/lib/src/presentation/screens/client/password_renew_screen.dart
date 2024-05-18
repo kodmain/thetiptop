@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:thetiptop_client/src/app_router.dart';
 import 'package:thetiptop_client/src/infrastructure/tools/form/validator.dart';
+import 'package:thetiptop_client/src/infrastructure/tools/localization/localization.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 import 'package:thetiptop_client/src/presentation/widgets/btn/btn_action_widget.dart';
 import 'package:thetiptop_client/src/presentation/widgets/layouts/layout_client_widget.dart';
@@ -34,7 +35,7 @@ class PasswordRenewScreenState extends ConsumerState<PasswordRenewScreen> {
               height: 75,
             ),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Adresse email'),
+              decoration: InputDecoration(labelText: context.loc.labelEmail),
               validator: (value) => Validator().isEmail(value: value),
               onSaved: (value) {
                 _email = value!;
@@ -50,7 +51,7 @@ class PasswordRenewScreenState extends ConsumerState<PasswordRenewScreen> {
                     context.go(AppRouter.signinRouteName);
                   },
                   style: Theme.of(context).filledButtonTheme.style,
-                  text: "Annuler",
+                  text: context.loc.btnAnnuler,
                 ),
                 const SizedBox(
                   width: 10,
@@ -60,7 +61,7 @@ class PasswordRenewScreenState extends ConsumerState<PasswordRenewScreen> {
                     context.go(AppRouter.passwordResetRouteName);
                   },
                   style: Theme.of(context).outlinedButtonTheme.style,
-                  text: "Suivant",
+                  text: context.loc.btnSuivant,
                 ),
               ],
             ),

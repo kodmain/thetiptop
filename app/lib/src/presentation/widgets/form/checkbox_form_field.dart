@@ -69,7 +69,7 @@ class CheckboxFormField extends FormField<bool> {
                                     ),
                                     recognizer: TapGestureRecognizer()
                                       ..onTapDown = (event) {
-                                        html.window.open(linkUrl!, 'new tab');
+                                        html.window.open(linkUrl, 'new tab');
                                       },
                                   ),
                                 ]
