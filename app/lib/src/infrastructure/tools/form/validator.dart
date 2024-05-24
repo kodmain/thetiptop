@@ -1,6 +1,6 @@
 class Validator {
   static const String regexrComplexFormat = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\d\s:])([^\s]){8,}$";
-  static const String regexrEmailFormat = r"^[a-zA-Z0-9!#$%&*+/=?^_|~-]+(\.[a-zA-Z0-9!#$%&*+/=?^_|~-]+)*@([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$";
+  static const String regexrEmailFormat = r"^[a-zA-Z0-9!#$%&*+/=?^_|~-]+(\.[a-zA-Z0-9!#$%&*+/=?^_|~-]+)*@([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9]{2,5}$";
 
   /// Vérifie qu'une valeur ne soit pas null ou vide.
   ///
