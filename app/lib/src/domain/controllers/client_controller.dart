@@ -8,7 +8,7 @@ part 'generated/client_controller.g.dart';
 @riverpod
 class ClientController extends _$ClientController {
   @override
-  FutureOr<Client?> build() async {
+  FutureOr<Client?> build() {
     state = const AsyncData(null);
     return state.value;
   }
@@ -18,7 +18,7 @@ class ClientController extends _$ClientController {
   Future<void> signUp(Map<String, dynamic> formData) async {
     final repo = ref.read(clientRepositoryProvider);
     state = const AsyncLoading<Client?>();
-    state = await AsyncValue.guard(() async {
+    state = await AsyncValue.guard(() {
       return repo.signUp(formData['email'], formData['password']);
     });
   }

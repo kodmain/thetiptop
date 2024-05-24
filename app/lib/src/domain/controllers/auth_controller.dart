@@ -8,7 +8,7 @@ part 'generated/auth_controller.g.dart';
 @riverpod
 class AuthController extends _$AuthController {
   @override
-  FutureOr<AuthStatus?> build() async {
+  FutureOr<AuthStatus?> build() {
     state = const AsyncData(AuthStatus.disconnected);
     return state.value;
   }
