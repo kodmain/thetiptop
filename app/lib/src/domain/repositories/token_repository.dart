@@ -38,7 +38,7 @@ class TokenRepository {
     }
   }
 
-  Future<Token> renewToken(Token token) async {
+  Future<Token?> renewToken(Token token) async {
     final response = await dioService.post(
       '${Env.apiUrl}/sign/renew',
       data: {
@@ -57,14 +57,14 @@ class TokenRepository {
 
   /// Sauvegarde un token en local
   ///
-  void saveLocalToken(Token value) {
-    sharedPreferences.setString("token", jsonEncode(value).toString());
+  Future<bool> saveLocalToken(Token value) {
+    return sharedPreferences.setString("token", jsonEncode(value).toString());
   }
 
   /// Supprime un token local
   ///
-  void removeLocalToken() {
-    sharedPreferences.remove("token");
+  Future<bool> removeLocalToken() {
+    return sharedPreferences.remove("token");
   }
 }
 

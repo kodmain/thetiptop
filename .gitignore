@@ -9,3 +9,4 @@ tfplan
 *.db
 config.yml
 *.lcov
+coverage
