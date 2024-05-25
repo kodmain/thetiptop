@@ -3,6 +3,7 @@ package server
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/swagger"
 	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
@@ -42,6 +43,12 @@ func Create(cfgs ...fiber.Config) *Server {
 	server.app.Use(setGoToDoc)         // register middleware setGoToDoc
 	server.app.Use(setSecurityHeaders) // register middleware setSecurityHeaders
 	server.app.Use(jwt.Parser)         // register middleware security.Parser
+	server.app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
 	server.app.Get("/docs/*", swagger.New(swagger.Config{
 		Title:                    env.APP_NAME,
 		Layout:                   "BaseLayout",
@@ -69,10 +76,10 @@ func setSecurityHeaders(c *fiber.Ctx) error {
 	// Activer CSP (Content Security Policy)
 	c.Set("Content-Security-Policy", "default-src 'unsafe-inline' 'self' fonts.gstatic.com fonts.googleapis.com;img-src data: 'self'")
 	// Activer CORS (Cross-Origin Resource Sharing)
-	c.Set("Access-Control-Allow-Origin", "*")
-	c.Set("Access-Control-Allow-Methods", "GET,POST,HEAD,PUT,DELETE,PATCH")
-	c.Set("Access-Control-Allow-Headers", "*")
-	c.Set("Access-Control-Allow-Credentials", "true")
+	// TODO c.Set("Access-Control-Allow-Origin", "*")
+	// TODO c.Set("Access-Control-Allow-Methods", "GET,POST,HEAD,PUT,DELETE,PATCH")
+	// TODO c.Set("Access-Control-Allow-Headers", "*")
+	// TODO c.Set("Access-Control-Allow-Credentials", "true")
 
 	generated.SwaggerInfo.Host = c.Hostname()
 
