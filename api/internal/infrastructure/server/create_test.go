@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,11 +45,6 @@ func TestSetGoToDoc(t *testing.T) {
 
 func TestSetSecurityHeaders(t *testing.T) {
 	app := fiber.New()
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
-		AllowHeaders: "Origin, Content-Type, Accept",
-	}))
 	app.Use(setSecurityHeaders)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
