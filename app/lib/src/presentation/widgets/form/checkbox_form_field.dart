@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
+
+/// Ce widget ne sera donc pas testable
 import 'dart:html' as html;
 
 class CheckboxFormField extends FormField<bool> {

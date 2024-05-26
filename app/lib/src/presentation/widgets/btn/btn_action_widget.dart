@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:thetiptop_client/src/presentation/themes/default_theme.dart';
 
 class BtnActionWidget extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;
   final bool isLoading;
+  final bool disableLoading;
+
   final ButtonStyle? style;
 
   const BtnActionWidget({
@@ -13,6 +14,7 @@ class BtnActionWidget extends StatelessWidget {
     required this.onPressed,
     required this.text,
     this.isLoading = false,
+    this.disableLoading = false,
     this.style,
   });
 
@@ -26,14 +28,16 @@ class BtnActionWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(
-              width: DefaultTheme.smallSpacer + DefaultTheme.smallSpacer,
-            ),
+            if (disableLoading == false) ...[
+              const SizedBox(
+                width: DefaultTheme.smallSpacer + DefaultTheme.smallSpacer,
+              ),
+            ],
             Text(
               text,
               textAlign: TextAlign.center,
             ),
-            if (isLoading) ...[
+            if (disableLoading == false && isLoading == true) ...[
               const SizedBox(
                 width: DefaultTheme.smallSpacer,
               ),
@@ -46,9 +50,11 @@ class BtnActionWidget extends StatelessWidget {
                 ),
               ),
             ] else ...[
-              const SizedBox(
-                width: DefaultTheme.smallSpacer + DefaultTheme.smallSpacer,
-              ),
+              if (disableLoading == false) ...[
+                const SizedBox(
+                  width: DefaultTheme.smallSpacer + DefaultTheme.smallSpacer,
+                ),
+              ]
             ]
           ],
         ),

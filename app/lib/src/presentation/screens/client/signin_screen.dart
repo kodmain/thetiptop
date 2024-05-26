@@ -100,6 +100,7 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
             Row(
               children: [
                 BtnActionWidget(
+                  disableLoading: true,
                   onPressed: () {
                     print("ok");
                   },
@@ -114,6 +115,7 @@ class SigninScreenState extends ConsumerState<SigninScreen> {
                   width: DefaultTheme.smallSpacer,
                 ),
                 BtnActionWidget(
+                  disableLoading: true,
                   onPressed: () {
                     print("ok");
                   },

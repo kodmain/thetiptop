@@ -17,6 +17,8 @@ class ClientRepository {
     required this.viewerExceptionService,
   });
 
+  /// Todo : return client de l'api
+  ///
   Future<Client?> signUp(String email, String password) async {
     try {
       FormData formData = FormData();
