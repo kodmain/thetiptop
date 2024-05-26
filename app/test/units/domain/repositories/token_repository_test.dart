@@ -3,11 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:thetiptop_client/src/domain/env/env.dart';
 import 'package:thetiptop_client/src/domain/models/token.dart';
 import 'package:thetiptop_client/src/domain/repositories/token_repository.dart';
-import 'package:thetiptop_client/src/infrastructure/providers/shared_preferences_provider.dart';
-import 'package:thetiptop_client/src/infrastructure/services/dio/dio_service_provider.dart';
 import 'package:thetiptop_client/src/infrastructure/services/exception/viewer_exception_provider.dart';
 
 class MockDio extends Mock implements Dio {}

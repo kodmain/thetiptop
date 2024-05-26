@@ -36,7 +36,7 @@ class ItemGainWidget extends StatelessWidget {
               children: [
                 SvgPicture.asset(
                   type.getAssets(),
-                  colorFilter: ColorFilter.mode(
+                  colorFilter: const ColorFilter.mode(
                     DefaultTheme.greyCancel,
                     BlendMode.srcIn,
                   ),
@@ -93,7 +93,7 @@ class ItemGainWidget extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                 child: Text(
                   status.getLabel(),
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: DefaultTheme.whiteCream,
                     fontFamily: "Raleway",
                     fontSize: 14,
