@@ -2,8 +2,8 @@ package client
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/api/internal/application/services"
 
+	"github.com/kodmain/thetiptop/api/internal/application/services"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 

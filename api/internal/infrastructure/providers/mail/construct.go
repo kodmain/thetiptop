@@ -3,8 +3,6 @@ package mail
 import (
 	"errors"
 	"net/smtp"
-
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
 var instances map[string]ServiceInterface = make(map[string]ServiceInterface)
@@ -48,8 +46,6 @@ func New(mailers map[string]*Config) error {
 		instances[name] = &Service{
 			Config: cfg,
 		}
-
-		logger.Info(instances[name])
 	}
 
 	if len(errs) > 0 {

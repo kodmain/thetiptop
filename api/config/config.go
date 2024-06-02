@@ -19,6 +19,9 @@ var (
 )
 
 type Config struct {
+	Services map[string]struct {
+		Database string `yaml:"database"`
+	} `yaml:"services"`
 	Providers struct {
 		Mails     map[string]*mail.Config     `yaml:"mails"`
 		Databases map[string]*database.Config `yaml:"databases"`

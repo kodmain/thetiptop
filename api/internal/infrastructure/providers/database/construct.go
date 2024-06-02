@@ -3,6 +3,7 @@ package database
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"gorm.io/driver/mysql"
@@ -13,7 +14,18 @@ import (
 	glogger "gorm.io/gorm/logger"
 )
 
-var instances map[string]ServiceInterface = make(map[string]ServiceInterface)
+var (
+	instances map[string]*Database = make(map[string]*Database)
+	mutex     sync.RWMutex
+)
+
+func FromDB(db *gorm.DB) (*Database, error) {
+	if db == nil {
+		return nil, errors.New("database is required")
+	}
+
+	return &Database{Engine: db}, nil
+}
 
 func New(databases map[string]*Config) error {
 	if databases == nil {
@@ -28,21 +40,20 @@ func New(databases map[string]*Config) error {
 			continue
 		}
 
+		mutex.Lock()
 		if _, ok := instances[key]; ok {
+			mutex.Unlock()
 			errs = append(errs, fmt.Errorf("database already exists"))
 			continue
 		}
+		mutex.Unlock()
 
 		if err := cfg.Validate(); err != nil {
 			errs = append(errs, err)
 			continue
 		}
 
-		dsn, err := cfg.ToDSN()
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
+		dsn := cfg.ToDSN()
 
 		var dial gorm.Dialector
 		logger.Warnf("connecting to %s", dsn)
@@ -53,8 +64,6 @@ func New(databases map[string]*Config) error {
 			dial = mysql.Open(dsn)
 		case PostgreSQL:
 			dial = postgres.Open(dsn)
-		default:
-			errs = append(errs, fmt.Errorf("unknown protocol"))
 		}
 
 		db, err := gorm.Open(dial, &gorm.Config{
@@ -66,10 +75,12 @@ func New(databases map[string]*Config) error {
 			errs = append(errs, err)
 		}
 
-		instances[key] = &Service{
+		mutex.Lock()
+		instances[key] = &Database{
 			Config: cfg,
-			db:     db,
+			Engine: db,
 		}
+		mutex.Unlock()
 	}
 
 	if len(errs) > 0 {
@@ -79,7 +90,10 @@ func New(databases map[string]*Config) error {
 	return nil
 }
 
-func Get(names ...string) ServiceInterface {
+func Get(names ...string) *Database {
+	mutex.RLock()
+	defer mutex.RUnlock()
+
 	if len(instances) == 0 {
 		return nil
 	}
