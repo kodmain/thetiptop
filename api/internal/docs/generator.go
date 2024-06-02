@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -134,7 +135,15 @@ func main() {
 		uniqueIds[id] = struct{}{}
 	}
 
+	// Collecter les IDs uniques et les trier par ordre alphabétique
+	sortedIds := make([]string, 0, len(uniqueIds))
 	for id := range uniqueIds {
+		sortedIds = append(sortedIds, id)
+	}
+	sort.Strings(sortedIds)
+
+	// Écrire les IDs triés dans le fichier
+	for _, id := range sortedIds {
 		_, err = file.WriteString(fmt.Sprintf("\"%s\": %s,\n", id, id))
 		panicOrNotPanic(err)
 	}

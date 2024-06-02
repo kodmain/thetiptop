@@ -3,52 +3,48 @@ package services
 import (
 	"fmt"
 
+	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
-	interfaces "github.com/kodmain/thetiptop/api/internal/domain/repositories"
+	"github.com/kodmain/thetiptop/api/internal/domain/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/repositories"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail/template"
 )
 
-var instance *ClientService
-
 type ClientService struct {
-	repo interfaces.ClientRepository
-	mail *mail.Template
+	repo repositories.ClientRepository
+	mail mail.ServiceInterface
 }
 
-func Client() *ClientService {
-	if instance != nil {
-		return instance
-	}
-
-	instance = &ClientService{
-		repo: repositories.NewClientRepository("default"),
-		mail: mail.NewTemplate("signup"),
-	}
-
-	return instance
+func Client(repo repositories.ClientRepository, mail mail.ServiceInterface) *ClientService {
+	return &ClientService{repo, mail}
 }
 
-func (s *ClientService) SignUp(obj *transfert.Client) error {
+func (s *ClientService) SignUp(obj *transfert.Client) (*entities.Client, error) {
+	if obj == nil {
+		return nil, fmt.Errorf(errors.ErrNoDto)
+	}
+
 	_, err := s.repo.Read(obj)
 	if err == nil {
-		return err
+		return nil, fmt.Errorf(errors.ErrClientAlreadyExists)
 	}
 
 	client, err := s.repo.Create(obj)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	text, html, err := s.mail.Inject(mail.Data{
-		"AppName": "ThéTipTop",
-		"Url":     "https://thetiptop.com",
+	tpl := template.NewTemplate("signup")
+
+	text, html, err := tpl.Inject(template.Data{
+		"AppName": env.APP_NAME,
+		"Url":     env.HOSTNAME,
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	m := &mail.Mail{
@@ -58,7 +54,11 @@ func (s *ClientService) SignUp(obj *transfert.Client) error {
 		Html:    html,
 	}
 
-	return mail.Send(m)
+	if err := s.mail.Send(m); err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
