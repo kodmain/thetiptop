@@ -9,18 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-/*
-type Client struct {
-	gorm.Model
-	ID        uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	Email     string     `gorm:"type:varchar(100);uniqueIndex"`
-	Password  string     `gorm:"size:255"`
-	CreatedAt time.Time  `gorm:"type:timestamp"`
-	UpdatedAt time.Time  `gorm:"type:timestamp"`
-	DeletedAt *time.Time `gorm:"type:timestamp;index"`
-}
-*/
-
 type Client struct {
 	gorm.Model
 	ID       string `gorm:"type:varchar(36);primaryKey;"`
@@ -58,9 +46,9 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func CreateClient(obj *transfert.Client) (*Client, error) {
+func CreateClient(obj *transfert.Client) *Client {
 	return &Client{
 		Email:    obj.Email,
 		Password: obj.Password,
-	}, nil
+	}
 }

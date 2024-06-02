@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	PANIC chan error     = make(chan error, 1)
+	PANIC chan error     = make(chan error)
 	SIGS  chan os.Signal = make(chan os.Signal, 1)
 )
 
