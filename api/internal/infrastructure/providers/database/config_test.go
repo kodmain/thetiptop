@@ -21,59 +21,6 @@ const (
 	CONF_EMPTY      = ""
 )
 
-func TestDatabaseServicesConfiguration(t *testing.T) {
-	err := database.New(nil)
-	assert.Error(t, err)
-
-	databases := map[string]*database.Config{
-		"sql": {
-			Protocol: database.MySQL,
-			Host:     CONF_HOST,
-			Port:     CONF_MYSQL_PORT,
-			User:     CONF_USER,
-			Password: CONF_PASSWORD,
-			DBname:   CONF_DBNAME,
-		},
-		"memory": {
-			Protocol: database.SQLite,
-			DBname:   CONF_MEMORY,
-		},
-		"mysql": {
-			Protocol: database.MySQL,
-			Host:     CONF_HOST,
-			Port:     CONF_MYSQL_PORT,
-			User:     CONF_USER,
-			Password: CONF_PASSWORD,
-			DBname:   CONF_DBNAME,
-		},
-		"postgres": {
-			Protocol: database.PostgreSQL,
-			Host:     CONF_HOST,
-			Port:     CONF_PG_PORT,
-			User:     CONF_USER,
-			Password: CONF_PASSWORD,
-			DBname:   CONF_DBNAME,
-		},
-		"unknown": {
-			Protocol: "unknown",
-		},
-		"empty": nil,
-	}
-
-	err = database.New(databases)
-	assert.Error(t, err)
-
-	err = database.New(databases)
-	assert.Error(t, err)
-
-	db := database.Get("memory")
-	assert.NotNil(t, db)
-	db = database.Get("empty")
-	assert.Nil(t, db)
-	db = database.Get("notexist")
-	assert.Nil(t, db)
-}
-
 func TestDatabasesConfiguration(t *testing.T) {
 
 	dbconfs := []struct {
@@ -118,9 +65,8 @@ func TestDatabasesConfiguration(t *testing.T) {
 			Options:  dbconf.option,
 		}
 
-		dsn, err := db.ToDSN()
+		dsn := db.ToDSN()
 		if dbconf.protocol != "unknown" {
-			assert.NoError(t, err)
 			assert.NotNil(t, dsn)
 		}
 

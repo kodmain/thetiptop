@@ -6,6 +6,9 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/repositories"
 
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
@@ -20,7 +23,17 @@ func SignUp(email, password string) (int, fiber.Map) {
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	if err := services.Client().SignUp(obj); err != nil {
+	clientService := services.Client(
+		repositories.NewClientRepository(database.Get()),
+		mail.Get(),
+	)
+
+	if err != nil {
+		return fiber.StatusInternalServerError, fiber.Map{"error": err.Error()}
+	}
+
+	client, err := clientService.SignUp(obj)
+	if err != nil {
 		if err.Error() == errors.ErrClientAlreadyExists {
 			return fiber.StatusConflict, fiber.Map{"error": err.Error()}
 		}
@@ -28,7 +41,7 @@ func SignUp(email, password string) (int, fiber.Map) {
 		return fiber.StatusInternalServerError, fiber.Map{"error": err.Error()}
 	}
 
-	return fiber.StatusCreated, nil
+	return fiber.StatusCreated, fiber.Map{"client": client}
 }
 
 func SignIn(email, password string) (int, fiber.Map) {
@@ -41,7 +54,16 @@ func SignIn(email, password string) (int, fiber.Map) {
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	client, err := services.Client().SignIn(obj)
+	clientService := services.Client(
+		repositories.NewClientRepository(database.Get()),
+		mail.Get(),
+	)
+
+	if err != nil {
+		return fiber.StatusInternalServerError, fiber.Map{"error": err.Error()}
+	}
+
+	client, err := clientService.SignIn(obj)
 	if err != nil {
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}

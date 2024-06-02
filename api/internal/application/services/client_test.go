@@ -47,7 +47,7 @@ func TestClient(t *testing.T) {
 	// Test de la première inscription avec un mot de passe valide
 	statusCode, response = services.SignUp(email, password)
 	assert.Equal(t, fiber.StatusCreated, statusCode)
-	assert.Nil(t, response)
+	assert.NotNil(t, response)
 
 	// Test de la tentative de réinscription avec le même email
 	statusCode, response = services.SignUp(email, password)

@@ -27,19 +27,19 @@ type Config struct {
 	Options Options
 }
 
-func (cfg *Config) ToDSN() (string, error) {
+func (cfg *Config) ToDSN() string {
 	switch cfg.Protocol {
 	case MySQL:
 		// Format DSN MySQL : user:password@tcp(host:port)/dbname?options
-		return strings.TrimSpace(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBname, formatOptions(cfg.Options))), nil
+		return strings.TrimSpace(fmt.Sprintf("%s:%s@tcp(%s:%s)/%s%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBname, formatOptions(cfg.Options)))
 	case PostgreSQL:
 		// Format DSN PostgreSQL : h=myh port=myport user=myuser dbname=mydb options
-		return strings.TrimSpace(fmt.Sprintf("host=%s port=%s user=%s dbname=%s %s", cfg.Host, cfg.Port, cfg.User, cfg.DBname, formatOptions(cfg.Options))), nil
+		return strings.TrimSpace(fmt.Sprintf("host=%s port=%s user=%s dbname=%s %s", cfg.Host, cfg.Port, cfg.User, cfg.DBname, formatOptions(cfg.Options)))
 	case SQLite:
 		// SQLite utilise simplement le chemin du fichier ou ':memory:'
-		return strings.TrimSpace(cfg.DBname), nil
+		return strings.TrimSpace(cfg.DBname)
 	default:
-		return "", fmt.Errorf("protocole inconnu")
+		return ""
 	}
 }
 

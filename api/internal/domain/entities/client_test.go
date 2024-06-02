@@ -19,8 +19,7 @@ func TestNewClient(t *testing.T) {
 		Password: password,
 	}
 
-	client, err := entities.CreateClient(obj)
-	assert.Nil(t, err)
+	client := entities.CreateClient(obj)
 
 	if client.Email != email {
 		t.Errorf("Expected email %s, got %s", email, client.Email)
