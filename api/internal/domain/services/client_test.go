@@ -3,6 +3,7 @@ package services_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
@@ -120,6 +121,8 @@ func TestSignUp(t *testing.T) {
 		require.NotNil(t, result)
 		require.Equal(t, expectedClient.Email, result.Email)
 
+		time.Sleep(100 * time.Millisecond)
+
 		mockRepository.AssertExpectations(t)
 		mockMailer.AssertExpectations(t)
 	})
@@ -132,8 +135,10 @@ func TestSignUp(t *testing.T) {
 		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(fmt.Errorf("failed to send mail"))
 
 		result, err := service.SignUp(inputClient)
-		require.Error(t, err)
-		require.Nil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		time.Sleep(100 * time.Millisecond)
 
 		mockRepository.AssertExpectations(t)
 		mockMailer.AssertExpectations(t)
