@@ -8,6 +8,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/repositories"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail/template"
 )
@@ -36,6 +37,12 @@ func (s *ClientService) SignUp(obj *transfert.Client) (*entities.Client, error) 
 		return nil, err
 	}
 
+	go s.sendMail(client)
+
+	return client, nil
+}
+
+func (s *ClientService) sendMail(client *entities.Client) {
 	tpl := template.NewTemplate("signup")
 
 	text, html, err := tpl.Inject(template.Data{
@@ -43,22 +50,17 @@ func (s *ClientService) SignUp(obj *transfert.Client) (*entities.Client, error) 
 		"Url":     env.HOSTNAME,
 	})
 
-	if err != nil {
-		return nil, err
-	}
+	if !logger.Error(err) {
+		m := &mail.Mail{
+			To:      []string{client.Email},
+			Subject: "Welcome to The Tip Top",
+			Text:    text,
+			Html:    html,
+		}
 
-	m := &mail.Mail{
-		To:      []string{client.Email},
-		Subject: "Welcome to The Tip Top",
-		Text:    text,
-		Html:    html,
+		// if failed retry 3 times
+		logger.Error(s.mail.Send(m))
 	}
-
-	if err := s.mail.Send(m); err != nil {
-		return nil, err
-	}
-
-	return client, nil
 }
 
 func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
