@@ -59,10 +59,6 @@ func SignIn(email, password string) (int, fiber.Map) {
 		mail.Get(),
 	)
 
-	if err != nil {
-		return fiber.StatusInternalServerError, fiber.Map{"error": err.Error()}
-	}
-
 	client, err := clientService.SignIn(obj)
 	if err != nil {
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
