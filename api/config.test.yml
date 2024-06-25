@@ -17,8 +17,11 @@ providers:
       protocol: sqlite
       dbname: ':memory:'
 
-jwt: 
-  #tz: Europe/Paris
-  secret: secret
-  expire: 15
-  refresh: 30
+security:
+  validation:
+    expire: 1m
+  jwt: 
+    #tz: Europe/Paris
+    secret: secret
+    expire: 15
+    refresh: 30

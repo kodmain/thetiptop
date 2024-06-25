@@ -118,8 +118,10 @@ paths:
       produces:
       - application/json
       responses:
-        "209":
-          description: ""
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
       tags:
       - Sign
   /sign/up:
@@ -145,8 +147,6 @@ paths:
         "201":
           description: Client created
         "400":
-          description: Invalid email or password
-        "409":
           description: Client already exists
       tags:
       - Sign
@@ -178,4 +178,16 @@ paths:
       summary: Show the ip of user.
       tags:
       - Status
+  /validation/:id/:token:
+    get:
+      consumes:
+      - '*/*'
+      operationId: client.ValidationMail
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Sign
 swagger: "2.0"

@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/domain/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewClient(t *testing.T) {
-	email := "test@example.com"
-	password := "password"
+	email := "user-thetiptop@yopmail.com"
+	password := "Aa1@azetyuiop"
 
 	obj := &transfert.Client{
 		Email:    email,
@@ -45,8 +45,8 @@ func TestNewClient(t *testing.T) {
 	}
 }
 func TestBefore(t *testing.T) {
-	email := "test@example.com"
-	password := "password"
+	email := "user-thetiptop@yopmail.com"
+	password := "Aa1@azetyuiop"
 
 	client := &entities.Client{
 		Email:    email,
