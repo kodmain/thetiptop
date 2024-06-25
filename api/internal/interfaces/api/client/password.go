@@ -1,23 +1,31 @@
 package client
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+
+	"github.com/kodmain/thetiptop/api/internal/application/services"
+	"github.com/kodmain/thetiptop/api/internal/domain/client/repositories"
+	domain "github.com/kodmain/thetiptop/api/internal/domain/client/services"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
+)
 
 // @Tags		Password
 // @Accept		*/*
 // @Produce		application/json
-// @Success		204	{object}	nil
-// @Router		/client/password/renew [post]
-// @Id			client.Renew
-func Renew(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusNoContent).Send(nil)
-}
+// @Param		email		formData	string	true	"Email address" format(email)
+// @Success		201	{object}	nil
+// @Failure		400	{object}	nil
+// @Router		/password/recover [get]
+// @Id			client.PasswordRecover
+func PasswordRecover(c *fiber.Ctx) error {
+	status, response := services.PasswordRecover(
+		domain.Client(
+			repositories.NewClientRepository(database.Get()),
+			mail.Get(),
+		),
+		c.FormValue("email"),
+	)
 
-// @Tags		Password
-// @Accept		*/*
-// @Produce		application/json
-// @Success		204	{object}	nil
-// @Router		/client/password/reset [post]
-// @Id			client.Reset
-func Reset(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusNoContent).Send(nil)
+	return c.Status(status).JSON(response)
 }

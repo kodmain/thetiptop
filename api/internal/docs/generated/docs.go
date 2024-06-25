@@ -15,97 +15,8 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/client": {
+        "/password/recover": {
             "get": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Models"
-                ],
-                "operationId": "client.Find",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            },
-            "put": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Models"
-                ],
-                "operationId": "client.UpdateComplete",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            },
-            "delete": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Models"
-                ],
-                "operationId": "client.Delete",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            },
-            "patch": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Models"
-                ],
-                "operationId": "client.UpdatePartial",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/client/:id": {
-            "get": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Models"
-                ],
-                "operationId": "client.FindOne",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/client/password/renew": {
-            "post": {
                 "consumes": [
                     "*/*"
                 ],
@@ -115,29 +26,23 @@ const docTemplate = `{
                 "tags": [
                     "Password"
                 ],
-                "operationId": "client.Renew",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
+                "operationId": "client.PasswordRecover",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
                     }
-                }
-            }
-        },
-        "/client/password/reset": {
-            "post": {
-                "consumes": [
-                    "*/*"
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Password"
-                ],
-                "operationId": "client.Reset",
                 "responses": {
-                    "204": {
-                        "description": "No Content"
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     }
                 }
             }

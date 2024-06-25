@@ -5,85 +5,25 @@ info:
   title: TheTipTop
   version: dev
 paths:
-  /client:
-    delete:
-      consumes:
-      - '*/*'
-      operationId: client.Delete
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Models
+  /password/recover:
     get:
       consumes:
       - '*/*'
-      operationId: client.Find
+      operationId: client.PasswordRecover
+      parameters:
+      - description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
-      tags:
-      - Models
-    patch:
-      consumes:
-      - '*/*'
-      operationId: client.UpdatePartial
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Models
-    put:
-      consumes:
-      - '*/*'
-      operationId: client.UpdateComplete
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Models
-  /client/:id:
-    get:
-      consumes:
-      - '*/*'
-      operationId: client.FindOne
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Models
-  /client/password/renew:
-    post:
-      consumes:
-      - '*/*'
-      operationId: client.Renew
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Password
-  /client/password/reset:
-    post:
-      consumes:
-      - '*/*'
-      operationId: client.Reset
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
       tags:
       - Password
   /sign/in:

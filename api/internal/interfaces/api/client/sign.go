@@ -81,7 +81,7 @@ func SignIn(c *fiber.Ctx) error {
 func SignRenew(c *fiber.Ctx) error {
 	token := c.Locals("token")
 	if token == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "No token")
+		return fiber.NewError(fiber.StatusBadRequest, "no token")
 	}
 
 	status, response := services.SignRenew(token.(*serializer.Token))

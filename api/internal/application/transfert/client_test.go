@@ -3,7 +3,9 @@ package transfert_test
 import (
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/application/validator"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 	"github.com/stretchr/testify/assert"
 )
@@ -11,20 +13,20 @@ import (
 func TestNewClient(t *testing.T) {
 	tests := []struct {
 		name     string
-		email    string
-		password string
+		email    *string
+		password *string
 		wantErr  bool
 	}{
 		{
 			name:     "Valid email",
-			email:    "hello@kodmain.com",
-			password: "Abc123!@#",
+			email:    aws.String("hello@kodmain.com"),
+			password: aws.String("Abc123!@#"),
 			wantErr:  false,
 		},
 		{
 			name:     "Invalid email",
-			email:    "invalid",
-			password: "",
+			email:    aws.String("invalid"),
+			password: aws.String(""),
 			wantErr:  true,
 		},
 	}
@@ -36,13 +38,16 @@ func TestNewClient(t *testing.T) {
 				"password": tt.password,
 			}
 
-			client, err := transfert.NewClient(obj)
+			client, err := transfert.NewClient(obj, data.Validator{
+				"email":    {validator.Email},
+				"password": {validator.Password},
+			})
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.email, client.Email)
-				assert.Equal(t, tt.password, client.Password)
+				assert.Equal(t, *tt.email, client.Email)
+				assert.Equal(t, *tt.password, client.Password)
 			}
 		})
 	}

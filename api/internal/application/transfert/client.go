@@ -1,9 +1,6 @@
 package transfert
 
 import (
-	"errors"
-
-	"github.com/kodmain/thetiptop/api/internal/application/validator"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
@@ -12,21 +9,13 @@ type Client struct {
 	Password string `json:"password"`
 }
 
-func NewClient(obj data.Object) (*Client, error) {
-	email := obj.Get("email")
-	password := obj.Get("password")
-
-	err := errors.Join(
-		validator.Email(email),
-		validator.Password(password),
-	)
-
-	if err != nil {
+func NewClient(obj data.Object, mandatory data.Validator) (*Client, error) {
+	if err := mandatory.Check(obj); err != nil {
 		return nil, err
 	}
 
 	return &Client{
-		Email:    email,
-		Password: password,
+		Email:    *obj.Get("email"),
+		Password: *obj.Get("password"),
 	}, nil
 }
