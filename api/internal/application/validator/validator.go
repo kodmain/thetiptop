@@ -17,6 +17,14 @@ func Email(email string) error {
 	return err
 }
 
+func ID(uuid string) error {
+	if len(uuid) != 36 || uuid[8] != '-' || uuid[13] != '-' || uuid[18] != '-' || uuid[23] != '-' {
+		return errors.New("invalid UUID")
+	}
+
+	return nil
+}
+
 func Password(password string) error {
 	var (
 		hasMin     bool

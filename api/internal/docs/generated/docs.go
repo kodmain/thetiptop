@@ -191,8 +191,11 @@ const docTemplate = `{
                 ],
                 "operationId": "client.SignRenew",
                 "responses": {
-                    "209": {
-                        "description": ""
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     }
                 }
             }
@@ -231,9 +234,6 @@ const docTemplate = `{
                         "description": "Client created"
                     },
                     "400": {
-                        "description": "Invalid email or password"
-                    },
-                    "409": {
                         "description": "Client already exists"
                     }
                 }
@@ -277,6 +277,25 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/validation/:id/:token": {
+            "get": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sign"
+                ],
+                "operationId": "client.ValidationMail",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }

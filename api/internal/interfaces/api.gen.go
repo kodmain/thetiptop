@@ -29,6 +29,7 @@ var (
 		"client.SignUp":         client.SignUp,
 		"client.UpdateComplete": client.UpdateComplete,
 		"client.UpdatePartial":  client.UpdatePartial,
+		"client.ValidationMail": client.ValidationMail,
 		"status.HealthCheck":    status.HealthCheck,
 		"status.IP":             status.IP,
 	}

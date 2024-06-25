@@ -1,6 +1,7 @@
 package services_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -8,12 +9,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
-	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
+	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 const (
 	email              = "test@example.com"
+	emailSyntaxFail    = "testexample.com"
 	password           = "validP@ssw0rd"
 	passwordFail       = "WrongP@ssw0rd"
 	passwordSyntaxFail = "secret"
@@ -36,72 +42,144 @@ func setup() error {
 	return nil
 }
 
+type DomainClientService struct {
+	mock.Mock
+}
+
+func (dcs DomainClientService) SignUp(obj *transfert.Client) (*entities.Client, error) {
+	args := dcs.Called(obj)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entities.Client), args.Error(1)
+}
+
+func (dcs DomainClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
+	args := dcs.Called(obj)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entities.Client), args.Error(1)
+}
+
+func (dcs DomainClientService) ValidationMail(obj *transfert.Validation) (*entities.Validation, error) {
+	args := dcs.Called(obj)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entities.Validation), args.Error(1)
+}
+
 func TestClient(t *testing.T) {
 	assert.Nil(t, setup())
 
-	// Test de l'inscription avec un mot de passe invalide
-	statusCode, response := services.SignUp(email, passwordSyntaxFail)
-	assert.Equal(t, fiber.StatusBadRequest, statusCode)
-	assert.NotNil(t, response)
+	t.Run("invalid password", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignUp", mock.Anything).Return(&entities.Client{}, nil)
 
-	// Test de la première inscription avec un mot de passe valide
-	statusCode, response = services.SignUp(email, password)
-	assert.Equal(t, fiber.StatusCreated, statusCode)
-	assert.NotNil(t, response)
+		statusCode, response := services.SignUp(mockClient, email, passwordSyntaxFail)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
 
-	// Test de la tentative de réinscription avec le même email
-	statusCode, response = services.SignUp(email, password)
-	assert.Equal(t, fiber.StatusConflict, statusCode)
-	assert.NotNil(t, response)
+	t.Run("valid password", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignUp", mock.Anything).Return(&entities.Client{}, nil)
 
-	// Test de la connexion avec un mot de passe incorrect
-	statusCode, response = services.SignIn(email, passwordSyntaxFail)
-	assert.Equal(t, fiber.StatusBadRequest, statusCode)
-	assert.NotNil(t, response, "should fail to log in")
+		statusCode, response := services.SignUp(mockClient, email, password)
+		assert.Equal(t, fiber.StatusCreated, statusCode)
+		assert.NotNil(t, response)
+	})
 
-	// Test de la connexion avec un mot de passe incorrect
-	statusCode, response = services.SignIn(email, passwordFail)
-	assert.Equal(t, fiber.StatusBadRequest, statusCode)
-	assert.NotNil(t, response, "should fail to log in")
+	t.Run("client already exists", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignUp", mock.Anything).Return(nil, fmt.Errorf(errors.ErrClientAlreadyExists))
 
-	// Test de connexion avec le même utilisateur
-	statusCode, response = services.SignIn(email, password)
-	assert.Equal(t, fiber.StatusOK, statusCode)
-	assert.NotNil(t, response, "should successfully log in")
+		statusCode, response := services.SignUp(mockClient, email, password)
+		assert.Equal(t, fiber.StatusConflict, statusCode)
+		assert.NotNil(t, response)
+	})
+}
 
-	jwt, ok := response["jwt"].(string)
-	if !ok {
-		t.Error("JWT token is missing")
-	}
+func TestSignIn(t *testing.T) {
+	config.Load(aws.String("../../../config.test.yml"))
+	t.Run("invalid syntax password", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignIn", mock.Anything).Return(&entities.Client{}, nil)
 
-	access, err := serializer.TokenToClaims(jwt)
-	if err != nil {
-		t.Error(err)
-	}
+		statusCode, response := services.SignIn(mockClient, email, passwordSyntaxFail)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
 
-	statusCode, response = services.SignRenew(access)
-	assert.Equal(t, fiber.StatusBadRequest, statusCode)
-	assert.NotNil(t, response)
-	assert.Equal(t, "Invalid token type", response["error"])
+	t.Run("invalid syntax email", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignIn", mock.Anything).Return(&entities.Client{}, nil)
 
-	assert.False(t, access.HasExpired()) // Le jeton ne doit pas être expiré
-	assert.NotNil(t, access.Refresh)     // Le jeton doit avoir un jeton de rafraîchissement
+		statusCode, response := services.SignIn(mockClient, emailSyntaxFail, password)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
 
-	refresh, err := serializer.TokenToClaims(*access.Refresh)
-	if err != nil {
-		t.Error(err)
-	}
+	t.Run("not found", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignIn", mock.Anything).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
 
-	assert.False(t, refresh.HasExpired())
-	assert.Nil(t, refresh.Refresh)
-	statusCode, response = services.SignRenew(refresh)
-	assert.Equal(t, fiber.StatusOK, statusCode)
-	assert.NotNil(t, response)
+		statusCode, response := services.SignIn(mockClient, email, password)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
 
-	expired, err := serializer.TokenToClaims(ExpiredRefreshToken)
-	assert.Error(t, err)
+	t.Run("invalid password", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignIn", mock.Anything).Return(nil, fmt.Errorf("fail to log in"))
 
-	statusCode, response = services.SignRenew(expired)
-	assert.Equal(t, fiber.StatusBadRequest, statusCode)
-	assert.NotNil(t, response)
+		statusCode, response := services.SignIn(mockClient, email, passwordFail)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("valid email,password", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignIn", mock.Anything).Return(&entities.Client{
+			ID: "7c79400f-006a-475e-97b6-5dbde3707601",
+		}, nil)
+
+		statusCode, response := services.SignIn(mockClient, email, password)
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.NotNil(t, response)
+
+		tokenJWT, ok := response["jwt"].(string)
+		assert.True(t, ok)
+
+		access, err := jwt.TokenToClaims(tokenJWT)
+		assert.Nil(t, err)
+		assert.NotNil(t, access)
+
+		statusCode, response = services.SignRenew(access)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+		assert.Equal(t, "Invalid token type", response["error"])
+
+		assert.False(t, access.HasExpired()) // Le jeton ne doit pas être expiré
+		assert.NotNil(t, access.Refresh)     // Le jeton doit avoir un jeton de rafraîchissement
+
+		refresh, err := jwt.TokenToClaims(*access.Refresh)
+		if err != nil {
+			t.Error(err)
+		}
+
+		assert.False(t, refresh.HasExpired())
+		assert.Nil(t, refresh.Refresh)
+		statusCode, response = services.SignRenew(refresh)
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.NotNil(t, response)
+
+		expired, err := jwt.TokenToClaims(ExpiredRefreshToken)
+		assert.Error(t, err)
+
+		statusCode, response = services.SignRenew(expired)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
 }
