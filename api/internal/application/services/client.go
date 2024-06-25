@@ -1,13 +1,14 @@
 package services
 
 import (
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/application/validator"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/repositories"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
@@ -15,8 +16,11 @@ import (
 
 func SignUp(service services.ClientServiceInterface, email, password string) (int, fiber.Map) {
 	obj, err := transfert.NewClient(data.Object{
-		"email":    email,
-		"password": password,
+		"email":    &email,
+		"password": &password,
+	}, data.Validator{
+		"email":    {validator.Required, validator.Email},
+		"password": {validator.Required, validator.Password},
 	})
 
 	if err != nil {
@@ -37,8 +41,11 @@ func SignUp(service services.ClientServiceInterface, email, password string) (in
 
 func SignIn(service services.ClientServiceInterface, email, password string) (int, fiber.Map) {
 	obj, err := transfert.NewClient(data.Object{
-		"email":    email,
-		"password": password,
+		"email":    &email,
+		"password": &password,
+	}, data.Validator{
+		"email":    {validator.Required, validator.Email},
+		"password": {validator.Required, validator.Password},
 	})
 
 	if err != nil {
@@ -80,11 +87,12 @@ func SignRenew(refresh *serializer.Token) (int, fiber.Map) {
 }
 
 func ValidationMail(clientId, token string) (int, fiber.Map) {
-	logger.Debug(token, clientId)
-
 	obj, err := transfert.NewValidation(data.Object{
-		"token":    token,
-		"clientId": clientId,
+		"token":    aws.String(token),
+		"clientId": aws.String(clientId),
+	}, data.Validator{
+		"token":    {validator.Required, validator.Luhn},
+		"clientId": {validator.Required, validator.ID},
 	})
 
 	if err != nil {

@@ -53,7 +53,7 @@ func TestPassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Password(tt.password)
+			err := validator.Password(&tt.password)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -83,7 +83,7 @@ func TestEmail(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Email(tt.email)
+			err := validator.Email(&tt.email)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

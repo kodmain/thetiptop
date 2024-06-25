@@ -1,8 +1,6 @@
 package transfert
 
 import (
-	"errors"
-
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 )
@@ -12,20 +10,16 @@ type Validation struct {
 	ClientID string     `json:"client_id"`
 }
 
-func NewValidation(obj data.Object) (*Validation, error) {
-	token := token.Luhn(obj.Get("token"))
-	client := obj.Get("clientId")
-
-	err := errors.Join(
-		token.Validate(),
-	)
-
-	if err != nil {
+func NewValidation(obj data.Object, mandatory data.Validator) (*Validation, error) {
+	if err := mandatory.Check(obj); err != nil {
 		return nil, err
 	}
 
+	luhn := obj.Get("token")
+	client := obj.Get("clientId")
+
 	return &Validation{
-		Token:    token,
-		ClientID: client,
+		Token:    token.Luhn(*luhn),
+		ClientID: *client,
 	}, nil
 }
