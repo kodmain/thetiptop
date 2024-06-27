@@ -16,7 +16,7 @@ import (
 // @Param		email		formData	string	true	"Email address" format(email)
 // @Success		201	{object}	nil
 // @Failure		400	{object}	nil
-// @Router		/password/recover [get]
+// @Router		/password/recover [post]
 // @Id			client.PasswordRecover
 func PasswordRecover(c *fiber.Ctx) error {
 	status, response := services.PasswordRecover(

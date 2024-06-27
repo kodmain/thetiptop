@@ -46,8 +46,8 @@ func TestNewClient(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, *tt.email, client.Email)
-				assert.Equal(t, *tt.password, client.Password)
+				assert.Equal(t, tt.email, client.Email)
+				assert.Equal(t, tt.password, client.Password)
 			}
 		})
 	}

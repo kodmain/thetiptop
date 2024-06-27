@@ -45,8 +45,8 @@ func TestCreateClientRepository(t *testing.T) {
 
 	// Données de transfert pour créer un client
 	dto := &transfert.Client{
-		Email:    "hello@world.com",
-		Password: "password",
+		Email:    aws.String("hello@world.com"),
+		Password: aws.String("password"),
 	}
 
 	// Cas de création réussie
@@ -163,7 +163,7 @@ func TestReadClientRepository(t *testing.T) {
 
 	// Données de transfert pour lire un client
 	dto := &transfert.Client{
-		Email: "hello@world.com",
+		Email: aws.String("hello@world.com"),
 	}
 
 	// Cas de lecture réussie

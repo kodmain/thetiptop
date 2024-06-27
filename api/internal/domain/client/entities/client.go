@@ -3,33 +3,33 @@ package entities
 import (
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 	"gorm.io/gorm"
 )
 
 type Client struct {
-	// gorm model
-	ID        string         `gorm:"type:varchar(36);primaryKey;"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	// entity
-	Email       string      `gorm:"type:varchar(320);uniqueIndex"`
-	Password    string      `gorm:"type:varchar(255)" json:"-"` // private field
+	// Gorm model
+	ID        string          `gorm:"type:varchar(36);primaryKey;"`
+	CreatedAt time.Time       `json:"-"`
+	UpdatedAt time.Time       `json:"-"`
+	DeletedAt *gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// Entity
+	Email       *string     `gorm:"type:varchar(320);uniqueIndex"`
+	Password    *string     `gorm:"type:varchar(255)" json:"-"` // private field
 	Validations Validations `gorm:"foreignKey:ClientID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
-	CGU         bool        `gorm:"type:boolean;default:false"`
-	Newsletter  bool        `gorm:"type:boolean;default:false"`
+	CGU         *bool       `gorm:"type:boolean;default:false"`
+	Newsletter  *bool       `gorm:"type:boolean;default:false"`
 }
 
 func (client *Client) CompareHash(password string) bool {
-	return hash.CompareHash(client.Password, client.Email+":"+password, hash.BCRYPT) == nil
+	return hash.CompareHash(client.Password, aws.String(*client.Email+":"+password), hash.BCRYPT) == nil
 }
 
 func (client *Client) BeforeUpdate(tx *gorm.DB) error {
-	logger.Info("BeforeUpdate")
 	client.UpdatedAt = time.Now()
 	return nil
 }
@@ -45,7 +45,7 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 
-	password, err := hash.Hash(client.Email+":"+client.Password, hash.BCRYPT)
+	password, err := hash.Hash(aws.String(*client.Email+":"+*client.Password), hash.BCRYPT)
 	if err != nil {
 		return err
 	}

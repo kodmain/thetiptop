@@ -1,7 +1,6 @@
 package services
 
 import (
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
@@ -12,7 +11,7 @@ import (
 
 func PasswordRecover(service services.ClientServiceInterface, email string) (int, fiber.Map) {
 	obj, err := transfert.NewClient(data.Object{
-		"email": aws.String(email),
+		"email": &email,
 	}, data.Validator{
 		"email": {validator.Required, validator.Email},
 	})

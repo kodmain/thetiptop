@@ -5,12 +5,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -115,22 +118,27 @@ func TestSignUp(t *testing.T) {
 		require.Equal(t, errors.ErrNoDto, err.Error())
 	})
 
+	idClient, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
+	assert.NoError(t, err)
+	idValidation, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
+	assert.NoError(t, err)
+
 	inputClient := &transfert.Client{
-		Email:    "hello@thetiptop",
-		Password: "azertyuiop",
+		Email:    aws.String("hello@thetiptop"),
+		Password: aws.String("azertyuiop"),
 	}
 
 	expectedClient := &entities.Client{
-		ID:       "42debee6-2063-4566-baf1-37a7bdd139ff",
-		Email:    "hello@thetiptop",
-		Password: "$2a$10$wO5PfDAGp6w2ubKp0vEdXeUe2HlfOv5iRJ3C3MVR0vJhscD0G.NKS", // hashed password
+		ID:       idClient.String(),
+		Email:    aws.String("hello@thetiptop"),
+		Password: aws.String("$2a$10$wO5PfDAGp6w2ubKp0vEdXeUe2HlfOv5iRJ3C3MVR0vJhscD0G.NKS"), // hashed password
 		Validations: []*entities.Validation{
 			{
-				ID:        "42debee6-2063-4566-baf1-37a7bdd139cc",
+				ID:        idValidation.String(),
 				Token:     "666666",
 				Type:      0,
 				Validated: false,
-				ClientID:  "42debee6-2063-4566-baf1-37a7bdd139ff",
+				ClientID:  idClient.String(),
 			},
 		},
 	}
@@ -196,25 +204,30 @@ func TestSignUp(t *testing.T) {
 }
 
 func TestSignIn(t *testing.T) {
+	idClient, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
+	assert.NoError(t, err)
+	idValidation, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
+	assert.NoError(t, err)
+
 	inputClient := &transfert.Client{
-		Email:    "hello@thetiptop",
-		Password: "azertyuiop",
+		Email:    aws.String("hello@thetiptop"),
+		Password: aws.String("azertyuiop"),
 	}
 
-	hashedPassword, err := hash.Hash(inputClient.Email+":"+inputClient.Password, hash.BCRYPT)
+	hashedPassword, err := hash.Hash(aws.String(*inputClient.Email+":"+*inputClient.Password), hash.BCRYPT)
 	require.NoError(t, err)
 
 	expectedClient := &entities.Client{
-		ID:       "42debee6-2063-4566-baf1-37a7bdd139ff",
+		ID:       idClient.String(),
 		Email:    inputClient.Email,
 		Password: hashedPassword,
 		Validations: []*entities.Validation{
 			{
-				ID:        "42debee6-2063-4566-baf1-37a7bdd139cc",
+				ID:        idValidation.String(),
 				Token:     "666666",
 				Type:      0,
 				Validated: true,
-				ClientID:  "42debee6-2063-4566-baf1-37a7bdd139ff",
+				ClientID:  idClient.String(),
 			},
 		},
 	}
@@ -235,8 +248,8 @@ func TestSignIn(t *testing.T) {
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
 
 		wrongPasswordClient := &transfert.Client{
-			Email:    "hello@thetiptop",
-			Password: "wrongpassword",
+			Email:    aws.String("hello@thetiptop"),
+			Password: aws.String("wrongpassword"),
 		}
 
 		result, err := service.SignIn(wrongPasswordClient)

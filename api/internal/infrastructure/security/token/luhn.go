@@ -17,6 +17,10 @@ const (
 // Luhn représente une chaîne de caractères avec des méthodes associées pour les opérations de Luhn.
 type Luhn string
 
+func NewLuhn(s string) Luhn {
+	return Luhn(s)
+}
+
 func (l Luhn) String() string {
 	return string(l)
 }

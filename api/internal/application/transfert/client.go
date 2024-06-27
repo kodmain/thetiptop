@@ -5,8 +5,8 @@ import (
 )
 
 type Client struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    *string `json:"email"`
+	Password *string `json:"password"`
 }
 
 func NewClient(obj data.Object, mandatory data.Validator) (*Client, error) {
@@ -15,7 +15,7 @@ func NewClient(obj data.Object, mandatory data.Validator) (*Client, error) {
 	}
 
 	return &Client{
-		Email:    *obj.Get("email"),
-		Password: *obj.Get("password"),
+		Email:    obj.Get("email"),
+		Password: obj.Get("password"),
 	}, nil
 }

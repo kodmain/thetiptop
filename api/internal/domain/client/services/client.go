@@ -89,7 +89,7 @@ func (s *ClientService) sendSignUpMail(client *entities.Client) error {
 	}
 
 	m := &mail.Mail{
-		To:      []string{client.Email},
+		To:      []string{*client.Email},
 		Subject: "Welcome to The Tip Top",
 		Text:    text,
 		Html:    html,
@@ -110,7 +110,7 @@ func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) 
 		Email: obj.Email,
 	})
 
-	if err != nil || !client.CompareHash(obj.Password) {
+	if err != nil || !client.CompareHash(*obj.Password) {
 		return nil, fmt.Errorf(errors.ErrClientNotFound)
 	}
 

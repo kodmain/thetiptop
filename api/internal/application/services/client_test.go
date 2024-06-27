@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
@@ -17,7 +18,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-const (
+var (
 	email              = "test@example.com"
 	emailSyntaxFail    = "testexample.com"
 	password           = "validP@ssw0rd"
@@ -140,9 +141,11 @@ func TestSignIn(t *testing.T) {
 	})
 
 	t.Run("valid email,password", func(t *testing.T) {
+		id, err := uuid.Parse("7c79400f-006a-475e-97b6-5dbde3707601")
+		assert.NoError(t, err)
 		mockClient := new(DomainClientService)
 		mockClient.On("SignIn", mock.Anything).Return(&entities.Client{
-			ID: "7c79400f-006a-475e-97b6-5dbde3707601",
+			ID: id.String(),
 		}, nil)
 
 		statusCode, response := services.SignIn(mockClient, email, password)
