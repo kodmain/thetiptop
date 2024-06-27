@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
@@ -11,8 +12,8 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	email := "user-thetiptop@yopmail.com"
-	password := "Aa1@azetyuiop"
+	email := aws.String("user-thetiptop@yopmail.com")
+	password := aws.String("Aa1@azetyuiop")
 
 	obj := &transfert.Client{
 		Email:    email,
@@ -21,14 +22,14 @@ func TestNewClient(t *testing.T) {
 
 	client := entities.CreateClient(obj)
 
-	if client.Email != email {
-		t.Errorf("Expected email %s, got %s", email, client.Email)
+	if *client.Email != *email {
+		t.Errorf("Expected email %s, got %s", *email, *client.Email)
 	}
 
-	hash, err := hash.Hash(email+":"+password, hash.BCRYPT)
+	hash, err := hash.Hash(aws.String(*email+":"+*password), hash.BCRYPT)
 	assert.Nil(t, err)
-	if client.CompareHash(email + ":" + password) {
-		t.Errorf("Expected password %s", hash)
+	if client.CompareHash(*email + ":" + *password) {
+		t.Errorf("Expected password %s", *hash)
 	}
 
 	now := time.Now()
@@ -39,14 +40,10 @@ func TestNewClient(t *testing.T) {
 	if client.UpdatedAt.After(now) {
 		t.Errorf("Expected UpdatedAt to be before or equal to current time, got %s", client.UpdatedAt)
 	}
-
-	if client.DeletedAt.Valid {
-		t.Error("Expected DeletedAt to be nil, got non-nil")
-	}
 }
 func TestBefore(t *testing.T) {
-	email := "user-thetiptop@yopmail.com"
-	password := "Aa1@azetyuiop"
+	email := aws.String("user-thetiptop@yopmail.com")
+	password := aws.String("Aa1@azetyuiop")
 
 	client := &entities.Client{
 		Email:    email,

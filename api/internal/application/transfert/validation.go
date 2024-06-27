@@ -6,8 +6,8 @@ import (
 )
 
 type Validation struct {
-	Token    token.Luhn `json:"token"`
-	ClientID string     `json:"client_id"`
+	Token    *token.Luhn `json:"token"`
+	ClientID *string     `json:"client_id"`
 }
 
 func NewValidation(obj data.Object, mandatory data.Validator) (*Validation, error) {
@@ -17,9 +17,10 @@ func NewValidation(obj data.Object, mandatory data.Validator) (*Validation, erro
 
 	luhn := obj.Get("token")
 	client := obj.Get("clientId")
+	token := token.NewLuhn(*luhn)
 
 	return &Validation{
-		Token:    token.Luhn(*luhn),
-		ClientID: *client,
+		Token:    &token,
+		ClientID: client,
 	}, nil
 }

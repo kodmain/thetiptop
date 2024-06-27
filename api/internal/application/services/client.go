@@ -1,7 +1,6 @@
 package services
 
 import (
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
@@ -88,8 +87,8 @@ func SignRenew(refresh *serializer.Token) (int, fiber.Map) {
 
 func ValidationMail(clientId, token string) (int, fiber.Map) {
 	obj, err := transfert.NewValidation(data.Object{
-		"token":    aws.String(token),
-		"clientId": aws.String(clientId),
+		"token":    &token,
+		"clientId": &clientId,
 	}, data.Validator{
 		"token":    {validator.Required, validator.Luhn},
 		"clientId": {validator.Required, validator.ID},

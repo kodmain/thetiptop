@@ -9,7 +9,7 @@
     "host": "localhost",
     "paths": {
         "/password/recover": {
-            "get": {
+            "post": {
                 "consumes": [
                     "*/*"
                 ],

@@ -16,7 +16,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/password/recover": {
-            "get": {
+            "post": {
                 "consumes": [
                     "*/*"
                 ],
