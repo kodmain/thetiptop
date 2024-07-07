@@ -89,7 +89,7 @@ func (m *Mail) Prepare(service ServiceInterface) ([]byte, []string, error) {
 	// Début de la composition MIME
 	writer := multipart.NewWriter(&msg)
 	boundary := writer.Boundary()
-	header[contentType] = "multipart/alternative; boundary=" + boundary + "; charset=\"UTF-8\""
+	header[contentType] = "multipart/alternative; boundary=" + boundary + "; charset=UTF-8"
 	header[contentTransfertEncoding] = "quoted-printable"
 
 	for key, value := range header {

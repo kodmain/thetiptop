@@ -47,7 +47,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/password/validation/:id": {
+        "/password/update": {
             "put": {
                 "consumes": [
                     "*/*"
@@ -58,8 +58,23 @@ const docTemplate = `{
                 "tags": [
                     "Password"
                 ],
-                "operationId": "client.PasswordValidation",
+                "operationId": "client.PasswordUpdate",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Token",
@@ -172,7 +187,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/sign/validation/:id": {
+        "/sign/validation": {
             "put": {
                 "consumes": [
                     "*/*"
@@ -189,6 +204,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Token",
                         "name": "token",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email address",
+                        "name": "email",
                         "in": "formData",
                         "required": true
                     }

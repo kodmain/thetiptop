@@ -68,16 +68,16 @@ func (dcs DomainClientService) SignIn(obj *transfert.Client) (*entities.Client, 
 	return args.Get(0).(*entities.Client), args.Error(1)
 }
 
-func (dcs DomainClientService) SignValidation(obj *transfert.Validation) (*entities.Validation, error) {
-	args := dcs.Called(obj)
+func (dcs DomainClientService) SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
+	args := dcs.Called(dtoValidation, dtoClient)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*entities.Validation), args.Error(1)
 }
 
-func (dcs DomainClientService) PasswordValidation(obj *transfert.Validation) (*entities.Validation, error) {
-	args := dcs.Called(obj)
+func (dcs DomainClientService) PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
+	args := dcs.Called(dtoValidation, dtoClient)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

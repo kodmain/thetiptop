@@ -86,12 +86,20 @@ func SignRenew(refresh *serializer.Token) (int, fiber.Map) {
 }
 
 func SignValidation(email, token string) (int, fiber.Map) {
-	obj, err := transfert.NewValidation(data.Object{
+	dtoValidation, err := transfert.NewValidation(data.Object{
 		"token": &token,
-		"email": &email,
 	}, data.Validator{
 		"token": {validator.Required, validator.Luhn},
-		"email": {validator.Required, validator.ID},
+	})
+
+	if err != nil {
+		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
+	}
+
+	dtoClient, err := transfert.NewClient(data.Object{
+		"email": &email,
+	}, data.Validator{
+		"email": {validator.Required, validator.Email},
 	})
 
 	if err != nil {
@@ -103,7 +111,7 @@ func SignValidation(email, token string) (int, fiber.Map) {
 		mail.Get(),
 	)
 
-	validation, err := clientService.SignValidation(obj)
+	validation, err := clientService.SignValidation(dtoValidation, dtoClient)
 	if err != nil {
 		status := fiber.StatusInternalServerError
 		switch err.Error() {
@@ -140,13 +148,13 @@ func PasswordRecover(service services.ClientServiceInterface, email string) (int
 	return fiber.StatusNoContent, nil
 }
 
-func PasswordValidation(clientId, token, password string) (int, fiber.Map) {
+func PasswordUpdate(email, password, token string) (int, fiber.Map) {
 	dtoClient, err := transfert.NewClient(data.Object{
+		"email":    &email,
 		"password": &password,
-		"id":       &clientId,
 	}, data.Validator{
+		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
-		"id":       {validator.Required, validator.ID},
 	})
 
 	if err != nil {
@@ -154,11 +162,9 @@ func PasswordValidation(clientId, token, password string) (int, fiber.Map) {
 	}
 
 	dtoValidation, err := transfert.NewValidation(data.Object{
-		"token":    &token,
-		"clientId": &clientId,
+		"token": &token,
 	}, data.Validator{
-		"token":    {validator.Required, validator.Luhn},
-		"clientId": {validator.Required, validator.ID},
+		"token": {validator.Required, validator.Luhn},
 	})
 
 	if err != nil {
@@ -170,7 +176,7 @@ func PasswordValidation(clientId, token, password string) (int, fiber.Map) {
 		mail.Get(),
 	)
 
-	validation, err := clientService.PasswordValidation(dtoValidation)
+	validation, err := clientService.PasswordValidation(dtoValidation, dtoClient)
 	if err != nil {
 		status := fiber.StatusInternalServerError
 		switch err.Error() {

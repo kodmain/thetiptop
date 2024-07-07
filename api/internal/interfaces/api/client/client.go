@@ -39,12 +39,13 @@ func SignUp(c *fiber.Ctx) error {
 // @Accept		*/*
 // @Produce		application/json
 // @Param		token	formData	string	true	"Token"
+// @Param		email	formData	string	true	"Email address" format(email)
 // @Success		204	{object}	nil
-// @Router		/sign/validation/:id [put]
+// @Router		/sign/validation [put]
 // @Id			client.SignValidation
 func SignValidation(c *fiber.Ctx) error {
 	status, response := services.SignValidation(
-		c.Params("id"),
+		c.FormValue("email"),
 		c.FormValue("token"),
 	)
 
@@ -113,13 +114,16 @@ func PasswordRecover(c *fiber.Ctx) error {
 // @Tags		Password
 // @Accept		*/*
 // @Produce		application/json
+// @Param		email		formData	string	true	"Email address" format(email)
+// @Param		password	formData	string	true	"Password"
 // @Param		token		formData	string	true	"Token"
 // @Success		204	{object}	nil
-// @Router		/password/validation/:id [put]
-// @Id			client.PasswordValidation
-func PasswordValidation(c *fiber.Ctx) error {
-	status, response := services.SignValidation(
-		c.Params("id"),
+// @Router		/password/update [put]
+// @Id			client.PasswordUpdate
+func PasswordUpdate(c *fiber.Ctx) error {
+	status, response := services.PasswordUpdate(
+		c.FormValue("email"),
+		c.FormValue("password"),
 		c.FormValue("token"),
 	)
 

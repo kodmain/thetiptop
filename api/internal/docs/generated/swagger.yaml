@@ -26,12 +26,23 @@ paths:
           description: Bad Request
       tags:
       - Password
-  /password/validation/:id:
+  /password/update:
     put:
       consumes:
       - '*/*'
-      operationId: client.PasswordValidation
+      operationId: client.PasswordUpdate
       parameters:
+      - description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
       - description: Token
         in: formData
         name: token
@@ -108,7 +119,7 @@ paths:
           description: Client already exists
       tags:
       - Sign
-  /sign/validation/:id:
+  /sign/validation:
     put:
       consumes:
       - '*/*'
@@ -117,6 +128,12 @@ paths:
       - description: Token
         in: formData
         name: token
+        required: true
+        type: string
+      - description: Email address
+        format: email
+        in: formData
+        name: email
         required: true
         type: string
       produces:
