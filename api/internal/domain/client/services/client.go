@@ -19,10 +19,11 @@ type ClientServiceInterface interface {
 	// Sign
 	SignUp(obj *transfert.Client) (*entities.Client, error)
 	SignIn(obj *transfert.Client) (*entities.Client, error)
-	SignValidation(obj *transfert.Validation) (*entities.Validation, error)
+	SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error)
+
 	// Password
 	PasswordRecover(obj *transfert.Client) error
-	PasswordValidation(obj *transfert.Validation) (*entities.Validation, error)
+	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error)
 }
 
 type ClientService struct {
@@ -35,7 +36,10 @@ func Client(repo repositories.ClientRepositoryInterface, mail mail.ServiceInterf
 }
 
 func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
-	client, err := s.repo.ReadClient(obj)
+	client, err := s.repo.ReadClient(&transfert.Client{
+		Email: obj.Email,
+	})
+
 	if err != nil {
 		return fmt.Errorf(errors.ErrClientNotFound)
 	}
@@ -44,7 +48,7 @@ func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
 		return fmt.Errorf(errors.ErrClientNotValidate, entities.PasswordRecover.String())
 	}
 
-	password, err := hash.Hash(aws.String(*obj.Email+":"+*obj.Password), hash.BCRYPT)
+	password, err := hash.Hash(aws.String(*client.Email+":"+*obj.Password), hash.BCRYPT)
 	if err != nil {
 		return err
 	}
@@ -59,8 +63,17 @@ func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
 
 }
 
-func (s *ClientService) PasswordValidation(obj *transfert.Validation) (*entities.Validation, error) {
-	validation, err := s.repo.ReadValidation(obj)
+func (s *ClientService) PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
+	client, err := s.repo.ReadClient(&transfert.Client{
+		Email: dtoClient.Email,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	dtoValidation.ClientID = &client.ID
+	validation, err := s.repo.ReadValidation(dtoValidation)
 
 	if err != nil {
 		return nil, fmt.Errorf(errors.ErrValidationNotFound)
@@ -83,8 +96,14 @@ func (s *ClientService) PasswordValidation(obj *transfert.Validation) (*entities
 	return validation, nil
 }
 
-func (s *ClientService) SignValidation(obj *transfert.Validation) (*entities.Validation, error) {
-	validation, err := s.repo.ReadValidation(obj)
+func (s *ClientService) SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
+	client, err := s.repo.ReadClient(dtoClient)
+	if err != nil {
+		return nil, fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	dtoValidation.ClientID = &client.ID
+	validation, err := s.repo.ReadValidation(dtoValidation)
 
 	if err != nil {
 		return nil, fmt.Errorf(errors.ErrValidationNotFound)

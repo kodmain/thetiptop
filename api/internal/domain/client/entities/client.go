@@ -36,7 +36,8 @@ func (client *Client) HasSuccessValidation(validationType ValidationType) *Valid
 }
 
 func (client *Client) HasNotExpiredValidation(validationType ValidationType) *Validation {
-	for _, validation := range client.Validations {
+	for i := len(client.Validations) - 1; i >= 0; i-- {
+		validation := client.Validations[i]
 		if validation.Type == validationType && !validation.HasExpired() && !validation.Validated {
 			return validation
 		}

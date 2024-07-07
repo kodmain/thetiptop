@@ -25,8 +25,9 @@ import (
 )
 
 const (
-	GOOD_EMAIL = "user1@example.com"
-	GOOD_PASS  = "ValidP@ssw0rd1"
+	GOOD_EMAIL        = "user1@example.com"
+	GOOD_PASS         = "ValidP@ssw0rd1"
+	GOOD_PASS_UPDATED = "ValidP@ssw0rd1-update"
 
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
@@ -191,6 +192,29 @@ func request(method, uri string, token string, encoding EncodingType, values ...
 	return content, resp.StatusCode, err
 }
 
+// deleteMail Delete email by ID
+// This function deletes an email from the server by its ID.
+//
+// Parameters:
+// - emailID: string ID of the email to be deleted
+//
+// Returns:
+// - err: error Error if any occurred during the deletion process
+func deleteMail(emailID string) error {
+	apiUrl := fmt.Sprintf("http://localhost:1080/email/%s", emailID)
+	_, statusCode, err := request("DELETE", apiUrl, "", FormURLEncoded)
+
+	if err != nil {
+		return fmt.Errorf("erreur lors de la requête HTTP: %v", err)
+	}
+
+	if statusCode != http.StatusOK {
+		return fmt.Errorf("statut de réponse non OK: %d", statusCode)
+	}
+
+	return nil
+}
+
 func getMailFor(emailAddr string) (*Email, error) {
 	apiUrl := "http://localhost:1080/email"
 	var content []byte
@@ -215,6 +239,10 @@ func getMailFor(emailAddr string) (*Email, error) {
 	for _, email := range emails {
 		for _, to := range email.To {
 			if to.Address == emailAddr {
+				deleteErr := deleteMail(email.ID)
+				if deleteErr != nil {
+					return nil, fmt.Errorf("erreur lors de la suppression de l'email: %v", deleteErr)
+				}
 				return email, nil
 			}
 		}
@@ -283,10 +311,10 @@ func TestClient(t *testing.T) {
 					assert.Nil(t, err)
 					assert.Equal(t, user.email, email.To[0].Address)
 					token := extractToken(email.HTML)
-					logger.Info("http://localhost:8888/sign/validation/" + client.ID)
 					logger.Info(token)
-					_, status, err = request("PUT", "http://localhost:8888/sign/validation/"+client.ID, "", FormURLEncoded, map[string][]string{
+					_, status, err = request("PUT", "http://localhost:8888/sign/validation", "", FormURLEncoded, map[string][]string{
 						"token": {token},
+						"email": {user.email},
 					})
 					assert.Nil(t, err)
 					assert.Equal(t, http.StatusOK, status)
@@ -298,15 +326,6 @@ func TestClient(t *testing.T) {
 			assert.Equal(t, user.statusSI, status)
 
 			if status == http.StatusOK {
-				t.Run("Password", func(t *testing.T) {
-					_, status, err := request("POST", "http://localhost:8888/password/recover", "", FormURLEncoded, map[string][]string{
-						"email": {user.email},
-					})
-
-					assert.Nil(t, err)
-					assert.Equal(t, http.StatusNoContent, status)
-				})
-
 				t.Run("Renew", func(t *testing.T) {
 					var tokenData TokenStructure
 					err = json.Unmarshal(JWT, &tokenData)
@@ -330,6 +349,40 @@ func TestClient(t *testing.T) {
 						assert.Nil(t, err)
 						assert.Equal(t, user.status, status)
 					}
+				})
+
+				t.Run("Password", func(t *testing.T) {
+					_, status, err := request("POST", "http://localhost:8888/password/recover", "", FormURLEncoded, map[string][]string{
+						"email": {user.email},
+					})
+
+					assert.Nil(t, err)
+					assert.Equal(t, http.StatusNoContent, status)
+					time.Sleep(1 * time.Second)
+					email, err := getMailFor(user.email)
+					assert.Nil(t, err)
+					assert.Equal(t, user.email, email.To[0].Address)
+
+					token := extractToken(email.HTML)
+					assert.NotEmpty(t, token)
+
+					_, status, err = request("PUT", "http://localhost:8888/password/update", "", FormURLEncoded, map[string][]string{
+						"token":    {token},
+						"email":    {user.email},
+						"password": {GOOD_PASS_UPDATED},
+					})
+
+					assert.Nil(t, err)
+					assert.Equal(t, http.StatusOK, status)
+
+					_, status, err = request("POST", "http://localhost:8888/sign/in", "", FormURLEncoded, values)
+					assert.NoError(t, err)
+					assert.Equal(t, http.StatusBadRequest, status)
+
+					values["password"] = []string{GOOD_PASS_UPDATED}
+					_, status, err = request("POST", "http://localhost:8888/sign/in", "", FormURLEncoded, values)
+					assert.NoError(t, err)
+					assert.Equal(t, user.statusSI, status)
 				})
 			}
 
