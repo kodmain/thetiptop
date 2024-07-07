@@ -1,6 +1,7 @@
 package client_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
+	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
@@ -107,24 +109,44 @@ func createFormValues(values ...map[string][]string) url.Values {
 	return form
 }
 
-// createRequest crée une requête HTTP en fonction de la méthode et des paramètres
-func createRequest(method, uri, token string, form url.Values) (*http.Request, error) {
+// EncodingType représente le type d'encodage des données
+type EncodingType int
+
+const (
+	FormURLEncoded EncodingType = iota
+	JSONEncoded
+)
+
+func createRequest(method, uri, token string, form url.Values, encoding EncodingType) (*http.Request, error) {
 	var req *http.Request
 	var err error
 
-	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch {
-		req, err = http.NewRequest(method, uri, strings.NewReader(form.Encode()))
-		if err != nil {
-			return nil, err
+	switch method {
+	case http.MethodPost, http.MethodPut, http.MethodPatch:
+		if encoding == JSONEncoded {
+			jsonData, err := json.Marshal(form)
+			if err != nil {
+				return nil, err
+			}
+			req, err = http.NewRequest(method, uri, bytes.NewBuffer(jsonData))
+			if err != nil {
+				return nil, err
+			}
+			req.Header.Set("Content-Type", "application/json")
+		} else {
+			req, err = http.NewRequest(method, uri, strings.NewReader(form.Encode()))
+			if err != nil {
+				return nil, err
+			}
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	} else if method == http.MethodGet || method == http.MethodDelete {
+	case http.MethodGet, http.MethodDelete:
 		uri = fmt.Sprintf("%s?%s", uri, form.Encode())
 		req, err = http.NewRequest(method, uri, nil)
 		if err != nil {
 			return nil, err
 		}
-	} else {
+	default:
 		req, err = http.NewRequest(method, uri, nil)
 		if err != nil {
 			return nil, err
@@ -150,9 +172,10 @@ func createRequest(method, uri, token string, form url.Values) (*http.Request, e
 // - []byte: Le contenu de la réponse
 // - int: Le code de statut HTTP
 // - error: L'erreur rencontrée (le cas échéant)
-func request(method, uri string, token string, values ...map[string][]string) ([]byte, int, error) {
+
+func request(method, uri string, token string, encoding EncodingType, values ...map[string][]string) ([]byte, int, error) {
 	form := createFormValues(values...)
-	req, err := createRequest(method, uri, token, form)
+	req, err := createRequest(method, uri, token, form, encoding)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -174,7 +197,7 @@ func getMailFor(emailAddr string) (*Email, error) {
 	var statusCode int
 	var err error
 
-	content, statusCode, err = request("GET", apiUrl, "")
+	content, statusCode, err = request("GET", apiUrl, "", FormURLEncoded)
 
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de la requête HTTP: %v", err)
@@ -200,33 +223,6 @@ func getMailFor(emailAddr string) (*Email, error) {
 	return nil, fmt.Errorf("aucun email trouvé pour l'adresse %s", emailAddr)
 }
 
-func TestSignUp(t *testing.T) {
-	assert.Nil(t, start(8888, 8444))
-
-	users := []struct {
-		email    string
-		password string
-		status   int
-	}{
-		{GOOD_EMAIL, GOOD_PASS, http.StatusCreated},
-		{GOOD_EMAIL, GOOD_PASS, http.StatusConflict},
-		{WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest},
-	}
-
-	for _, user := range users {
-		values := map[string][]string{
-			"email":    {user.email},
-			"password": {user.password},
-		}
-
-		_, status, err := request("POST", "http://localhost:8888/sign/up", "", values)
-		assert.Nil(t, err)
-		assert.Equal(t, user.status, status)
-	}
-
-	assert.Nil(t, stop())
-}
-
 func generateRandomNumber(min, max int) int {
 	return rand.Intn(max-min+1) + min
 }
@@ -237,125 +233,108 @@ func extractURLs(html string) []string {
 	return matches
 }
 
-func TestValidationMail(t *testing.T) {
-	assert.Nil(t, start(8889, 8445))
-
-	EMAIL := fmt.Sprintf("%d", generateRandomNumber(1, 1000)) + GOOD_EMAIL
-
-	_, status, err := request("POST", "http://localhost:8889/sign/up", "", map[string][]string{
-		"email":    {EMAIL},
-		"password": {GOOD_PASS},
-	})
-
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusCreated, status)
-	time.Sleep(1 * time.Second)
-	email, err := getMailFor(EMAIL)
-	assert.Nil(t, err)
-	assert.Equal(t, EMAIL, email.To[0].Address)
-
-	urls := extractURLs(email.HTML)
-	_, status, err = request("GET", urls[0], "")
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusOK, status)
-
-	assert.Nil(t, stop())
+func extractToken(html string) string {
+	re := regexp.MustCompile(`<h1>([a-zA-Z0-9]+)</h1>`)
+	matches := re.FindStringSubmatch(html)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	return ""
 }
 
-func TestSignIn(t *testing.T) {
-	assert.Nil(t, start(8890, 8446))
+func TestClient(t *testing.T) {
+	assert.Nil(t, start(8888, 8444))
 
-	EMAIL := fmt.Sprintf("%d", generateRandomNumber(1, 1000)) + GOOD_EMAIL
-
-	request("POST", "http://localhost:8890/sign/up", "", map[string][]string{
-		"email":    {EMAIL},
-		"password": {GOOD_PASS},
-	})
-
+	request("DELETE", "http://0.0.0.0:1080/email/all", "", FormURLEncoded)
 	time.Sleep(1 * time.Second)
-	email, err := getMailFor(EMAIL)
-	assert.Nil(t, err)
-	assert.Equal(t, EMAIL, email.To[0].Address)
-
-	urls := extractURLs(email.HTML)
-	_, status, err := request("GET", urls[0], "")
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusOK, status)
 
 	users := []struct {
 		email    string
 		password string
-		status   int
+		statusSU int
+		statusSI int
 	}{
-		{EMAIL, GOOD_PASS, http.StatusOK},
-		{EMAIL, WRONG_PASS, http.StatusBadRequest},
-		{GOOD_PASS, WRONG_PASS, http.StatusBadRequest},
+		// mail, pass, status-signup, status-signin
+		{GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK},
+		{GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest},
+		{WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest},
 	}
 
-	for _, user := range users {
-		values := map[string][]string{
-			"email":    {user.email},
-			"password": {user.password},
+	t.Run("SignUp", func(t *testing.T) {
+		for _, user := range users {
+			values := map[string][]string{
+				"email":    {user.email},
+				"password": {user.password},
+			}
+
+			RegisteredClient, status, err := request("POST", "http://localhost:8888/sign/up", "", FormURLEncoded, values)
+			assert.Nil(t, err)
+			assert.Equal(t, user.statusSU, status)
+
+			if status == http.StatusCreated {
+				t.Run("Validation", func(t *testing.T) {
+					var clientWrapper map[string]entities.Client
+					err = json.Unmarshal(RegisteredClient, &clientWrapper)
+					assert.NoError(t, err)
+					client := clientWrapper["client"]
+					assert.NotNil(t, client)
+					time.Sleep(1 * time.Second)
+					email, err := getMailFor(user.email)
+					assert.Nil(t, err)
+					assert.Equal(t, user.email, email.To[0].Address)
+					token := extractToken(email.HTML)
+					logger.Info("http://localhost:8888/sign/validation/" + client.ID)
+					logger.Info(token)
+					_, status, err = request("PUT", "http://localhost:8888/sign/validation/"+client.ID, "", FormURLEncoded, map[string][]string{
+						"token": {token},
+					})
+					assert.Nil(t, err)
+					assert.Equal(t, http.StatusOK, status)
+				})
+			}
+
+			JWT, status, err := request("POST", "http://localhost:8888/sign/in", "", FormURLEncoded, values)
+			assert.Nil(t, err)
+			assert.Equal(t, user.statusSI, status)
+
+			if status == http.StatusOK {
+				t.Run("Password", func(t *testing.T) {
+					_, status, err := request("POST", "http://localhost:8888/password/recover", "", FormURLEncoded, map[string][]string{
+						"email": {user.email},
+					})
+
+					assert.Nil(t, err)
+					assert.Equal(t, http.StatusNoContent, status)
+				})
+
+				t.Run("Renew", func(t *testing.T) {
+					var tokenData TokenStructure
+					err = json.Unmarshal(JWT, &tokenData)
+					assert.Nil(t, err)
+
+					access, err := serializer.TokenToClaims(tokenData.JWT)
+					assert.Nil(t, err)
+
+					users := []struct {
+						token  string
+						status int
+					}{
+						{"Bearer " + *access.Refresh, http.StatusOK},
+						{"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y", http.StatusUnauthorized}, // Replace with actual expired JWT token
+						{"Bearer malformed.jwt.token.here", http.StatusUnauthorized},
+						{"", http.StatusBadRequest},
+					}
+
+					for _, user := range users {
+						_, status, err := request("GET", "http://localhost:8888/sign/renew", user.token, FormURLEncoded)
+						assert.Nil(t, err)
+						assert.Equal(t, user.status, status)
+					}
+				})
+			}
+
 		}
-
-		_, status, err := request("POST", "http://localhost:8890/sign/in", "", values)
-		assert.Nil(t, err)
-		assert.Equal(t, user.status, status)
-	}
-
-	assert.Nil(t, stop())
-}
-
-func TestSignRenew(t *testing.T) {
-	assert.Nil(t, start(8891, 8447))
-
-	EMAIL := fmt.Sprintf("%d", generateRandomNumber(1, 1000)) + GOOD_EMAIL
-
-	request("POST", "http://localhost:8891/sign/up", "", map[string][]string{
-		"email":    {EMAIL},
-		"password": {GOOD_PASS},
 	})
-
-	time.Sleep(1 * time.Second)
-	email, err := getMailFor(EMAIL)
-	assert.Nil(t, err)
-	assert.Equal(t, EMAIL, email.To[0].Address)
-
-	urls := extractURLs(email.HTML)
-	_, status, err := request("GET", urls[0], "")
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusOK, status)
-
-	content, _, _ := request("POST", "http://localhost:8891/sign/in", "", map[string][]string{
-		"email":    {EMAIL},
-		"password": {GOOD_PASS},
-	})
-
-	// Déclaration de la variable qui recevra la valeur désérialisée
-	var tokenData TokenStructure
-
-	// Désérialisation du JSON dans la structure définie
-	err = json.Unmarshal(content, &tokenData)
-	assert.Nil(t, err)
-
-	access, err := serializer.TokenToClaims(tokenData.JWT)
-	assert.Nil(t, err)
-
-	users := []struct {
-		token  string
-		status int
-	}{
-		{"Bearer " + *access.Refresh, http.StatusOK}, // Replace with actual valid JWT token
-		{"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y", http.StatusUnauthorized}, // Replace with actual expired JWT token
-		{"Bearer malformed.jwt.token.here", http.StatusUnauthorized}, // Replace with actual malformed JWT token
-		{"", http.StatusBadRequest},                                  // Replace with actual empty JWT token
-	}
-
-	for _, user := range users {
-		_, status, err := request("GET", "http://localhost:8891/sign/renew", user.token)
-		assert.Nil(t, err)
-		assert.Equal(t, user.status, status)
-	}
 
 	assert.Nil(t, stop())
 }

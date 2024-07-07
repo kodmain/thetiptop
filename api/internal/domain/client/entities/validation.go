@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,8 +21,16 @@ type Validation struct {
 	Token     token.Luhn     `gorm:"type:varchar(6);index"`
 	Type      ValidationType `gorm:"type:varchar(10)"`
 	Validated bool           `gorm:"type:boolean;default:false"`
-	ClientID  string         `gorm:"type:varchar(36);uniqueIndex" json:"-"`
+	ClientID  string         `gorm:"type:varchar(36)" json:"-"`
 	ExpiresAt time.Time      `json:"-"`
+}
+
+func (v *Validation) HasExpired() bool {
+	if v.ExpiresAt.IsZero() {
+		return false
+	}
+
+	return v.ExpiresAt.Before(time.Now())
 }
 
 // BeforeSave attribue la valeur de ClientID avant de sauvegarder
@@ -41,7 +49,7 @@ func (validation *Validation) BeforeCreate(tx *gorm.DB) error {
 	}
 
 	if validation.ClientID == "" {
-		return errors.New("ClientID is required on Validation")
+		return fmt.Errorf("ClientID is required on Validation")
 	}
 
 	validation.ID = id.String()
@@ -58,7 +66,7 @@ func (validation *Validation) BeforeCreate(tx *gorm.DB) error {
 func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 	validation.UpdatedAt = time.Now()
 	if validation.ClientID == "" {
-		return errors.New("Client is required on Validation")
+		return fmt.Errorf("Client is required on Validation")
 	}
 
 	return nil

@@ -38,13 +38,14 @@ func SignUp(c *fiber.Ctx) error {
 // @Tags		Sign
 // @Accept		*/*
 // @Produce		application/json
+// @Param		token	formData	string	true	"Token"
 // @Success		204	{object}	nil
-// @Router		/validation/:id/:token [get]
-// @Id			client.ValidationMail
-func ValidationMail(c *fiber.Ctx) error {
-	status, response := services.ValidationMail(
+// @Router		/sign/validation/:id [put]
+// @Id			client.SignValidation
+func SignValidation(c *fiber.Ctx) error {
+	status, response := services.SignValidation(
 		c.Params("id"),
-		c.Params("token"),
+		c.FormValue("token"),
 	)
 
 	return c.Status(status).JSON(response)
@@ -85,6 +86,42 @@ func SignRenew(c *fiber.Ctx) error {
 	}
 
 	status, response := services.SignRenew(token.(*serializer.Token))
+
+	return c.Status(status).JSON(response)
+}
+
+// @Tags		Password
+// @Accept		*/*
+// @Produce		application/json
+// @Param		email		formData	string	true	"Email address" format(email)
+// @Success		204	{object}	nil
+// @Failure		400	{object}	nil
+// @Router		/password/recover [post]
+// @Id			client.PasswordRecover
+func PasswordRecover(c *fiber.Ctx) error {
+	status, response := services.PasswordRecover(
+		domain.Client(
+			repositories.NewClientRepository(database.Get()),
+			mail.Get(),
+		),
+		c.FormValue("email"),
+	)
+
+	return c.Status(status).JSON(response)
+}
+
+// @Tags		Password
+// @Accept		*/*
+// @Produce		application/json
+// @Param		token		formData	string	true	"Token"
+// @Success		204	{object}	nil
+// @Router		/password/validation/:id [put]
+// @Id			client.PasswordValidation
+func PasswordValidation(c *fiber.Ctx) error {
+	status, response := services.SignValidation(
+		c.Params("id"),
+		c.FormValue("token"),
+	)
 
 	return c.Status(status).JSON(response)
 }

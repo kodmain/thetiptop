@@ -20,10 +20,28 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "204":
+          description: No Content
         "400":
           description: Bad Request
+      tags:
+      - Password
+  /password/validation/:id:
+    put:
+      consumes:
+      - '*/*'
+      operationId: client.PasswordValidation
+      parameters:
+      - description: Token
+        in: formData
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
       tags:
       - Password
   /sign/in:
@@ -90,6 +108,24 @@ paths:
           description: Client already exists
       tags:
       - Sign
+  /sign/validation/:id:
+    put:
+      consumes:
+      - '*/*'
+      operationId: client.SignValidation
+      parameters:
+      - description: Token
+        in: formData
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      tags:
+      - Sign
   /status/healthcheck:
     get:
       consumes:
@@ -118,16 +154,4 @@ paths:
       summary: Show the ip of user.
       tags:
       - Status
-  /validation/:id/:token:
-    get:
-      consumes:
-      - '*/*'
-      operationId: client.ValidationMail
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Sign
 swagger: "2.0"

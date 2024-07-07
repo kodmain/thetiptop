@@ -47,6 +47,11 @@ type DomainClientService struct {
 	mock.Mock
 }
 
+func (dcs DomainClientService) PasswordRecover(obj *transfert.Client) error {
+	args := dcs.Called(obj)
+	return args.Error(0)
+}
+
 func (dcs DomainClientService) SignUp(obj *transfert.Client) (*entities.Client, error) {
 	args := dcs.Called(obj)
 	if args.Get(0) == nil {
@@ -63,7 +68,15 @@ func (dcs DomainClientService) SignIn(obj *transfert.Client) (*entities.Client, 
 	return args.Get(0).(*entities.Client), args.Error(1)
 }
 
-func (dcs DomainClientService) ValidationMail(obj *transfert.Validation) (*entities.Validation, error) {
+func (dcs DomainClientService) SignValidation(obj *transfert.Validation) (*entities.Validation, error) {
+	args := dcs.Called(obj)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entities.Validation), args.Error(1)
+}
+
+func (dcs DomainClientService) PasswordValidation(obj *transfert.Validation) (*entities.Validation, error) {
 	args := dcs.Called(obj)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

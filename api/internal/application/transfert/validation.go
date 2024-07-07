@@ -15,12 +15,11 @@ func NewValidation(obj data.Object, mandatory data.Validator) (*Validation, erro
 		return nil, err
 	}
 
-	luhn := obj.Get("token")
-	client := obj.Get("clientId")
-	token := token.NewLuhn(*luhn)
+	v := &Validation{}
 
-	return &Validation{
-		Token:    &token,
-		ClientID: client,
-	}, nil
+	if err := obj.Hydrate(v); err != nil {
+		return nil, err
+	}
+
+	return v, nil
 }

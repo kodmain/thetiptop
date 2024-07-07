@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 )
 
 var client sync.Once
@@ -41,8 +43,16 @@ func NewClientRepository(store *database.Database) *ClientRepository {
 
 func (r *ClientRepository) CreateClient(obj *transfert.Client) (*entities.Client, error) {
 	client := entities.CreateClient(obj)
+
+	password, err := hash.Hash(aws.String(*obj.Email+":"+*obj.Password), hash.BCRYPT)
+	if err != nil {
+		return nil, err
+	}
+
+	client.Password = password
+
 	client.Validations = append(client.Validations, &entities.Validation{
-		Type: entities.Mail,
+		Type: entities.MailValidation,
 	})
 
 	result := r.store.Engine.Create(client)

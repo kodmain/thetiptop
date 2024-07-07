@@ -85,13 +85,13 @@ func SignRenew(refresh *serializer.Token) (int, fiber.Map) {
 	return fiber.StatusOK, fiber.Map{"jwt": refreshToken}
 }
 
-func ValidationMail(clientId, token string) (int, fiber.Map) {
+func SignValidation(email, token string) (int, fiber.Map) {
 	obj, err := transfert.NewValidation(data.Object{
-		"token":    &token,
-		"clientId": &clientId,
+		"token": &token,
+		"email": &email,
 	}, data.Validator{
-		"token":    {validator.Required, validator.Luhn},
-		"clientId": {validator.Required, validator.ID},
+		"token": {validator.Required, validator.Luhn},
+		"email": {validator.Required, validator.ID},
 	})
 
 	if err != nil {
@@ -103,7 +103,7 @@ func ValidationMail(clientId, token string) (int, fiber.Map) {
 		mail.Get(),
 	)
 
-	validation, err := clientService.ValidationMail(obj)
+	validation, err := clientService.SignValidation(obj)
 	if err != nil {
 		status := fiber.StatusInternalServerError
 		switch err.Error() {
@@ -120,4 +120,75 @@ func ValidationMail(clientId, token string) (int, fiber.Map) {
 
 	return fiber.StatusOK, fiber.Map{"validation": validation}
 
+}
+
+func PasswordRecover(service services.ClientServiceInterface, email string) (int, fiber.Map) {
+	obj, err := transfert.NewClient(data.Object{
+		"email": &email,
+	}, data.Validator{
+		"email": {validator.Required, validator.Email},
+	})
+
+	if err != nil {
+		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
+	}
+
+	if err = service.PasswordRecover(obj); err != nil {
+		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
+	}
+
+	return fiber.StatusNoContent, nil
+}
+
+func PasswordValidation(clientId, token, password string) (int, fiber.Map) {
+	dtoClient, err := transfert.NewClient(data.Object{
+		"password": &password,
+		"id":       &clientId,
+	}, data.Validator{
+		"password": {validator.Required, validator.Password},
+		"id":       {validator.Required, validator.ID},
+	})
+
+	if err != nil {
+		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
+	}
+
+	dtoValidation, err := transfert.NewValidation(data.Object{
+		"token":    &token,
+		"clientId": &clientId,
+	}, data.Validator{
+		"token":    {validator.Required, validator.Luhn},
+		"clientId": {validator.Required, validator.ID},
+	})
+
+	if err != nil {
+		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
+	}
+
+	clientService := services.Client(
+		repositories.NewClientRepository(database.Get()),
+		mail.Get(),
+	)
+
+	validation, err := clientService.PasswordValidation(dtoValidation)
+	if err != nil {
+		status := fiber.StatusInternalServerError
+		switch err.Error() {
+		case errors.ErrValidationNotFound:
+			status = fiber.StatusNotFound
+		case errors.ErrValidationAlreadyValidated:
+			status = fiber.StatusConflict
+		case errors.ErrValidationExpired:
+			status = fiber.StatusGone
+		}
+
+		return status, fiber.Map{"error": err.Error()}
+	}
+
+	err = clientService.PasswordUpdate(dtoClient)
+	if err != nil {
+		return fiber.StatusInternalServerError, fiber.Map{"error": err.Error()}
+	}
+
+	return fiber.StatusOK, fiber.Map{"validation": validation}
 }

@@ -7,16 +7,19 @@ import (
 	"mime/multipart"
 	"net/textproto"
 	"strings"
+
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
 const (
-	from        = "From"
-	to          = "To"
-	cc          = "Cc"
-	bcc         = "Bcc"
-	subject     = "Subject"
-	mimeVersion = "MIME-Version"
-	contentType = "Content-Type"
+	from                     = "From"
+	to                       = "To"
+	cc                       = "Cc"
+	bcc                      = "Bcc"
+	subject                  = "Subject"
+	mimeVersion              = "MIME-Version"
+	contentType              = "Content-Type"
+	contentTransfertEncoding = "Content-Transfer-Encoding"
 )
 
 // Mail Représente un e-mail avec toutes les informations nécessaires pour l'envoi.
@@ -61,8 +64,7 @@ func (m *Mail) IsValid() bool {
 func (m *Mail) Prepare(service ServiceInterface) ([]byte, []string, error) {
 	// Création d'un buffer pour construire le message
 	var msg bytes.Buffer
-
-	//
+	logger.Warn(service)
 	fromHeader := service.From()
 	if service.Expeditor() != "" {
 		// Si FromName contient des caractères non-ASCII, il doit être encodé.
@@ -72,6 +74,7 @@ func (m *Mail) Prepare(service ServiceInterface) ([]byte, []string, error) {
 	}
 
 	// Header de base
+	logger.Warn(fromHeader)
 	header := make(map[string]string)
 	header[from] = fromHeader
 	header[to] = strings.Join(m.To, ", ")
@@ -86,7 +89,8 @@ func (m *Mail) Prepare(service ServiceInterface) ([]byte, []string, error) {
 	// Début de la composition MIME
 	writer := multipart.NewWriter(&msg)
 	boundary := writer.Boundary()
-	header[contentType] = "multipart/alternative; boundary=" + boundary
+	header[contentType] = "multipart/alternative; boundary=" + boundary + "; charset=\"UTF-8\""
+	header[contentTransfertEncoding] = "quoted-printable"
 
 	for key, value := range header {
 		msg.WriteString(fmt.Sprintf("%s: %s\r\n", key, value))
