@@ -25,6 +25,26 @@ type Client struct {
 	Newsletter  *bool       `gorm:"type:boolean;default:false"`
 }
 
+func (client *Client) HasSuccessValidation(validationType ValidationType) *Validation {
+	for _, validation := range client.Validations {
+		if validation.Type == validationType && validation.Validated {
+			return validation
+		}
+	}
+
+	return nil
+}
+
+func (client *Client) HasNotExpiredValidation(validationType ValidationType) *Validation {
+	for _, validation := range client.Validations {
+		if validation.Type == validationType && !validation.HasExpired() && !validation.Validated {
+			return validation
+		}
+	}
+
+	return nil
+}
+
 func (client *Client) CompareHash(password string) bool {
 	return hash.CompareHash(client.Password, aws.String(*client.Email+":"+password), hash.BCRYPT) == nil
 }
@@ -45,13 +65,7 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 
-	password, err := hash.Hash(aws.String(*client.Email+":"+*client.Password), hash.BCRYPT)
-	if err != nil {
-		return err
-	}
-
 	client.ID = id.String()
-	client.Password = password
 
 	for _, validation := range client.Validations {
 		validation.ClientID = client.ID

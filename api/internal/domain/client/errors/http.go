@@ -7,7 +7,7 @@ const (
 	// client errors
 	ErrClientAlreadyExists    = "client already exists"
 	ErrClientNotFound         = "client not found"
-	ErrClientNotValidated     = "client not validated"
+	ErrClientNotValidate      = "client not validate %s"
 	ErrClientAlreadyValidated = "client already validated"
 
 	// mail errors
@@ -17,4 +17,7 @@ const (
 	ErrValidationNotFound         = "validation not found"
 	ErrValidationAlreadyValidated = "validation already validated"
 	ErrValidationExpired          = "validation expired"
+
+	// template
+	ErrTemplateNotFound = "template %s not found"
 )

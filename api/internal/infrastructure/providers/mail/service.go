@@ -14,17 +14,23 @@ type ServiceInterface interface {
 }
 
 type Service struct {
-	Config    *Config
-	from      string
-	expeditor string
+	Config *Config
 }
 
 func (s *Service) From() string {
-	return s.from
+	if s.Config == nil {
+		return ""
+	}
+
+	return s.Config.From
 }
 
 func (s *Service) Expeditor() string {
-	return s.expeditor
+	if s.Config == nil {
+		return ""
+	}
+
+	return s.Config.Expeditor
 }
 
 func (s *Service) Send(mail *Mail) error {
@@ -38,5 +44,5 @@ func (s *Service) Send(mail *Mail) error {
 	}
 
 	logger.Info("Sending mail to: ", to)
-	return smtp.SendMail(s.Config.Host+":"+s.Config.Port, s.Config.Auth, s.from, to, msg)
+	return smtp.SendMail(s.Config.Host+":"+s.Config.Port, s.Config.Auth, s.From(), to, msg)
 }

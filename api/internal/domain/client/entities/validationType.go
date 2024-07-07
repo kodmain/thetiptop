@@ -6,23 +6,30 @@ import "encoding/json"
 type ValidationType int
 
 const (
-	Mail ValidationType = iota
-	Phone
+	MailValidation ValidationType = iota
+	PhoneValidation
+	PasswordRecover
 )
 
 var validationTypeToString = map[ValidationType]string{
-	Mail:  "email",
-	Phone: "phone",
+	MailValidation:  "email",
+	PhoneValidation: "phone",
+	PasswordRecover: "recover",
 }
 
 var stringToValidationType = map[string]ValidationType{
-	"email": Mail,
-	"phone": Phone,
+	"email":   MailValidation,
+	"phone":   PhoneValidation,
+	"recover": PasswordRecover,
+}
+
+func (v ValidationType) String() string {
+	return validationTypeToString[v]
 }
 
 // MarshalJSON marshals the enum as a string
 func (v ValidationType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(validationTypeToString[v])
+	return json.Marshal(v.String())
 }
 
 // UnmarshalJSON unmarshals a string to the enum type
