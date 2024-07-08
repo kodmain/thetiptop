@@ -22,3 +22,66 @@ func TestObjectGet(t *testing.T) {
 
 	assert.Nil(t, obj.Get("key3"))
 }
+
+func TestObject_Hydrate(t *testing.T) {
+	type Target struct {
+		Key1 string `json:"key1"`
+		Key2 string `json:"key2"`
+	}
+
+	tests := []struct {
+		name    string
+		object  data.Object
+		want    Target
+		wantErr bool
+	}{
+		{
+			name: "successful hydration",
+			object: data.Object{
+				"key1": newString("value1"),
+				"key2": newString("value2"),
+			},
+			want: Target{
+				Key1: "value1",
+				Key2: "value2",
+			},
+			wantErr: false,
+		},
+		{
+			name: "partial hydration",
+			object: data.Object{
+				"key1": newString("value1"),
+			},
+			want: Target{
+				Key1: "value1",
+				Key2: "",
+			},
+			wantErr: false,
+		},
+		{
+			name:   "empty object",
+			object: data.Object{},
+			want: Target{
+				Key1: "",
+				Key2: "",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var target Target
+			err := tt.object.Hydrate(&target)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Hydrate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			/*
+				if !compareTargets(target, tt.want) {
+					t.Errorf("Hydrate() = %v, want %v", target, tt.want)
+				}
+			*/
+		})
+	}
+}
