@@ -298,16 +298,18 @@ func TestPasswordRecover(t *testing.T) {
 		},
 	}
 	t.Run("password recover", func(t *testing.T) {
-		service, mockRepository, _ := setup()
+		service, mockRepository, mockMailer := setup()
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
 		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
+		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
 		err := service.PasswordRecover(inputClient)
 		require.NoError(t, err)
 	})
 
 	t.Run("client not found", func(t *testing.T) {
-		service, mockRepository, _ := setup()
+		service, mockRepository, mockMailer := setup()
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
 		err := service.PasswordRecover(inputClient)
 		require.Error(t, err)
 	})
