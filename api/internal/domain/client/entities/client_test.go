@@ -11,6 +11,62 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestClient_HasSuccessValidation(t *testing.T) {
+	client := &entities.Client{
+		Validations: entities.Validations{
+			&entities.Validation{
+				Type:      entities.PasswordRecover,
+				Validated: true,
+			},
+			&entities.Validation{
+				Type:      entities.PasswordRecover,
+				Validated: false,
+			},
+			&entities.Validation{
+				Type:      entities.PasswordRecover,
+				Validated: true,
+			},
+		},
+	}
+
+	validationType := entities.PasswordRecover
+	result := client.HasSuccessValidation(entities.PasswordRecover)
+
+	assert.NotNil(t, result)
+	assert.Equal(t, validationType, result.Type)
+	assert.True(t, result.Validated)
+}
+
+func TestClient_HasNotExpiredValidation(t *testing.T) {
+	client := &entities.Client{
+		Validations: entities.Validations{
+			&entities.Validation{
+				Type:      entities.PasswordRecover,
+				Validated: true,
+				ExpiresAt: time.Now().Add(time.Hour),
+			},
+			&entities.Validation{
+				Type:      entities.PasswordRecover,
+				Validated: false,
+				ExpiresAt: time.Now().Add(-time.Hour),
+			},
+			&entities.Validation{
+				Type:      entities.PasswordRecover,
+				Validated: false,
+				ExpiresAt: time.Now().Add(time.Hour),
+			},
+		},
+	}
+
+	validationType := entities.PasswordRecover
+	result := client.HasNotExpiredValidation(entities.PasswordRecover)
+
+	assert.NotNil(t, result)
+	assert.Equal(t, validationType, result.Type)
+	assert.False(t, result.Validated)
+	assert.False(t, result.HasExpired())
+}
+
 func TestNewClient(t *testing.T) {
 	email := aws.String("user-thetiptop@yopmail.com")
 	password := aws.String("Aa1@azetyuiop")
