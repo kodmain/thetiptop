@@ -74,6 +74,7 @@ func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 
 func CreateValidation(obj *transfert.Validation) *Validation {
 	return &Validation{
-		Token: *obj.Token,
+		Token:    *obj.Token,
+		ClientID: *obj.ClientID,
 	}
 }
