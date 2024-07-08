@@ -40,10 +40,7 @@ func (m *ClientRepositoryMock) ReadClient(client *transfert.Client) (*entities.C
 
 func (m *ClientRepositoryMock) UpdateClient(client *entities.Client) error {
 	args := m.Called(client)
-	if args.Get(0) == nil {
-		return args.Error(1)
-	}
-	return args.Error(1)
+	return args.Error(0)
 }
 
 func (m *ClientRepositoryMock) DeleteClient(client *transfert.Client) error {
@@ -268,5 +265,50 @@ func TestSignIn(t *testing.T) {
 		require.NotNil(t, result)
 		require.Equal(t, expectedClient.Email, result.Email)
 		mockRepository.AssertExpectations(t)
+	})
+}
+
+func TestPasswordRecover(t *testing.T) {
+
+	idClient, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
+	assert.NoError(t, err)
+	idValidation, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
+	assert.NoError(t, err)
+
+	inputClient := &transfert.Client{
+		Email:    aws.String("hello@thetiptop"),
+		Password: aws.String("azertyuiop"),
+	}
+
+	hashedPassword, err := hash.Hash(aws.String(*inputClient.Email+":"+*inputClient.Password), hash.BCRYPT)
+	require.NoError(t, err)
+
+	expectedClient := &entities.Client{
+		ID:       idClient.String(),
+		Email:    inputClient.Email,
+		Password: hashedPassword,
+		Validations: []*entities.Validation{
+			{
+				ID:        idValidation.String(),
+				Token:     "666666",
+				Type:      0,
+				Validated: true,
+				ClientID:  idClient.String(),
+			},
+		},
+	}
+	t.Run("password recover", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
+		err := service.PasswordRecover(inputClient)
+		require.NoError(t, err)
+	})
+
+	t.Run("client not found", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		err := service.PasswordRecover(inputClient)
+		require.Error(t, err)
 	})
 }
