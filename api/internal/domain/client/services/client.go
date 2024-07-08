@@ -36,7 +36,9 @@ func Client(repo repositories.ClientRepositoryInterface, mail mail.ServiceInterf
 }
 
 func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
-	client, err := s.repo.ReadClient(&transfert.Client{Email: obj.Email})
+	client, err := s.repo.ReadClient(&transfert.Client{
+		Email: obj.Email,
+	})
 
 	if err != nil {
 		return fmt.Errorf(errors.ErrClientNotFound)
@@ -58,16 +60,21 @@ func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
 	}
 
 	return nil
+
 }
 
-func (s *ClientService) validateClient(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
-	client, err := s.repo.ReadClient(dtoClient)
+func (s *ClientService) PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
+	client, err := s.repo.ReadClient(&transfert.Client{
+		Email: dtoClient.Email,
+	})
+
 	if err != nil {
 		return nil, fmt.Errorf(errors.ErrClientNotFound)
 	}
 
 	dtoValidation.ClientID = &client.ID
 	validation, err := s.repo.ReadValidation(dtoValidation)
+
 	if err != nil {
 		return nil, fmt.Errorf(errors.ErrValidationNotFound)
 	}
@@ -89,16 +96,40 @@ func (s *ClientService) validateClient(dtoValidation *transfert.Validation, dtoC
 	return validation, nil
 }
 
-func (s *ClientService) PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
-	return s.validateClient(dtoValidation, dtoClient)
-}
-
 func (s *ClientService) SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
-	return s.validateClient(dtoValidation, dtoClient)
+	client, err := s.repo.ReadClient(dtoClient)
+	if err != nil {
+		return nil, fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	dtoValidation.ClientID = &client.ID
+	validation, err := s.repo.ReadValidation(dtoValidation)
+
+	if err != nil {
+		return nil, fmt.Errorf(errors.ErrValidationNotFound)
+	}
+
+	if validation.Validated {
+		return nil, fmt.Errorf(errors.ErrValidationAlreadyValidated)
+	}
+
+	if validation.ExpiresAt.Before(time.Now()) {
+		return nil, fmt.Errorf(errors.ErrValidationExpired)
+	}
+
+	validation.Validated = true
+
+	if s.repo.UpdateValidation(validation) != nil {
+		return nil, err
+	}
+
+	return validation, nil
 }
 
 func (s *ClientService) PasswordRecover(obj *transfert.Client) error {
-	query := &transfert.Client{Email: obj.Email}
+	query := &transfert.Client{
+		Email: obj.Email,
+	}
 
 	client, err := s.repo.ReadClient(query)
 	if err != nil {
@@ -117,7 +148,7 @@ func (s *ClientService) PasswordRecover(obj *transfert.Client) error {
 		return err
 	}
 
-	go s.sendMail("recover", client, "Récupération de mot de passe")
+	go s.sendMailRecover(client)
 
 	return nil
 }
@@ -137,16 +168,55 @@ func (s *ClientService) SignUp(obj *transfert.Client) (*entities.Client, error) 
 		return nil, err
 	}
 
-	go s.sendMail("signup", client, "Bienvenue chez The Tip Top")
+	go s.sendSignUpMail(client)
 
 	return client, nil
 }
 
-func (s *ClientService) sendMail(templateName string, client *entities.Client, subject string) error {
-	tpl := template.NewTemplate(templateName)
+func (s *ClientService) sendMailRecover(client *entities.Client) error {
+	tpl := template.NewTemplate("recover")
 
 	if tpl == nil {
-		return fmt.Errorf(errors.ErrTemplateNotFound, templateName)
+		return fmt.Errorf(errors.ErrTemplateNotFound, "recover")
+	}
+
+	validation := client.HasNotExpiredValidation(entities.PasswordRecover)
+
+	if validation == nil {
+		return fmt.Errorf(errors.ErrValidationNotFound)
+	}
+
+	text, html, err := tpl.Inject(template.Data{
+		"AppName": env.APP_NAME,
+		"Token":   validation.Token.String(),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	m := &mail.Mail{
+		To:      []string{*client.Email},
+		Subject: "Récupération de mot de passe",
+		Text:    text,
+		Html:    html,
+	}
+
+	for i := 0; i < 3; i++ {
+		if err := s.mail.Send(m); err == nil {
+			return nil
+		}
+		time.Sleep(1 * time.Second)
+	}
+
+	return fmt.Errorf(errors.ErrMailSendFailed)
+}
+
+func (s *ClientService) sendSignUpMail(client *entities.Client) error {
+	tpl := template.NewTemplate("signup")
+
+	if tpl == nil {
+		return fmt.Errorf(errors.ErrTemplateNotFound, "signup")
 	}
 
 	validation := client.HasNotExpiredValidation(entities.MailValidation)
@@ -165,7 +235,7 @@ func (s *ClientService) sendMail(templateName string, client *entities.Client, s
 
 	m := &mail.Mail{
 		To:      []string{*client.Email},
-		Subject: subject,
+		Subject: "Bienvenue chez The Tip Top",
 		Text:    text,
 		Html:    html,
 	}
@@ -181,7 +251,9 @@ func (s *ClientService) sendMail(templateName string, client *entities.Client, s
 }
 
 func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
-	client, err := s.repo.ReadClient(&transfert.Client{Email: obj.Email})
+	client, err := s.repo.ReadClient(&transfert.Client{
+		Email: obj.Email,
+	})
 
 	if err != nil || !client.CompareHash(*obj.Password) {
 		return nil, fmt.Errorf(errors.ErrClientNotFound)
