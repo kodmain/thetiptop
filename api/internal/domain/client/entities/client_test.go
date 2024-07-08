@@ -35,6 +35,10 @@ func TestClient_HasSuccessValidation(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Equal(t, validationType, result.Type)
 	assert.True(t, result.Validated)
+
+	result = client.HasSuccessValidation(entities.MailValidation)
+	assert.Nil(t, result)
+
 }
 
 func TestClient_HasNotExpiredValidation(t *testing.T) {
@@ -65,6 +69,9 @@ func TestClient_HasNotExpiredValidation(t *testing.T) {
 	assert.Equal(t, validationType, result.Type)
 	assert.False(t, result.Validated)
 	assert.False(t, result.HasExpired())
+
+	result = client.HasNotExpiredValidation(entities.MailValidation)
+	assert.Nil(t, result)
 }
 
 func TestNewClient(t *testing.T) {

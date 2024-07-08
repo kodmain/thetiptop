@@ -35,95 +35,40 @@ func Client(repo repositories.ClientRepositoryInterface, mail mail.ServiceInterf
 	return &ClientService{repo, mail}
 }
 
-func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
+func (s *ClientService) SignUp(obj *transfert.Client) (*entities.Client, error) {
+	if obj == nil {
+		return nil, fmt.Errorf(errors.ErrNoDto)
+	}
+
+	_, err := s.repo.ReadClient(obj)
+	if err == nil {
+		return nil, fmt.Errorf(errors.ErrClientAlreadyExists)
+	}
+
+	client, err := s.repo.CreateClient(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	go s.sendSignUpMail(client)
+
+	return client, nil
+}
+
+func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
 	client, err := s.repo.ReadClient(&transfert.Client{
 		Email: obj.Email,
 	})
 
-	if err != nil {
-		return fmt.Errorf(errors.ErrClientNotFound)
-	}
-
-	if passwordValidation := client.HasSuccessValidation(entities.PasswordRecover); passwordValidation == nil {
-		return fmt.Errorf(errors.ErrClientNotValidate, entities.PasswordRecover.String())
-	}
-
-	password, err := hash.Hash(aws.String(*client.Email+":"+*obj.Password), hash.BCRYPT)
-	if err != nil {
-		return err
-	}
-
-	client.Password = password
-
-	if err := s.repo.UpdateClient(client); err != nil {
-		return err
-	}
-
-	return nil
-
-}
-
-func (s *ClientService) PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
-	client, err := s.repo.ReadClient(&transfert.Client{
-		Email: dtoClient.Email,
-	})
-
-	if err != nil {
+	if err != nil || !client.CompareHash(*obj.Password) {
 		return nil, fmt.Errorf(errors.ErrClientNotFound)
 	}
 
-	dtoValidation.ClientID = &client.ID
-	validation, err := s.repo.ReadValidation(dtoValidation)
-
-	if err != nil {
-		return nil, fmt.Errorf(errors.ErrValidationNotFound)
+	if validation := client.HasSuccessValidation(entities.MailValidation); validation == nil {
+		return nil, fmt.Errorf(errors.ErrClientNotValidate, entities.MailValidation.String())
 	}
 
-	if validation.Validated {
-		return nil, fmt.Errorf(errors.ErrValidationAlreadyValidated)
-	}
-
-	if validation.ExpiresAt.Before(time.Now()) {
-		return nil, fmt.Errorf(errors.ErrValidationExpired)
-	}
-
-	validation.Validated = true
-
-	if s.repo.UpdateValidation(validation) != nil {
-		return nil, err
-	}
-
-	return validation, nil
-}
-
-func (s *ClientService) SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
-	client, err := s.repo.ReadClient(dtoClient)
-	if err != nil {
-		return nil, fmt.Errorf(errors.ErrClientNotFound)
-	}
-
-	dtoValidation.ClientID = &client.ID
-	validation, err := s.repo.ReadValidation(dtoValidation)
-
-	if err != nil {
-		return nil, fmt.Errorf(errors.ErrValidationNotFound)
-	}
-
-	if validation.Validated {
-		return nil, fmt.Errorf(errors.ErrValidationAlreadyValidated)
-	}
-
-	if validation.ExpiresAt.Before(time.Now()) {
-		return nil, fmt.Errorf(errors.ErrValidationExpired)
-	}
-
-	validation.Validated = true
-
-	if s.repo.UpdateValidation(validation) != nil {
-		return nil, err
-	}
-
-	return validation, nil
+	return client, nil
 }
 
 func (s *ClientService) PasswordRecover(obj *transfert.Client) error {
@@ -153,24 +98,31 @@ func (s *ClientService) PasswordRecover(obj *transfert.Client) error {
 	return nil
 }
 
-func (s *ClientService) SignUp(obj *transfert.Client) (*entities.Client, error) {
-	if obj == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
-	}
+func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
+	client, err := s.repo.ReadClient(&transfert.Client{
+		Email: obj.Email,
+	})
 
-	_, err := s.repo.ReadClient(obj)
-	if err == nil {
-		return nil, fmt.Errorf(errors.ErrClientAlreadyExists)
-	}
-
-	client, err := s.repo.CreateClient(obj)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf(errors.ErrClientNotFound)
 	}
 
-	go s.sendSignUpMail(client)
+	if passwordValidation := client.HasSuccessValidation(entities.PasswordRecover); passwordValidation == nil {
+		return fmt.Errorf(errors.ErrClientNotValidate, entities.PasswordRecover.String())
+	}
 
-	return client, nil
+	password, err := hash.Hash(aws.String(*client.Email+":"+*obj.Password), hash.BCRYPT)
+	if err != nil {
+		return err
+	}
+
+	client.Password = password
+
+	if err := s.repo.UpdateClient(client); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *ClientService) sendMailRecover(client *entities.Client) error {
@@ -248,20 +200,4 @@ func (s *ClientService) sendSignUpMail(client *entities.Client) error {
 	}
 
 	return fmt.Errorf(errors.ErrMailSendFailed)
-}
-
-func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
-	client, err := s.repo.ReadClient(&transfert.Client{
-		Email: obj.Email,
-	})
-
-	if err != nil || !client.CompareHash(*obj.Password) {
-		return nil, fmt.Errorf(errors.ErrClientNotFound)
-	}
-
-	if validation := client.HasSuccessValidation(entities.MailValidation); validation == nil {
-		return nil, fmt.Errorf(errors.ErrClientNotValidate, entities.MailValidation.String())
-	}
-
-	return client, nil
 }
