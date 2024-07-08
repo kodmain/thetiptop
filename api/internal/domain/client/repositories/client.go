@@ -84,7 +84,7 @@ func (r *ClientRepository) UpdateClient(entity *entities.Client) error {
 
 func (r *ClientRepository) DeleteClient(obj *transfert.Client) error {
 	client := entities.CreateClient(obj)
-	result := r.store.Engine.Delete(client)
+	result := r.store.Engine.Where(obj).Delete(client)
 
 	if result.Error != nil {
 		return result.Error
@@ -121,7 +121,7 @@ func (r *ClientRepository) UpdateValidation(entity *entities.Validation) error {
 
 func (r *ClientRepository) DeleteValidation(obj *transfert.Validation) error {
 	validation := entities.CreateValidation(obj)
-	result := r.store.Engine.Delete(validation)
+	result := r.store.Engine.Where(obj).Delete(validation)
 
 	if result.Error != nil {
 		return result.Error

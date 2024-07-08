@@ -7,8 +7,6 @@ import (
 	"mime/multipart"
 	"net/textproto"
 	"strings"
-
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
 const (
@@ -64,7 +62,6 @@ func (m *Mail) IsValid() bool {
 func (m *Mail) Prepare(service ServiceInterface) ([]byte, []string, error) {
 	// Création d'un buffer pour construire le message
 	var msg bytes.Buffer
-	logger.Warn(service)
 	fromHeader := service.From()
 	if service.Expeditor() != "" {
 		// Si FromName contient des caractères non-ASCII, il doit être encodé.
@@ -74,7 +71,6 @@ func (m *Mail) Prepare(service ServiceInterface) ([]byte, []string, error) {
 	}
 
 	// Header de base
-	logger.Warn(fromHeader)
 	header := make(map[string]string)
 	header[from] = fromHeader
 	header[to] = strings.Join(m.To, ", ")
