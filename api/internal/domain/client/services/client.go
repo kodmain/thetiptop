@@ -125,15 +125,23 @@ func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
 	return nil
 }
 
-func (s *ClientService) sendMailRecover(client *entities.Client) error {
-	tpl := template.NewTemplate("recover")
-
+// sendMail Send a templated email to a client
+// This function handles the common logic for sending templated emails to clients.
+//
+// Parameters:
+// - client: *entities.Client The client to send the email to.
+// - templateName: string The name of the email template.
+// - validationType: entities.ValidationType The type of validation to check.
+//
+// Returns:
+// - error: error An error object if an error occurs, nil otherwise.
+func (s *ClientService) sendMail(client *entities.Client, templateName string, validationType entities.ValidationType) error {
+	tpl := template.NewTemplate(templateName)
 	if tpl == nil {
-		return fmt.Errorf(errors.ErrTemplateNotFound, "recover")
+		return fmt.Errorf(errors.ErrTemplateNotFound, templateName)
 	}
 
-	validation := client.HasNotExpiredValidation(entities.PasswordRecover)
-
+	validation := client.HasNotExpiredValidation(validationType)
 	if validation == nil {
 		return fmt.Errorf(errors.ErrValidationNotFound)
 	}
@@ -142,14 +150,20 @@ func (s *ClientService) sendMailRecover(client *entities.Client) error {
 		"AppName": env.APP_NAME,
 		"Token":   validation.Token.String(),
 	})
-
 	if err != nil {
 		return err
 	}
 
+	subject := ""
+	if validationType == entities.PasswordRecover {
+		subject = "Récupération de mot de passe"
+	} else if validationType == entities.MailValidation {
+		subject = "Bienvenue chez The Tip Top"
+	}
+
 	m := &mail.Mail{
 		To:      []string{*client.Email},
-		Subject: "Récupération de mot de passe",
+		Subject: subject,
 		Text:    text,
 		Html:    html,
 	}
@@ -164,40 +178,26 @@ func (s *ClientService) sendMailRecover(client *entities.Client) error {
 	return fmt.Errorf(errors.ErrMailSendFailed)
 }
 
+// sendMailRecover Send a password recovery email to a client
+// This function sends a password recovery email to the specified client.
+//
+// Parameters:
+// - client: *entities.Client The client to send the email to.
+//
+// Returns:
+// - error: error An error object if an error occurs, nil otherwise.
+func (s *ClientService) sendMailRecover(client *entities.Client) error {
+	return s.sendMail(client, "recover", entities.PasswordRecover)
+}
+
+// sendSignUpMail Send a signup confirmation email to a client
+// This function sends a signup confirmation email to the specified client.
+//
+// Parameters:
+// - client: *entities.Client The client to send the email to.
+//
+// Returns:
+// - error: error An error object if an error occurs, nil otherwise.
 func (s *ClientService) sendSignUpMail(client *entities.Client) error {
-	tpl := template.NewTemplate("signup")
-
-	if tpl == nil {
-		return fmt.Errorf(errors.ErrTemplateNotFound, "signup")
-	}
-
-	validation := client.HasNotExpiredValidation(entities.MailValidation)
-	if validation == nil {
-		return fmt.Errorf(errors.ErrValidationNotFound)
-	}
-
-	text, html, err := tpl.Inject(template.Data{
-		"AppName": env.APP_NAME,
-		"Token":   validation.Token.String(),
-	})
-
-	if err != nil {
-		return err
-	}
-
-	m := &mail.Mail{
-		To:      []string{*client.Email},
-		Subject: "Bienvenue chez The Tip Top",
-		Text:    text,
-		Html:    html,
-	}
-
-	for i := 0; i < 3; i++ {
-		if err := s.mail.Send(m); err == nil {
-			return nil
-		}
-		time.Sleep(1 * time.Second)
-	}
-
-	return fmt.Errorf(errors.ErrMailSendFailed)
+	return s.sendMail(client, "signup", entities.MailValidation)
 }

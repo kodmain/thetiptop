@@ -313,4 +313,92 @@ func TestPasswordRecover(t *testing.T) {
 		err := service.PasswordRecover(inputClient)
 		require.Error(t, err)
 	})
+
+	t.Run("user update fail", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(fmt.Errorf("failed to update client"))
+		err := service.PasswordRecover(inputClient)
+		require.Error(t, err)
+	})
+
+	expectedClient.Validations[0].Validated = false
+
+	t.Run("user fail validation", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		err := service.PasswordRecover(inputClient)
+		require.Error(t, err)
+	})
+
+}
+
+func TestPasswordUpdate(t *testing.T) {
+
+	idClient, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
+	assert.NoError(t, err)
+	idValidation, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
+	assert.NoError(t, err)
+
+	inputClient := &transfert.Client{
+		Email:    aws.String("hello@thetiptop"),
+		Password: aws.String("azertyuiop"),
+	}
+
+	hashedPassword, err := hash.Hash(aws.String(*inputClient.Email+":"+*inputClient.Password), hash.BCRYPT)
+	require.NoError(t, err)
+
+	expectedClient := &entities.Client{
+		ID:       idClient.String(),
+		Email:    inputClient.Email,
+		Password: hashedPassword,
+		Validations: []*entities.Validation{
+			{
+				ID:        idValidation.String(),
+				Token:     "666666",
+				Type:      entities.PasswordRecover,
+				Validated: true,
+				ClientID:  idClient.String(),
+			},
+		},
+	}
+
+	t.Run("successful update user", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
+		err := service.PasswordUpdate(inputClient)
+		require.NoError(t, err)
+	})
+
+	t.Run("user not exist", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		err := service.PasswordUpdate(inputClient)
+		require.Error(t, err)
+	})
+
+	t.Run("user not exist", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		err := service.PasswordUpdate(inputClient)
+		require.Error(t, err)
+	})
+
+	t.Run("user update fail", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(fmt.Errorf("failed to update client"))
+		err := service.PasswordUpdate(inputClient)
+		require.Error(t, err)
+	})
+
+	expectedClient.Validations[0].Validated = false
+
+	t.Run("user fail password validation", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		err := service.PasswordUpdate(inputClient)
+		require.Error(t, err)
+	})
 }
