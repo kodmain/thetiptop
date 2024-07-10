@@ -61,6 +61,12 @@ func TestLuhn_String(t *testing.T) {
 	assert.Equal(t, "79927398713", result)
 }
 
+func TestLuhn_PointerString(t *testing.T) {
+	l := token.NewLuhn("79927398713")
+	Pointer := l.PointerString()
+	assert.Equal(t, "79927398713", *Pointer)
+}
+
 func TestGenerate(t *testing.T) {
 
 	t.Run("when the number is valid", func(t *testing.T) {

@@ -69,7 +69,7 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 	client.ID = id.String()
 
 	for _, validation := range client.Validations {
-		validation.ClientID = client.ID
+		validation.ClientID = &client.ID
 	}
 
 	return nil

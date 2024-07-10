@@ -38,6 +38,10 @@ func (s *Service) Send(mail *Mail) error {
 		return errors.New("nil mail to send")
 	}
 
+	if s.Config == nil {
+		return errors.New("nil config")
+	}
+
 	msg, to, err := mail.Prepare(s)
 	if err != nil {
 		return err

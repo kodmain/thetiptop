@@ -18,18 +18,26 @@ func TestNewClient(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name:     "Valid email",
+			name:     "Valid client",
 			email:    aws.String("hello@kodmain.com"),
 			password: aws.String("Abc123!@#"),
 			wantErr:  false,
 		},
 		{
-			name:     "Invalid email",
+			name:     "Invalid client",
 			email:    aws.String("invalid"),
 			password: aws.String(""),
 			wantErr:  true,
 		},
 	}
+
+	client, err := transfert.NewClient(nil, nil)
+	assert.Error(t, err)
+	assert.Nil(t, client)
+
+	client, err = transfert.NewClient(data.Object{}, nil)
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

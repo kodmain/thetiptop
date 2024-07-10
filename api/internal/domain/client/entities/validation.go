@@ -18,10 +18,10 @@ type Validation struct {
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	// entity
-	Token     token.Luhn     `gorm:"type:varchar(6);index"`
+	Token     *token.Luhn    `gorm:"type:varchar(6);index"`
 	Type      ValidationType `gorm:"type:varchar(10)"`
 	Validated bool           `gorm:"type:boolean;default:false"`
-	ClientID  string         `gorm:"type:varchar(36)" json:"-"`
+	ClientID  *string        `gorm:"type:varchar(36)" json:"-"`
 	ExpiresAt time.Time      `json:"-"`
 }
 
@@ -35,8 +35,8 @@ func (v *Validation) HasExpired() bool {
 
 // BeforeSave attribue la valeur de ClientID avant de sauvegarder
 func (v *Validation) BeforeSave(tx *gorm.DB) error {
-	if v.Token == "" {
-		v.Token = token.Generate(6)
+	if v.Token == nil {
+		v.Token = token.Generate(6).Pointer()
 	}
 
 	return nil
@@ -48,7 +48,7 @@ func (validation *Validation) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 
-	if validation.ClientID == "" {
+	if validation.ClientID == nil {
 		return fmt.Errorf("ClientID is required on Validation")
 	}
 
@@ -65,7 +65,7 @@ func (validation *Validation) BeforeCreate(tx *gorm.DB) error {
 
 func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 	validation.UpdatedAt = time.Now()
-	if validation.ClientID == "" {
+	if validation.ClientID == nil {
 		return fmt.Errorf("Client is required on Validation")
 	}
 
@@ -74,7 +74,7 @@ func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 
 func CreateValidation(obj *transfert.Validation) *Validation {
 	return &Validation{
-		Token:    *obj.Token,
-		ClientID: *obj.ClientID,
+		Token:    obj.Token,
+		ClientID: obj.ClientID,
 	}
 }

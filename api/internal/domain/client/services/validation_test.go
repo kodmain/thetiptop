@@ -36,8 +36,8 @@ func TestSignValidation(t *testing.T) {
 	t.Run("SignValidation", func(t *testing.T) {
 		t.Run("Success", func(t *testing.T) {
 			Validation := &entities.Validation{
-				ClientID:  client.ID,
-				Token:     luhn,
+				ClientID:  &client.ID,
+				Token:     &luhn,
 				Type:      entities.MailValidation,
 				ExpiresAt: notExpired,
 				Validated: false,
@@ -78,8 +78,8 @@ func TestSignValidation(t *testing.T) {
 
 		t.Run("ValidationExpired", func(t *testing.T) {
 			Validation := &entities.Validation{
-				ClientID:  client.ID,
-				Token:     luhn,
+				ClientID:  &client.ID,
+				Token:     &luhn,
 				Type:      entities.MailValidation,
 				ExpiresAt: expired,
 				Validated: false,
@@ -97,8 +97,8 @@ func TestSignValidation(t *testing.T) {
 
 		t.Run("AlreadyValidate", func(t *testing.T) {
 			Validation := &entities.Validation{
-				ClientID:  client.ID,
-				Token:     luhn,
+				ClientID:  &client.ID,
+				Token:     &luhn,
 				Type:      entities.MailValidation,
 				ExpiresAt: notExpired,
 				Validated: true,
@@ -117,8 +117,8 @@ func TestSignValidation(t *testing.T) {
 
 		t.Run("FailUpdate", func(t *testing.T) {
 			Validation := &entities.Validation{
-				ClientID:  client.ID,
-				Token:     luhn,
+				ClientID:  &client.ID,
+				Token:     &luhn,
 				Type:      entities.MailValidation,
 				ExpiresAt: notExpired,
 				Validated: false,
@@ -142,8 +142,8 @@ func TestSignValidation(t *testing.T) {
 
 		t.Run("Success", func(t *testing.T) {
 			Validation := &entities.Validation{
-				ClientID:  client.ID,
-				Token:     luhn,
+				ClientID:  &client.ID,
+				Token:     &luhn,
 				Type:      entities.PasswordRecover,
 				ExpiresAt: notExpired,
 				Validated: false,
@@ -184,8 +184,8 @@ func TestSignValidation(t *testing.T) {
 
 		t.Run("ValidationExpired", func(t *testing.T) {
 			Validation := &entities.Validation{
-				ClientID:  client.ID,
-				Token:     luhn,
+				ClientID:  &client.ID,
+				Token:     &luhn,
 				Type:      entities.MailValidation,
 				ExpiresAt: expired,
 				Validated: false,
@@ -203,8 +203,8 @@ func TestSignValidation(t *testing.T) {
 
 		t.Run("AlreadyValidate", func(t *testing.T) {
 			Validation := &entities.Validation{
-				ClientID:  client.ID,
-				Token:     luhn,
+				ClientID:  &client.ID,
+				Token:     &luhn,
 				Type:      entities.MailValidation,
 				ExpiresAt: notExpired,
 				Validated: true,
@@ -223,8 +223,8 @@ func TestSignValidation(t *testing.T) {
 
 		t.Run("FailUpdate", func(t *testing.T) {
 			Validation := &entities.Validation{
-				ClientID:  client.ID,
-				Token:     luhn,
+				ClientID:  &client.ID,
+				Token:     &luhn,
 				Type:      entities.MailValidation,
 				ExpiresAt: notExpired,
 				Validated: false,

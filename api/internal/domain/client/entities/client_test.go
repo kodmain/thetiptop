@@ -104,7 +104,7 @@ func TestNewClient(t *testing.T) {
 		t.Errorf("Expected UpdatedAt to be before or equal to current time, got %s", client.UpdatedAt)
 	}
 }
-func TestBefore(t *testing.T) {
+func TestClientBefore(t *testing.T) {
 	email := aws.String("user-thetiptop@yopmail.com")
 	password := aws.String("Aa1@azetyuiop")
 

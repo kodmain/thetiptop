@@ -25,6 +25,15 @@ func (l Luhn) String() string {
 	return string(l)
 }
 
+func (l Luhn) PointerString() *string {
+	s := string(l)
+	return &s
+}
+
+func (l Luhn) Pointer() *Luhn {
+	return &l
+}
+
 // Validate retourne une erreur si la chaîne ne passe pas le test de Luhn.
 func (l Luhn) Validate() error {
 	number := string(l)
