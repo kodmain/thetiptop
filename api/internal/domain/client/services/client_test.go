@@ -13,6 +13,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/client/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -122,6 +123,8 @@ func TestSignUp(t *testing.T) {
 		Password: aws.String("azertyuiop"),
 	}
 
+	sidClient := idClient.String()
+
 	expectedClient := &entities.Client{
 		ID:       idClient.String(),
 		Email:    aws.String("hello@thetiptop"),
@@ -129,10 +132,10 @@ func TestSignUp(t *testing.T) {
 		Validations: []*entities.Validation{
 			{
 				ID:        idValidation.String(),
-				Token:     "666666",
+				Token:     token.NewLuhn("666666").Pointer(),
 				Type:      0,
 				Validated: false,
-				ClientID:  idClient.String(),
+				ClientID:  &sidClient,
 			},
 		},
 	}
@@ -211,6 +214,8 @@ func TestSignIn(t *testing.T) {
 	hashedPassword, err := hash.Hash(aws.String(*inputClient.Email+":"+*inputClient.Password), hash.BCRYPT)
 	require.NoError(t, err)
 
+	sidClient := idClient.String()
+
 	expectedClient := &entities.Client{
 		ID:       idClient.String(),
 		Email:    inputClient.Email,
@@ -218,10 +223,10 @@ func TestSignIn(t *testing.T) {
 		Validations: []*entities.Validation{
 			{
 				ID:        idValidation.String(),
-				Token:     "666666",
+				Token:     token.NewLuhn("666666").Pointer(),
 				Type:      0,
 				Validated: true,
-				ClientID:  idClient.String(),
+				ClientID:  &sidClient,
 			},
 		},
 	}
@@ -280,6 +285,8 @@ func TestPasswordRecover(t *testing.T) {
 	hashedPassword, err := hash.Hash(aws.String(*inputClient.Email+":"+*inputClient.Password), hash.BCRYPT)
 	require.NoError(t, err)
 
+	sidClient := idClient.String()
+
 	expectedClient := &entities.Client{
 		ID:       idClient.String(),
 		Email:    inputClient.Email,
@@ -287,10 +294,10 @@ func TestPasswordRecover(t *testing.T) {
 		Validations: []*entities.Validation{
 			{
 				ID:        idValidation.String(),
-				Token:     "666666",
+				Token:     token.NewLuhn("666666").Pointer(),
 				Type:      0,
 				Validated: true,
-				ClientID:  idClient.String(),
+				ClientID:  &sidClient,
 			},
 		},
 	}
@@ -337,6 +344,8 @@ func TestPasswordUpdate(t *testing.T) {
 	idValidation, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
 	assert.NoError(t, err)
 
+	sidClient := idClient.String()
+
 	inputClient := &transfert.Client{
 		Email:    aws.String("hello@thetiptop"),
 		Password: aws.String("azertyuiop"),
@@ -346,16 +355,16 @@ func TestPasswordUpdate(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedClient := &entities.Client{
-		ID:       idClient.String(),
+		ID:       sidClient,
 		Email:    inputClient.Email,
 		Password: hashedPassword,
 		Validations: []*entities.Validation{
 			{
 				ID:        idValidation.String(),
-				Token:     "666666",
+				Token:     token.NewLuhn("666666").Pointer(),
 				Type:      entities.PasswordRecover,
 				Validated: true,
-				ClientID:  idClient.String(),
+				ClientID:  &sidClient,
 			},
 		},
 	}

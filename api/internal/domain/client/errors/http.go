@@ -2,7 +2,8 @@ package errors
 
 const (
 	// common errors
-	ErrNoDto = "no data transfer object provided"
+	ErrNoDto  = "no data transfer object provided"
+	ErrNoData = "no data provided"
 
 	// client errors
 	ErrClientAlreadyExists    = "client already exists"
@@ -15,6 +16,7 @@ const (
 
 	// validation errors
 	ErrValidationNotFound         = "validation not found"
+	ErrValidationTokenNotFound    = "validation token not found"
 	ErrValidationAlreadyValidated = "validation already validated"
 	ErrValidationExpired          = "validation expired"
 

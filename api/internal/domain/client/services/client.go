@@ -146,10 +146,15 @@ func (s *ClientService) sendMail(client *entities.Client, templateName string, v
 		return fmt.Errorf(errors.ErrValidationNotFound)
 	}
 
+	if validation.Token == nil {
+		return fmt.Errorf(errors.ErrValidationTokenNotFound)
+	}
+
 	text, html, err := tpl.Inject(template.Data{
 		"AppName": env.APP_NAME,
 		"Token":   validation.Token.String(),
 	})
+
 	if err != nil {
 		return err
 	}

@@ -20,7 +20,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const (
+var (
 	uuid string = "b0d583fb-7d32-436f-9328-29620e8ca87b"
 )
 
@@ -485,8 +485,8 @@ func TestUpdateValidationRepository(t *testing.T) {
 
 	entity := &entities.Validation{
 		ID:        "some-id",
-		Token:     luhn,
-		ClientID:  uuid,
+		Token:     &luhn,
+		ClientID:  &uuid,
 		Type:      entities.PasswordRecover,
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}
