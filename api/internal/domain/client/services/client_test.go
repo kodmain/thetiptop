@@ -66,10 +66,7 @@ func (m *ClientRepositoryMock) ReadValidation(validation *transfert.Validation) 
 
 func (m *ClientRepositoryMock) UpdateValidation(validation *entities.Validation) error {
 	args := m.Called(validation)
-	if args.Get(0) == nil {
-		return args.Error(1)
-	}
-	return args.Error(1)
+	return args.Error(0)
 }
 
 func (m *ClientRepositoryMock) DeleteValidation(validation *transfert.Validation) error {
