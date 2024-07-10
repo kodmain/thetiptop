@@ -176,7 +176,10 @@ func PasswordUpdate(email, password, token string) (int, fiber.Map) {
 		mail.Get(),
 	)
 
-	validation, err := clientService.PasswordValidation(dtoValidation, dtoClient)
+	validation, err := clientService.PasswordValidation(dtoValidation, &transfert.Client{
+		Email: dtoClient.Email,
+	})
+
 	if err != nil {
 		status := fiber.StatusInternalServerError
 		switch err.Error() {
