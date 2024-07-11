@@ -1,8 +1,8 @@
 Bonjour,
 
-Merci de vous être inscrit. Veuillez cliquer sur le lien ci-dessous pour valider votre inscription. Si le lien n'est pas cliquable, veuillez le copier et le coller dans la barre d'adresse de votre navigateur.
+Merci de vous être inscrit. Veuillez saisir votre token de validation dans votre application :
 
-{{.Url}}
+{{.Token}}
 
 Si vous n'avez pas demandé cette inscription, veuillez ignorer ce message.
 

@@ -5,80 +5,49 @@ info:
   title: TheTipTop
   version: dev
 paths:
-  /client:
-    delete:
+  /password/recover:
+    post:
       consumes:
       - '*/*'
-      operationId: client.Delete
+      operationId: client.PasswordRecover
+      parameters:
+      - description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "204":
           description: No Content
+        "400":
+          description: Bad Request
       tags:
-      - Models
-    get:
-      consumes:
-      - '*/*'
-      operationId: client.Find
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Models
-    patch:
-      consumes:
-      - '*/*'
-      operationId: client.UpdatePartial
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Models
+      - Password
+  /password/update:
     put:
       consumes:
       - '*/*'
-      operationId: client.UpdateComplete
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Models
-  /client/:id:
-    get:
-      consumes:
-      - '*/*'
-      operationId: client.FindOne
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Models
-  /client/password/renew:
-    post:
-      consumes:
-      - '*/*'
-      operationId: client.Renew
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      tags:
-      - Password
-  /client/password/reset:
-    post:
-      consumes:
-      - '*/*'
-      operationId: client.Reset
+      operationId: client.PasswordUpdate
+      parameters:
+      - description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Token
+        in: formData
+        name: token
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -118,8 +87,10 @@ paths:
       produces:
       - application/json
       responses:
-        "209":
-          description: ""
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
       tags:
       - Sign
   /sign/up:
@@ -145,9 +116,31 @@ paths:
         "201":
           description: Client created
         "400":
-          description: Invalid email or password
-        "409":
           description: Client already exists
+      tags:
+      - Sign
+  /sign/validation:
+    put:
+      consumes:
+      - '*/*'
+      operationId: client.SignValidation
+      parameters:
+      - description: Token
+        in: formData
+        name: token
+        required: true
+        type: string
+      - description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
       tags:
       - Sign
   /status/healthcheck:

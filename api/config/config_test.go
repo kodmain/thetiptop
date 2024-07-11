@@ -32,7 +32,9 @@ func TestGet(t *testing.T) {
 
 	assert.Nil(t, config.Get("toto"))
 
-	assert.NotNil(t, config.Get("jwt"))
+	assert.NotNil(t, config.Get("security"))
+	assert.NotNil(t, config.Get("security.jwt"))
+
 	assert.NotNil(t, config.Get("services"))
 	assert.NotNil(t, config.Get("providers"))
 
