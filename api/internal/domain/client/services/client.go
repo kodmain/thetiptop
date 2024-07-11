@@ -23,6 +23,7 @@ type ClientServiceInterface interface {
 
 	// Password
 	PasswordRecover(obj *transfert.Client) error
+	PasswordUpdate(obj *transfert.Client) error
 	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error)
 }
 

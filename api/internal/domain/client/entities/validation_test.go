@@ -30,3 +30,24 @@ func TestNewValidation(t *testing.T) {
 	assert.NoError(t, err)
 
 }
+
+func TestNewValidationWithoutCID(t *testing.T) {
+	config.Load(aws.String("../../../../config.test.yml"))
+
+	val := entities.CreateValidation(&transfert.Validation{
+		Token:    nil,
+		ClientID: nil,
+	})
+
+	assert.Nil(t, val.Token)
+	err := val.BeforeCreate(nil)
+	assert.Error(t, err)
+	assert.Empty(t, val.ID)
+
+	err = val.BeforeSave(nil)
+	assert.NoError(t, err)
+
+	err = val.BeforeUpdate(nil)
+	assert.Error(t, err)
+
+}

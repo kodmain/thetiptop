@@ -5,11 +5,8 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/repositories"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
@@ -85,7 +82,7 @@ func SignRenew(refresh *serializer.Token) (int, fiber.Map) {
 	return fiber.StatusOK, fiber.Map{"jwt": refreshToken}
 }
 
-func SignValidation(email, token string) (int, fiber.Map) {
+func SignValidation(service services.ClientServiceInterface, email, token string) (int, fiber.Map) {
 	dtoValidation, err := transfert.NewValidation(data.Object{
 		"token": &token,
 	}, data.Validator{
@@ -106,12 +103,7 @@ func SignValidation(email, token string) (int, fiber.Map) {
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	clientService := services.Client(
-		repositories.NewClientRepository(database.Get()),
-		mail.Get(),
-	)
-
-	validation, err := clientService.SignValidation(dtoValidation, dtoClient)
+	validation, err := service.SignValidation(dtoValidation, dtoClient)
 	if err != nil {
 		status := fiber.StatusInternalServerError
 		switch err.Error() {
@@ -148,7 +140,7 @@ func PasswordRecover(service services.ClientServiceInterface, email string) (int
 	return fiber.StatusNoContent, nil
 }
 
-func PasswordUpdate(email, password, token string) (int, fiber.Map) {
+func PasswordUpdate(service services.ClientServiceInterface, email, password, token string) (int, fiber.Map) {
 	dtoClient, err := transfert.NewClient(data.Object{
 		"email":    &email,
 		"password": &password,
@@ -171,12 +163,7 @@ func PasswordUpdate(email, password, token string) (int, fiber.Map) {
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	clientService := services.Client(
-		repositories.NewClientRepository(database.Get()),
-		mail.Get(),
-	)
-
-	validation, err := clientService.PasswordValidation(dtoValidation, &transfert.Client{
+	validation, err := service.PasswordValidation(dtoValidation, &transfert.Client{
 		Email: dtoClient.Email,
 	})
 
@@ -194,7 +181,7 @@ func PasswordUpdate(email, password, token string) (int, fiber.Map) {
 		return status, fiber.Map{"error": err.Error()}
 	}
 
-	err = clientService.PasswordUpdate(dtoClient)
+	err = service.PasswordUpdate(dtoClient)
 	if err != nil {
 		return fiber.StatusInternalServerError, fiber.Map{"error": err.Error()}
 	}
