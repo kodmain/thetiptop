@@ -45,6 +45,10 @@ func SignUp(c *fiber.Ctx) error {
 // @Id			client.SignValidation
 func SignValidation(c *fiber.Ctx) error {
 	status, response := services.SignValidation(
+		domain.Client(
+			repositories.NewClientRepository(database.Get()),
+			mail.Get(),
+		),
 		c.FormValue("email"),
 		c.FormValue("token"),
 	)
@@ -86,7 +90,9 @@ func SignRenew(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "no token")
 	}
 
-	status, response := services.SignRenew(token.(*serializer.Token))
+	status, response := services.SignRenew(
+		token.(*serializer.Token),
+	)
 
 	return c.Status(status).JSON(response)
 }
@@ -122,6 +128,10 @@ func PasswordRecover(c *fiber.Ctx) error {
 // @Id			client.PasswordUpdate
 func PasswordUpdate(c *fiber.Ctx) error {
 	status, response := services.PasswordUpdate(
+		domain.Client(
+			repositories.NewClientRepository(database.Get()),
+			mail.Get(),
+		),
 		c.FormValue("email"),
 		c.FormValue("password"),
 		c.FormValue("token"),

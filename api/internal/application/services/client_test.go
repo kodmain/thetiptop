@@ -2,7 +2,7 @@ package services_test
 
 import (
 	"fmt"
-	"os"
+	"net/http"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,6 +13,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -28,20 +29,6 @@ var (
 	ExpiredAccessToken  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDgyMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJyZWZyZXNoIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmxlSEFpT2pFM01UTXhNRGt4TXpFc0ltbGtJam9pTjJNM09UUXdNR1l0TURBMllTMDBOelZsTFRrM1lqWXROV1JpWkdVek56QTNOakF4SWl3aWIyWm1Jam8zTWpBd0xDSjBlWEJsSWpveExDSjBlaUk2SWt4dlkyRnNJbjAuNUxhZTU2SE5jUTFPSGNQX0ZoVGZjT090SHBhWlZnUkZ5NnZ6ekJ1Z043WSIsInR5cGUiOjAsInR6IjoiTG9jYWwifQ.BxW2wfHiiCr0aTsuWwRVmh0Wd-BX20AoUDTGg_rIDoM"
 	ExpiredRefreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y"
 )
-
-func setup() error {
-	workingDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	err = config.Load(aws.String(workingDir + "/../../../config.test.yml"))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 type DomainClientService struct {
 	mock.Mock
@@ -84,8 +71,13 @@ func (dcs DomainClientService) PasswordValidation(dtoValidation *transfert.Valid
 	return args.Get(0).(*entities.Validation), args.Error(1)
 }
 
+func (dcs DomainClientService) PasswordUpdate(client *transfert.Client) error {
+	args := dcs.Called(client)
+	return args.Error(0)
+}
+
 func TestClient(t *testing.T) {
-	assert.Nil(t, setup())
+	config.Load(aws.String("../../../config.test.yml"))
 
 	t.Run("invalid password", func(t *testing.T) {
 		mockClient := new(DomainClientService)
@@ -111,6 +103,15 @@ func TestClient(t *testing.T) {
 
 		statusCode, response := services.SignUp(mockClient, email, password)
 		assert.Equal(t, fiber.StatusConflict, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("client fail to signup", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignUp", mock.Anything).Return(nil, fmt.Errorf("boom"))
+
+		statusCode, response := services.SignUp(mockClient, email, password)
+		assert.Equal(t, http.StatusInternalServerError, statusCode)
 		assert.NotNil(t, response)
 	})
 }
@@ -198,4 +199,210 @@ func TestSignIn(t *testing.T) {
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
+
+	t.Run("client fail to signin", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignIn", mock.Anything).Return(nil, fmt.Errorf("boom"))
+
+		statusCode, response := services.SignIn(mockClient, email, password)
+		assert.Equal(t, http.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
+}
+
+func TestSignValidation(t *testing.T) {
+	config.Load(aws.String("../../../config.test.yml"))
+	luhn := token.Generate(6)
+
+	t.Run("invalid syntax token", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("invalid token"))
+
+		statusCode, response := services.SignValidation(mockClient, email, "invalidToken")
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+		assert.Equal(t, "invalid digit", response["error"])
+	})
+
+	t.Run("valid token, email", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		id, err := uuid.NewRandom()
+		assert.NoError(t, err)
+
+		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(&entities.Validation{
+			ID: id.String(),
+		}, nil)
+
+		statusCode, response := services.SignValidation(mockClient, email, luhn.String())
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.NotNil(t, response)
+	})
+	t.Run("validation not found", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationNotFound))
+
+		statusCode, response := services.SignValidation(mockClient, email, luhn.String())
+		assert.Equal(t, fiber.StatusNotFound, statusCode)
+		assert.NotNil(t, response)
+		assert.Equal(t, errors.ErrValidationNotFound, response["error"])
+	})
+
+	t.Run("validation already validated", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationAlreadyValidated))
+
+		statusCode, response := services.SignValidation(mockClient, email, luhn.String())
+		assert.Equal(t, fiber.StatusConflict, statusCode)
+		assert.NotNil(t, response)
+		assert.Equal(t, errors.ErrValidationAlreadyValidated, response["error"])
+	})
+
+	t.Run("validation already validated", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationExpired))
+
+		statusCode, response := services.SignValidation(mockClient, email, luhn.String())
+		assert.Equal(t, fiber.StatusGone, statusCode)
+		assert.NotNil(t, response)
+		assert.Equal(t, errors.ErrValidationExpired, response["error"])
+	})
+}
+
+func TestPasswordRecover(t *testing.T) {
+	config.Load(aws.String("../../../config.test.yml"))
+
+	t.Run("invalid syntax email", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordRecover", mock.Anything).Return(fmt.Errorf("invalid email"))
+
+		statusCode, response := services.PasswordRecover(mockClient, emailSyntaxFail)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("valid email", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordRecover", mock.Anything).Return(nil)
+
+		statusCode, response := services.PasswordRecover(mockClient, email)
+		assert.Equal(t, fiber.StatusNoContent, statusCode)
+		assert.Nil(t, response)
+	})
+
+	t.Run("client fail to recover password", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordRecover", mock.Anything).Return(fmt.Errorf("boom"))
+
+		statusCode, response := services.PasswordRecover(mockClient, email)
+		assert.Equal(t, http.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
+}
+
+func TestPasswordUpdate(t *testing.T) {
+	config.Load(aws.String("../../../config.test.yml"))
+
+	t.Run("invalid syntax email", func(t *testing.T) {
+		config.Load(aws.String("../../../config.test.yml"))
+
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordUpdate", mock.Anything).Return(fmt.Errorf("invalid email"))
+
+		statusCode, response := services.PasswordUpdate(mockClient, emailSyntaxFail, password, "token")
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("invalid syntax password", func(t *testing.T) {
+		config.Load(aws.String("../../../config.test.yml"))
+
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordUpdate", mock.Anything).Return(fmt.Errorf("invalid password"))
+
+		statusCode, response := services.PasswordUpdate(mockClient, email, passwordSyntaxFail, "token")
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("invalid token", func(t *testing.T) {
+		config.Load(aws.String("../../../config.test.yml"))
+
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordUpdate", mock.Anything).Return(fmt.Errorf("invalid password"))
+
+		statusCode, response := services.PasswordUpdate(mockClient, email, password, "token")
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("validation not found", func(t *testing.T) {
+		config.Load(aws.String("../../../config.test.yml"))
+
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordUpdate", mock.Anything).Return(nil)
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationNotFound))
+
+		luhn := token.Generate(6)
+
+		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		assert.Equal(t, fiber.StatusNotFound, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("validation already validate", func(t *testing.T) {
+		config.Load(aws.String("../../../config.test.yml"))
+
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordUpdate", mock.Anything).Return(nil)
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationAlreadyValidated))
+
+		luhn := token.Generate(6)
+
+		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		assert.Equal(t, fiber.StatusConflict, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("validation not found", func(t *testing.T) {
+		config.Load(aws.String("../../../config.test.yml"))
+
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordUpdate", mock.Anything).Return(nil)
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationExpired))
+
+		luhn := token.Generate(6)
+
+		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		assert.Equal(t, fiber.StatusGone, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("valid email, password, token", func(t *testing.T) {
+		config.Load(aws.String("../../../config.test.yml"))
+
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordUpdate", mock.Anything).Return(nil)
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(&entities.Validation{}, nil)
+
+		luhn := token.Generate(6)
+
+		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("client fail to update password", func(t *testing.T) {
+		config.Load(aws.String("../../../config.test.yml"))
+
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordUpdate", mock.Anything).Return(fmt.Errorf("boom"))
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(&entities.Validation{}, nil)
+
+		luhn := token.Generate(6)
+
+		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		assert.Equal(t, http.StatusInternalServerError, statusCode)
+		assert.NotNil(t, response)
+	})
+
 }
