@@ -1,11 +1,22 @@
 package data
 
-type Object map[string]string
+import "encoding/json"
 
-func (d Object) Get(key string) string {
+type Object map[string]*string
+
+func (d Object) Get(key string) *string {
 	if value, ok := d[key]; ok {
 		return value
 	}
 
-	return ""
+	return nil
+}
+
+func (d Object) Hydrate(target any) error {
+	bytes, err := json.Marshal(d)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(bytes, &target)
 }
