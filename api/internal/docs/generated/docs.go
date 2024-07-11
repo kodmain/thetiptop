@@ -15,8 +15,8 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/client": {
-            "get": {
+        "/password/recover": {
+            "post": {
                 "consumes": [
                     "*/*"
                 ],
@@ -24,15 +24,30 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Models"
+                    "Password"
                 ],
-                "operationId": "client.Find",
+                "operationId": "client.PasswordRecover",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     }
                 }
-            },
+            }
+        },
+        "/password/update": {
             "put": {
                 "consumes": [
                     "*/*"
@@ -41,100 +56,33 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Models"
-                ],
-                "operationId": "client.UpdateComplete",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            },
-            "delete": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Models"
-                ],
-                "operationId": "client.Delete",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            },
-            "patch": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Models"
-                ],
-                "operationId": "client.UpdatePartial",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/client/:id": {
-            "get": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Models"
-                ],
-                "operationId": "client.FindOne",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/client/password/renew": {
-            "post": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
                     "Password"
                 ],
-                "operationId": "client.Renew",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
+                "operationId": "client.PasswordUpdate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token",
+                        "name": "token",
+                        "in": "formData",
+                        "required": true
                     }
-                }
-            }
-        },
-        "/client/password/reset": {
-            "post": {
-                "consumes": [
-                    "*/*"
                 ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Password"
-                ],
-                "operationId": "client.Reset",
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -191,8 +139,11 @@ const docTemplate = `{
                 ],
                 "operationId": "client.SignRenew",
                 "responses": {
-                    "209": {
-                        "description": ""
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     }
                 }
             }
@@ -231,10 +182,43 @@ const docTemplate = `{
                         "description": "Client created"
                     },
                     "400": {
-                        "description": "Invalid email or password"
-                    },
-                    "409": {
                         "description": "Client already exists"
+                    }
+                }
+            }
+        },
+        "/sign/validation": {
+            "put": {
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sign"
+                ],
+                "operationId": "client.SignValidation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token",
+                        "name": "token",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }

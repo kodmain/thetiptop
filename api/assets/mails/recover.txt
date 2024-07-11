@@ -1,0 +1,9 @@
+Bonjour,
+
+Vous avez demandé à réinitialiser votre mot de passe. Veuillez saisir votre token de validation dans votre application :
+
+{{.Token}}
+
+Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer ce message.
+
+&copy; {{.AppName}}
