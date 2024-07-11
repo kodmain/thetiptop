@@ -5,6 +5,8 @@ import (
 	"net/mail"
 	"strings"
 	"unicode"
+
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 )
 
 const (
@@ -12,12 +14,34 @@ const (
 	CANT_BE_NIL = false
 )
 
-func Email(email string) error {
-	_, err := mail.ParseAddress(email)
+func Required(value *string) error {
+	if value == nil {
+		return errors.New("value is required")
+	}
+
+	return nil
+}
+
+func Email(email *string) error {
+	_, err := mail.ParseAddress(*email)
 	return err
 }
 
-func Password(password string) error {
+func Luhn(value *string) error {
+	luhn := token.Luhn(*value)
+	return luhn.Validate()
+}
+
+func ID(uuid *string) error {
+	id := *uuid
+	if len(id) != 36 || id[8] != '-' || id[13] != '-' || id[18] != '-' || id[23] != '-' {
+		return errors.New("invalid UUID")
+	}
+
+	return nil
+}
+
+func Password(password *string) error {
 	var (
 		hasMin     bool
 		hasMaj     bool
@@ -26,15 +50,15 @@ func Password(password string) error {
 		errs       []string
 	)
 
-	if len(password) < 8 {
+	if len(*password) < 8 {
 		errs = append(errs, "- password is too short")
 	}
 
-	if len(password) > 64 {
+	if len(*password) > 64 {
 		errs = append(errs, "- password is too long")
 	}
 
-	for _, c := range password {
+	for _, c := range *password {
 		switch {
 		case unicode.IsLower(c):
 			hasMin = true

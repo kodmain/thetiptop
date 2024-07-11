@@ -26,7 +26,12 @@ type Config struct {
 		Mails     map[string]*mail.Config     `yaml:"mails"`
 		Databases map[string]*database.Config `yaml:"databases"`
 	} `yaml:"providers"`
-	JWT *jwt.JWT `yaml:"jwt"`
+	Security struct {
+		Validation struct {
+			Expire string `yaml:"expire"`
+		} `yaml:"validation"`
+		JWT *jwt.JWT `yaml:"jwt"`
+	} `yaml:"security"`
 }
 
 func Get(key string) interface{} {
@@ -106,7 +111,7 @@ func (cfg *Config) Initialize() error {
 		return err
 	}
 
-	if err := jwt.New(cfg.JWT); err != nil {
+	if err := jwt.New(cfg.Security.JWT); err != nil {
 		return err
 	}
 
