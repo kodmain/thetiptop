@@ -10,13 +10,15 @@ import (
 )
 
 const (
-	from        = "From"
-	to          = "To"
-	cc          = "Cc"
-	bcc         = "Bcc"
-	subject     = "Subject"
-	mimeVersion = "MIME-Version"
-	contentType = "Content-Type"
+	from                     = "From"
+	to                       = "To"
+	cc                       = "Cc"
+	bcc                      = "Bcc"
+	subject                  = "Subject"
+	mimeVersion              = "MIME-Version"
+	contentType              = "Content-Type"
+	contentTransfertEncoding = "Content-Transfer-Encoding"
+	contentDisposition       = "Content-Disposition"
 )
 
 // Mail Représente un e-mail avec toutes les informations nécessaires pour l'envoi.
@@ -59,10 +61,12 @@ func (m *Mail) IsValid() bool {
 // - []byte: La représentation SMTP de l'e-mail.
 // - error: Une erreur si la construction échoue.
 func (m *Mail) Prepare(service ServiceInterface) ([]byte, []string, error) {
+	if service == nil {
+		return nil, nil, fmt.Errorf("mail service is nil")
+	}
+
 	// Création d'un buffer pour construire le message
 	var msg bytes.Buffer
-
-	//
 	fromHeader := service.From()
 	if service.Expeditor() != "" {
 		// Si FromName contient des caractères non-ASCII, il doit être encodé.
@@ -86,7 +90,8 @@ func (m *Mail) Prepare(service ServiceInterface) ([]byte, []string, error) {
 	// Début de la composition MIME
 	writer := multipart.NewWriter(&msg)
 	boundary := writer.Boundary()
-	header[contentType] = "multipart/alternative; boundary=" + boundary
+	header[contentType] = "multipart/alternative; boundary=" + boundary + "; charset=UTF-8"
+	header[contentTransfertEncoding] = "quoted-printable"
 
 	for key, value := range header {
 		msg.WriteString(fmt.Sprintf("%s: %s\r\n", key, value))
@@ -139,7 +144,7 @@ func (m *Mail) addContent(writer *multipart.Writer, ct string, content []byte) e
 
 	header := make(textproto.MIMEHeader)
 	header.Set(contentType, ct+"; charset=UTF-8")
-	header.Set("Content-Transfer-Encoding", "quoted-printable")
+	header.Set(contentTransfertEncoding, "quoted-printable")
 
 	part, err := writer.CreatePart(header)
 	if err != nil {
@@ -166,8 +171,8 @@ func (m *Mail) addAttachment(writer *multipart.Writer, name string, data []byte)
 
 	header := make(textproto.MIMEHeader)
 	header.Set(contentType, "application/octet-stream")
-	header.Set("Content-Transfer-Encoding", "base64")
-	header.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", name))
+	header.Set(contentTransfertEncoding, "base64")
+	header.Set(contentDisposition, fmt.Sprintf("attachment; filename=\"%s\"", name))
 
 	part, err := writer.CreatePart(header)
 	if err != nil {
