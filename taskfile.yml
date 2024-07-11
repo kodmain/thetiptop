@@ -118,7 +118,9 @@ tasks:
     desc: Run the api with maildev
     cmds:
       - |
+        docker rm -f maildev || true
         docker run -ti \
+          --rm \
           --name maildev \
           -p 1025:1025 \
           -p 1080:1080 \

@@ -24,9 +24,13 @@ const (
 )
 
 // hash crée un hachage du mot de passe en fonction de l'algorithme spécifié
-func Hash(data string, algo HashAlgo) (string, error) {
+func Hash(data *string, algo HashAlgo) (*string, error) {
 	var hashedData []byte
 	var err error
+
+	if data == nil {
+		return nil, errors.New("data is nil")
+	}
 
 	switch algo {
 	case SHA1:
@@ -40,13 +44,19 @@ func Hash(data string, algo HashAlgo) (string, error) {
 	case BCRYPT:
 		return hashWithBcrypt(data)
 	default:
-		return "", errors.New("unknown hash algorithm")
+		return nil, errors.New("unknown hash algorithm")
 	}
 
-	return hex.EncodeToString(hashedData), err
+	hashed := hex.EncodeToString(hashedData)
+
+	return &hashed, err
 }
 
-func CompareHash(hashedData, data string, algo HashAlgo) error {
+func CompareHash(hashedData, data *string, algo HashAlgo) error {
+	if data == nil || hashedData == nil {
+		return errors.New("data is nil")
+	}
+
 	switch algo {
 	case SHA1:
 		return compareHash(hashedData, data, sha1.New())
@@ -57,14 +67,14 @@ func CompareHash(hashedData, data string, algo HashAlgo) error {
 	case MD5:
 		return compareHash(hashedData, data, md5.New())
 	case BCRYPT:
-		return bcrypt.CompareHashAndPassword([]byte(hashedData), []byte(data))
+		return bcrypt.CompareHashAndPassword([]byte(*hashedData), []byte(*data))
 	default:
 		return errors.New("unknown hash algorithm")
 	}
 }
 
-func compareHash(hashedData, data string, h hash.Hash) error {
-	if hex.EncodeToString(hashWithAlgo(h, data)) != hashedData {
+func compareHash(hashedData, data *string, h hash.Hash) error {
+	if hex.EncodeToString(hashWithAlgo(h, data)) != *hashedData {
 		return errors.New("hashes do not match")
 	}
 
@@ -72,13 +82,19 @@ func compareHash(hashedData, data string, h hash.Hash) error {
 }
 
 // hashWithAlgo hache les données avec un algorithme spécifique
-func hashWithAlgo(h hash.Hash, data string) []byte {
-	h.Write([]byte(data))
+func hashWithAlgo(h hash.Hash, data *string) []byte {
+	h.Write([]byte(*data))
 	return h.Sum(nil)
 }
 
 // hashWithBcrypt utilise bcrypt pour hacher les données
-func hashWithBcrypt(data string) (string, error) {
-	hashedData, err := bcrypt.GenerateFromPassword([]byte(data), bcrypt.DefaultCost)
-	return string(hashedData), err
+func hashWithBcrypt(data *string) (*string, error) {
+	hashedData, err := bcrypt.GenerateFromPassword([]byte(*data), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	hashed := string(hashedData)
+
+	return &hashed, nil
 }

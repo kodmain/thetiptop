@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
 	"github.com/stretchr/testify/assert"
 )
@@ -53,7 +54,7 @@ func TestPassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Password(tt.password)
+			err := validator.Password(&tt.password)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -83,7 +84,97 @@ func TestEmail(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Email(tt.email)
+			err := validator.Email(&tt.email)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestLuhn(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   string
+		wantErr bool
+	}{
+		{
+			name:    "Valid Luhn",
+			value:   "378282246310005",
+			wantErr: false,
+		},
+		{
+			name:    "Invalid Luhn",
+			value:   "123456789012345",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validator.Luhn(&tt.value)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestID(t *testing.T) {
+	tests := []struct {
+		name    string
+		uuid    string
+		wantErr bool
+	}{
+		{
+			name:    "Valid UUID",
+			uuid:    "00000000-0000-0000-0000-000000000000",
+			wantErr: false,
+		},
+		{
+			name:    "Invalid UUID",
+			uuid:    "00000000-0000-0000-0000-00000000000",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validator.ID(&tt.uuid)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestRequired(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   *string
+		wantErr bool
+	}{
+		{
+			name:    "Value is not nil",
+			value:   aws.String("not nil"),
+			wantErr: false,
+		},
+		{
+			name:    "Value is nil",
+			value:   nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validator.Required(tt.value)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
