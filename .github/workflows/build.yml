@@ -55,34 +55,14 @@ jobs:
           name: project
           path: .
 
-  build:
+  Analyze:
+    name: Analyze
+    needs: Tests
     runs-on: ubuntu-latest
-    #strategy:
-    #  matrix:
-    #    goos: [linux, darwin]
-    #    goarch: [amd64, arm64]
     steps:
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
         with:
           name: project
           path: .
-
-      - name: Setup Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build the app
-        run: task api:build:cross
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          PATH: $HOME/go/bin:/usr/local/go/bin:$PATH
-
-      - name: Upload built binaries to Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: binary-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: .build/api/project-${{ matrix.goos }}-${{ matrix.goarch }}
+              
