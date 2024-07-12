@@ -70,7 +70,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build the app
-        run: task app:build
+        run: task api:build
 
       - name: Upload project to Artifacts
         uses: actions/upload-artifact@v4
