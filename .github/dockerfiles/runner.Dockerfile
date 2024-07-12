@@ -11,6 +11,6 @@ ADD --chmod=0777 https://github.com/kodmain/thetiptop/releases/download/$BINARY_
 HEALTHCHECK --interval=1m --timeout=30s --retries=3 CMD curl --fail http://localhost/v1/status/healthcheck || exit 1
 EXPOSE 80 443
 
-LABEL org.opencontainers.image.source=https://github.com/kodmain
+LABEL org.opencontainers.image.source=https://github.com/kodmain/thetiptop
 
 ENTRYPOINT [ "/var/run/project" ]
