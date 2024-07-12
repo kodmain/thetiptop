@@ -113,6 +113,25 @@ tasks:
         fi
         CGO_ENABLED=1 go build -v -trimpath -buildvcs=false -tags netgo,osusergo -ldflags="$ldflags" -o {{.TASKFILE_DIR}}/.build/api/project cmd/main.go
   
+  api:build:cross:
+    dir: api
+    desc: Build the api
+    cmds:
+      - |
+        go mod tidy
+        go generate ./...
+        swag init -g cmd/main.go -o ./internal/docs/generated
+        rm -rf {{.TASKFILE_DIR}}/.build/api || true
+        platforms=("linux/amd64" "linux/arm64" "darwin/amd64" "darwin/arm64")
+        for platform in "${platforms[@]}"; do
+          os_arch=(${platform//\// })
+          GOOS=${os_arch[0]}
+          GOARCH=${os_arch[1]}
+          output="{{.TASKFILE_DIR}}/.build/api/project-${GOOS}-${GOARCH}"
+          ldflags="-s -w -X 'github.com/kodmain/thetiptop/api/env.BUILD_VERSION=${BINARY_VERSION}' -X 'github.com/kodmain/thetiptop/api/env.BUILD_COMMIT=$(git rev-parse --short HEAD)'"
+          env GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=1 go build -v -trimpath -buildvcs=false -tags netgo,osusergo -ldflags="$ldflags" -o $output cmd/main.go
+        done
+
   api:mail:
     dir: api
     desc: Run the api with maildev
