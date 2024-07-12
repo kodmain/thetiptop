@@ -41,9 +41,6 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup dependencies
-        run: go install gotest.tools/gotestsum@latest
-
       - name: Setup Flutter dependencies
         working-directory: ./app
         run: flutter pub get
@@ -55,8 +52,8 @@ jobs:
           name: project
           path: .
 
-  Analyze:
-    name: Analyze
+  Build:
+    name: Build
     needs: Tests
     runs-on: ubuntu-latest
     steps:
@@ -65,4 +62,19 @@ jobs:
         with:
           name: project
           path: .
-              
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build the app
+        run: task app:build
+
+      - name: Upload project to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: binary
+          path: .build/api
