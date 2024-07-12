@@ -57,10 +57,10 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux, darwin]
-        goarch: [amd64, arm64]
+    #strategy:
+    #  matrix:
+    #    goos: [linux, darwin]
+    #    goarch: [amd64, arm64]
     steps:
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
