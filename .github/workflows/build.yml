@@ -56,6 +56,10 @@ jobs:
     name: Build
     needs: Tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
     steps:
       - name: Download project from Artifacts
         uses: actions/download-artifact@v4
@@ -83,11 +87,14 @@ jobs:
           ls -la $BIN_PATH
 
       - name: Build the api
-        run: task api:build:cross
+        run: task api:build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
 
       - name: Upload project to Artifacts
         uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
-          name: binary
-          path: .build/api
+          name: binary-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: .build/api/project
