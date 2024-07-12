@@ -72,6 +72,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup Env
         run: |
+          export PATH=$PATH:/usr/local/go/bin
           go install github.com/go-task/task/v3/cmd/task@latest
           go install golang.org/x/tools/cmd/goimports@latest
           go install github.com/swaggo/swag/cmd/swag@latest
