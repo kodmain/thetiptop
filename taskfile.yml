@@ -118,10 +118,6 @@ tasks:
     desc: Build the api
     cmds:
       - |
-        export PATH=${PATH}:`go env GOPATH`/bin
-        go install github.com/go-task/task/v3/cmd/task@latest
-        go install golang.org/x/tools/cmd/goimports@latest
-        go install github.com/swaggo/swag/cmd/swag@latest
         go mod tidy
         go generate ./...
         swag init -g cmd/main.go -o ./internal/docs/generated
