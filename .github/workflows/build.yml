@@ -70,6 +70,11 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Env
+        run: |
+          go install github.com/go-task/task/v3/cmd/task@latest
+          go install golang.org/x/tools/cmd/goimports@latest
+          go install github.com/swaggo/swag/cmd/swag@latest
 
       - name: Build the app
         run: task api:build:cross
