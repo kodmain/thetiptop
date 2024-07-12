@@ -70,18 +70,21 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Setup Env
+
+      - name: Install Go tools
         run: |
+          mkdir -p $HOME/go/bin
+          export GOBIN=$HOME/go/bin
           go install github.com/go-task/task/v3/cmd/task@latest
           go install golang.org/x/tools/cmd/goimports@latest
           go install github.com/swaggo/swag/cmd/swag@latest
         env:
-          GOBIN: /usr/local/go/bin
-
+          GOBIN: $HOME/go/bin
+  
       - name: Build the app
         run: task api:build:cross
         env:
-          PATH: /usr/local/go/bin:${{ env.PATH }}
+          PATH: $HOME/go/bin:${{ env.PATH }}
 
       - name: Upload app to Artifacts
         uses: actions/upload-artifact@v4
