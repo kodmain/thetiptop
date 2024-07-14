@@ -191,21 +191,41 @@ tasks:
     desc: Docker image to extract
     cmds: 
       - |
+        echo "Inspecting Docker manifest for {{.IMAGE_TAG}}..."
         docker manifest inspect {{.IMAGE_TAG}} | jq -r '.manifests[] | select(.platform.os != "unknown" and .platform.architecture != "unknown") | "\(.platform.os) \(.platform.architecture) \(.digest)"' | while read os arch new_digest; do
+          echo "Pulling image for platform $os/$arch..."
           docker pull --platform $os/$arch {{.IMAGE_TAG}}
         done
 
+        echo "Creating necessary directories..."
         mkdir -p {{.TASKFILE_DIR}}/.build/api
         mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
         mkdir -p {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside
         
+        echo "Saving Docker image to tar file..."
         docker save -o {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar {{.IMAGE_TAG}}
+        
+        echo "Extracting image tar file..."
         tar -xvf {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/image.tar -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs
-        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f -name '*.tar' -exec tar -xf {} -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside \;
+        
+        echo "Detecting and extracting tar files..."
+        find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/blobs -type f | while read filepath; do
+          if tar -tf "$filepath" > /dev/null 2>&1; then
+            echo "Extracting $filepath..."
+            tar -xf "$filepath" -C {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside
+          else
+            echo "Skipping $filepath, not a tar archive."
+          fi
+        done
+
+        echo "Finding and copying project files..."
         find {{.TASKFILE_DIR}}/.build/images/{{.IMAGE_TAG}}/inside -type f -name 'project' | while read filepath; do
           arch=$(docker inspect --format='{{"{{"}}.Architecture{{"}}"}}' {{.IMAGE_TAG}})
-          echo cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
+          echo "Copying $filepath to {{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
           cp "$filepath" "{{.TASKFILE_DIR}}/.build/api/thetiptop-${arch}"
         done
 
+        echo "Creating artefacts.zip..."
         zip -r {{.TASKFILE_DIR}}/artefacts.zip {{.TASKFILE_DIR}}/.build
+
+        echo "Extraction process completed."
