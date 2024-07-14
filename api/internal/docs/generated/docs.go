@@ -39,10 +39,16 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "Password recover"
                     },
                     "400": {
-                        "description": "Bad Request"
+                        "description": "Invalid email"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
@@ -85,7 +91,22 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "Password updated"
+                    },
+                    "400": {
+                        "description": "Invalid email, password or token"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "409": {
+                        "description": "Client already validated"
+                    },
+                    "410": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
@@ -121,7 +142,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "Client signed in"
+                    },
+                    "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
@@ -140,10 +167,16 @@ const docTemplate = `{
                 "operationId": "client.SignRenew",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "JWT token renewed"
                     },
                     "400": {
-                        "description": "Bad Request"
+                        "description": "Invalid token"
+                    },
+                    "401": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
@@ -182,7 +215,13 @@ const docTemplate = `{
                         "description": "Client created"
                     },
                     "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "409": {
                         "description": "Client already exists"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
@@ -218,7 +257,22 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "Client email validate"
+                    },
+                    "400": {
+                        "description": "Invalid email or token"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "409": {
+                        "description": "Client already validated"
+                    },
+                    "410": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }

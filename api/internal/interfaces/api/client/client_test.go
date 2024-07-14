@@ -353,6 +353,13 @@ func TestClient(t *testing.T) {
 
 				t.Run("Password", func(t *testing.T) {
 					_, status, err := request("POST", "http://localhost:8888/password/recover", "", FormURLEncoded, map[string][]string{
+						"email": {user.email + "wrong"},
+					})
+
+					assert.NoError(t, err)
+					assert.Equal(t, http.StatusNotFound, status)
+
+					_, status, err = request("POST", "http://localhost:8888/password/recover", "", FormURLEncoded, map[string][]string{
 						"email": {user.email},
 					})
 

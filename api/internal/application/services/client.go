@@ -134,6 +134,10 @@ func PasswordRecover(service services.ClientServiceInterface, email string) (int
 	}
 
 	if err = service.PasswordRecover(obj); err != nil {
+		if err.Error() == errors.ErrClientNotFound {
+			return fiber.StatusNotFound, fiber.Map{"error": err.Error()}
+		}
+
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
