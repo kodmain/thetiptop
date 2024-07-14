@@ -297,6 +297,15 @@ func TestPasswordRecover(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
+
+	t.Run("client not found", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("PasswordRecover", mock.Anything).Return(fmt.Errorf(errors.ErrClientNotFound))
+
+		statusCode, response := services.PasswordRecover(mockClient, email)
+		assert.Equal(t, http.StatusNotFound, statusCode)
+		assert.NotNil(t, response)
+	})
 }
 
 func TestPasswordUpdate(t *testing.T) {
