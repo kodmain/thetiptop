@@ -24,7 +24,7 @@ dependencies:
   flutter_screenutil: ^5.9.0
 
   # Data immutable
-  freezed_annotation: ^2.4.1
+  freezed_annotation: ^2.4.4
   json_annotation: ^4.8.1
   responsive_framework: ^1.4.0
   
