@@ -44,6 +44,7 @@ job "staging" {
         memory = 128  
       }
       config {
+        force_pull = true
         image = var.image
         ports = ["http"]
       }
