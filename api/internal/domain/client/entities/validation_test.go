@@ -29,6 +29,13 @@ func TestNewValidation(t *testing.T) {
 	err = val.BeforeUpdate(nil)
 	assert.NoError(t, err)
 
+	val = entities.CreateValidation(&transfert.Validation{
+		Token:    aws.String("123456"),
+		ClientID: aws.String("1"),
+	})
+
+	assert.NotNil(t, val.Token)
+
 }
 
 func TestNewValidationWithoutCID(t *testing.T) {
@@ -49,5 +56,12 @@ func TestNewValidationWithoutCID(t *testing.T) {
 
 	err = val.BeforeUpdate(nil)
 	assert.Error(t, err)
+
+	val = entities.CreateValidation(&transfert.Validation{
+		Token:    aws.String("123456"),
+		ClientID: nil,
+	})
+
+	assert.NotNil(t, val.Token)
 
 }

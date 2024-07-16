@@ -7,6 +7,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/stretchr/testify/assert"
 )
@@ -47,13 +48,13 @@ func TestNewValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			obj := data.Object{
-				"ClientID": tt.clientID,
-				"Token":    tt.luhn,
+				"client_id": tt.clientID,
+				"token":     tt.luhn,
 			}
 
 			validation, err := transfert.NewValidation(obj, data.Validator{
-				"ClientID": {validator.ID},
-				"Token":    {validator.Luhn},
+				"client_id": {validator.ID},
+				"token":     {validator.Luhn},
 			})
 
 			if tt.wantErr {
@@ -62,6 +63,15 @@ func TestNewValidation(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, validation)
+
+				logger.Info(validation)
+
+				err = validation.Check(data.Validator{
+					"client_id": {validator.ID},
+					"token":     {validator.Luhn},
+				})
+
+				assert.NoError(t, err)
 			}
 		})
 	}
