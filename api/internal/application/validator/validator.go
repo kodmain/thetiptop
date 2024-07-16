@@ -28,6 +28,10 @@ func Email(email *string) error {
 }
 
 func Luhn(value *string) error {
+	if value == nil {
+		return errors.New("value is required")
+	}
+
 	luhn := token.Luhn(*value)
 	return luhn.Validate()
 }

@@ -50,12 +50,20 @@ func TestNewClient(t *testing.T) {
 				"email":    {validator.Email},
 				"password": {validator.Password},
 			})
+
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.email, client.Email)
 				assert.Equal(t, tt.password, client.Password)
+
+				err := client.Check(data.Validator{
+					"email":    {validator.Email},
+					"password": {validator.Password},
+				})
+
+				assert.NoError(t, err)
 			}
 		})
 	}
