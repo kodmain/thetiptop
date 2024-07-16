@@ -10,11 +10,8 @@ import (
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
-func SignUp(service services.ClientServiceInterface, email, password string) (int, fiber.Map) {
-	obj, err := transfert.NewClient(data.Object{
-		"email":    &email,
-		"password": &password,
-	}, data.Validator{
+func SignUp(service services.ClientServiceInterface, clientDTO *transfert.Client) (int, fiber.Map) {
+	err := clientDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
 	})
@@ -23,7 +20,7 @@ func SignUp(service services.ClientServiceInterface, email, password string) (in
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	client, err := service.SignUp(obj)
+	client, err := service.SignUp(clientDTO)
 	if err != nil {
 		if err.Error() == errors.ErrClientAlreadyExists {
 			return fiber.StatusConflict, fiber.Map{"error": err.Error()}
@@ -35,11 +32,8 @@ func SignUp(service services.ClientServiceInterface, email, password string) (in
 	return fiber.StatusCreated, fiber.Map{"client": client}
 }
 
-func SignIn(service services.ClientServiceInterface, email, password string) (int, fiber.Map) {
-	obj, err := transfert.NewClient(data.Object{
-		"email":    &email,
-		"password": &password,
-	}, data.Validator{
+func SignIn(service services.ClientServiceInterface, clientDTO *transfert.Client) (int, fiber.Map) {
+	err := clientDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
 	})
@@ -48,7 +42,7 @@ func SignIn(service services.ClientServiceInterface, email, password string) (in
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	client, err := service.SignIn(obj)
+	client, err := service.SignIn(clientDTO)
 	if err != nil {
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
@@ -82,10 +76,8 @@ func SignRenew(refresh *serializer.Token) (int, fiber.Map) {
 	return fiber.StatusOK, fiber.Map{"jwt": refreshToken}
 }
 
-func SignValidation(service services.ClientServiceInterface, email, token string) (int, fiber.Map) {
-	dtoValidation, err := transfert.NewValidation(data.Object{
-		"token": &token,
-	}, data.Validator{
+func SignValidation(service services.ClientServiceInterface, validationDTO *transfert.Validation, clientDTO *transfert.Client) (int, fiber.Map) {
+	err := validationDTO.Check(data.Validator{
 		"token": {validator.Required, validator.Luhn},
 	})
 
@@ -93,9 +85,7 @@ func SignValidation(service services.ClientServiceInterface, email, token string
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	dtoClient, err := transfert.NewClient(data.Object{
-		"email": &email,
-	}, data.Validator{
+	err = clientDTO.Check(data.Validator{
 		"email": {validator.Required, validator.Email},
 	})
 
@@ -103,7 +93,7 @@ func SignValidation(service services.ClientServiceInterface, email, token string
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	validation, err := service.SignValidation(dtoValidation, dtoClient)
+	validation, err := service.SignValidation(validationDTO, clientDTO)
 	if err != nil {
 		status := fiber.StatusInternalServerError
 		switch err.Error() {
@@ -122,10 +112,8 @@ func SignValidation(service services.ClientServiceInterface, email, token string
 
 }
 
-func PasswordRecover(service services.ClientServiceInterface, email string) (int, fiber.Map) {
-	obj, err := transfert.NewClient(data.Object{
-		"email": &email,
-	}, data.Validator{
+func PasswordRecover(service services.ClientServiceInterface, clientDTO *transfert.Client) (int, fiber.Map) {
+	err := clientDTO.Check(data.Validator{
 		"email": {validator.Required, validator.Email},
 	})
 
@@ -133,7 +121,7 @@ func PasswordRecover(service services.ClientServiceInterface, email string) (int
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	if err = service.PasswordRecover(obj); err != nil {
+	if err = service.PasswordRecover(clientDTO); err != nil {
 		if err.Error() == errors.ErrClientNotFound {
 			return fiber.StatusNotFound, fiber.Map{"error": err.Error()}
 		}
@@ -144,11 +132,16 @@ func PasswordRecover(service services.ClientServiceInterface, email string) (int
 	return fiber.StatusNoContent, nil
 }
 
-func PasswordUpdate(service services.ClientServiceInterface, email, password, token string) (int, fiber.Map) {
-	dtoClient, err := transfert.NewClient(data.Object{
-		"email":    &email,
-		"password": &password,
-	}, data.Validator{
+func PasswordUpdate(service services.ClientServiceInterface, validationDTO *transfert.Validation, clientDTO *transfert.Client) (int, fiber.Map) {
+	err := validationDTO.Check(data.Validator{
+		"token": {validator.Required, validator.Luhn},
+	})
+
+	if err != nil {
+		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
+	}
+
+	err = clientDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
 	})
@@ -157,18 +150,8 @@ func PasswordUpdate(service services.ClientServiceInterface, email, password, to
 		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
 	}
 
-	dtoValidation, err := transfert.NewValidation(data.Object{
-		"token": &token,
-	}, data.Validator{
-		"token": {validator.Required, validator.Luhn},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, fiber.Map{"error": err.Error()}
-	}
-
-	validation, err := service.PasswordValidation(dtoValidation, &transfert.Client{
-		Email: dtoClient.Email,
+	validation, err := service.PasswordValidation(validationDTO, &transfert.Client{
+		Email: clientDTO.Email,
 	})
 
 	if err != nil {
@@ -185,7 +168,7 @@ func PasswordUpdate(service services.ClientServiceInterface, email, password, to
 		return status, fiber.Map{"error": err.Error()}
 	}
 
-	err = service.PasswordUpdate(dtoClient)
+	err = service.PasswordUpdate(clientDTO)
 	if err != nil {
 		return fiber.StatusInternalServerError, fiber.Map{"error": err.Error()}
 	}

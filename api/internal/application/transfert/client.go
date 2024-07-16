@@ -8,8 +8,15 @@ import (
 )
 
 type Client struct {
-	Email    *string `json:"email"`
-	Password *string `json:"password"`
+	Email    *string `json:"email" xml:"email" form:"email"`
+	Password *string `json:"password" xml:"password" form:"password"`
+}
+
+func (c *Client) Check(validator data.Validator) error {
+	return validator.Check(data.Object{
+		"email":    c.Email,
+		"password": c.Password,
+	})
 }
 
 func NewClient(obj data.Object, mandatory data.Validator) (*Client, error) {

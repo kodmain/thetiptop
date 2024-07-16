@@ -25,7 +25,7 @@ func TestSignValidation(t *testing.T) {
 	}
 
 	dtoValidation := &transfert.Validation{
-		Token: &luhn,
+		Token: luhn.PointerString(),
 	}
 
 	client := &entities.Client{

@@ -100,6 +100,12 @@ func stop() error {
 }
 
 // createFormValues crée les valeurs du formulaire à partir des paramètres fournis
+//
+// Parameters:
+// - values: map[string][]string Les valeurs du formulaire à convertir
+//
+// Returns:
+// - url.Values: Les valeurs du formulaire encodées
 func createFormValues(values ...map[string][]string) url.Values {
 	form := url.Values{}
 	if len(values) > 0 {
@@ -118,6 +124,35 @@ const (
 	JSONEncoded
 )
 
+// convertFormToJSON convertit url.Values en une map[string]string pour l'encodage JSON
+//
+// Parameters:
+// - form: url.Values Les valeurs du formulaire à convertir
+//
+// Returns:
+// - map[string]string: Les valeurs converties en map pour l'encodage JSON
+func convertFormToJSON(form url.Values) map[string]string {
+	jsonMap := make(map[string]string)
+	for key, values := range form {
+		if len(values) > 0 {
+			jsonMap[key] = values[0]
+		}
+	}
+	return jsonMap
+}
+
+// createRequest crée une requête HTTP en fonction des paramètres fournis
+//
+// Parameters:
+// - method: string La méthode HTTP (GET, POST, etc.)
+// - uri: string L'URL de la requête
+// - token: string Le jeton d'autorisation (si nécessaire)
+// - form: url.Values Les valeurs du formulaire encodées
+// - encoding: EncodingType Le type d'encodage des données
+//
+// Returns:
+// - *http.Request: La requête HTTP créée
+// - error: L'erreur rencontrée (le cas échéant)
 func createRequest(method, uri, token string, form url.Values, encoding EncodingType) (*http.Request, error) {
 	var req *http.Request
 	var err error
@@ -125,7 +160,8 @@ func createRequest(method, uri, token string, form url.Values, encoding Encoding
 	switch method {
 	case http.MethodPost, http.MethodPut, http.MethodPatch:
 		if encoding == JSONEncoded {
-			jsonData, err := json.Marshal(form)
+			jsonMap := convertFormToJSON(form)
+			jsonData, err := json.Marshal(jsonMap)
 			if err != nil {
 				return nil, err
 			}
@@ -167,13 +203,13 @@ func createRequest(method, uri, token string, form url.Values, encoding Encoding
 // - method: string La méthode HTTP (GET, POST, etc.)
 // - uri: string L'URL de la requête
 // - token: string Le jeton d'autorisation (si nécessaire)
+// - encoding: EncodingType Le type d'encodage des données
 // - values: map[string][]string Les valeurs du formulaire (facultatif)
 //
 // Returns:
 // - []byte: Le contenu de la réponse
 // - int: Le code de statut HTTP
 // - error: L'erreur rencontrée (le cas échéant)
-
 func request(method, uri string, token string, encoding EncodingType, values ...map[string][]string) ([]byte, int, error) {
 	form := createFormValues(values...)
 	req, err := createRequest(method, uri, token, form, encoding)
@@ -181,7 +217,7 @@ func request(method, uri string, token string, encoding EncodingType, values ...
 		return nil, 0, err
 	}
 
-	// Perform the request
+	// Effectuer la requête
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, 0, err
@@ -271,130 +307,137 @@ func extractToken(html string) string {
 }
 
 func TestClient(t *testing.T) {
+	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}
 	assert.Nil(t, start(8888, 8444))
+	for _, encoding := range encodingTypes {
 
-	request("DELETE", "http://0.0.0.0:1080/email/all", "", FormURLEncoded)
-	time.Sleep(1 * time.Second)
-
-	users := []struct {
-		email    string
-		password string
-		statusSU int
-		statusSI int
-	}{
-		// mail, pass, status-signup, status-signin
-		{GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK},
-		{GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest},
-		{WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest},
-	}
-
-	t.Run("SignUp", func(t *testing.T) {
-		for _, user := range users {
-			values := map[string][]string{
-				"email":    {user.email},
-				"password": {user.password},
-			}
-
-			RegisteredClient, status, err := request("POST", "http://localhost:8888/sign/up", "", FormURLEncoded, values)
-			assert.Nil(t, err)
-			assert.Equal(t, user.statusSU, status)
-
-			if status == http.StatusCreated {
-				t.Run("Validation", func(t *testing.T) {
-					var clientWrapper map[string]entities.Client
-					err = json.Unmarshal(RegisteredClient, &clientWrapper)
-					assert.NoError(t, err)
-					client := clientWrapper["client"]
-					assert.NotNil(t, client)
-					time.Sleep(1 * time.Second)
-					email, err := getMailFor(user.email)
-					assert.Nil(t, err)
-					assert.Equal(t, user.email, email.To[0].Address)
-					token := extractToken(email.HTML)
-					logger.Info(token)
-					_, status, err = request("PUT", "http://localhost:8888/sign/validation", "", FormURLEncoded, map[string][]string{
-						"token": {token},
-						"email": {user.email},
-					})
-					assert.Nil(t, err)
-					assert.Equal(t, http.StatusOK, status)
-				})
-			}
-
-			JWT, status, err := request("POST", "http://localhost:8888/sign/in", "", FormURLEncoded, values)
-			assert.Nil(t, err)
-			assert.Equal(t, user.statusSI, status)
-
-			if status == http.StatusOK {
-				t.Run("Renew", func(t *testing.T) {
-					var tokenData TokenStructure
-					err = json.Unmarshal(JWT, &tokenData)
-					assert.Nil(t, err)
-
-					access, err := serializer.TokenToClaims(tokenData.JWT)
-					assert.Nil(t, err)
-
-					users := []struct {
-						token  string
-						status int
-					}{
-						{"Bearer " + *access.Refresh, http.StatusOK},
-						{"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y", http.StatusUnauthorized}, // Replace with actual expired JWT token
-						{"Bearer malformed.jwt.token.here", http.StatusUnauthorized},
-						{"", http.StatusBadRequest},
-					}
-
-					for _, user := range users {
-						_, status, err := request("GET", "http://localhost:8888/sign/renew", user.token, FormURLEncoded)
-						assert.Nil(t, err)
-						assert.Equal(t, user.status, status)
-					}
-				})
-
-				t.Run("Password", func(t *testing.T) {
-					_, status, err := request("POST", "http://localhost:8888/password/recover", "", FormURLEncoded, map[string][]string{
-						"email": {user.email + "wrong"},
-					})
-
-					assert.NoError(t, err)
-					assert.Equal(t, http.StatusNotFound, status)
-
-					_, status, err = request("POST", "http://localhost:8888/password/recover", "", FormURLEncoded, map[string][]string{
-						"email": {user.email},
-					})
-
-					assert.Nil(t, err)
-					assert.Equal(t, http.StatusNoContent, status)
-					time.Sleep(1 * time.Second)
-					email, err := getMailFor(user.email)
-					assert.Nil(t, err)
-					assert.Equal(t, user.email, email.To[0].Address)
-
-					token := extractToken(email.HTML)
-					assert.NotEmpty(t, token)
-
-					_, status, err = request("PUT", "http://localhost:8888/password/update", "", FormURLEncoded, map[string][]string{
-						"token":    {token},
-						"email":    {user.email},
-						"password": {GOOD_PASS_UPDATED},
-					})
-
-					assert.Nil(t, err)
-					assert.Equal(t, http.StatusOK, status)
-
-					_, status, err = request("POST", "http://localhost:8888/sign/in", "", FormURLEncoded, values)
-					assert.NoError(t, err)
-					assert.Equal(t, http.StatusBadRequest, status)
-
-					values["password"] = []string{GOOD_PASS_UPDATED}
-					_, status, err = request("POST", "http://localhost:8888/sign/in", "", FormURLEncoded, values)
-					assert.NoError(t, err)
-					assert.Equal(t, user.statusSI, status)
-				})
-			}
-
+		var encodingName string = "FormURLEncoded"
+		if encoding == JSONEncoded {
+			encodingName = "JSONEncoded"
 		}
-	})
 
+		request("DELETE", "http://0.0.0.0:1080/email/all", "", encoding)
+		time.Sleep(1 * time.Second)
+
+		users := []struct {
+			email    string
+			password string
+			statusSU int
+			statusSI int
+		}{
+			// mail, pass, status-signup, status-signin
+			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK},
+			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest},
+			{fmt.Sprintf("%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest},
+		}
+
+		t.Run("SignUp/"+encodingName, func(t *testing.T) {
+			for _, user := range users {
+				values := map[string][]string{
+					"email":    {user.email},
+					"password": {user.password},
+				}
+
+				RegisteredClient, status, err := request("POST", "http://localhost:8888/sign/up", "", encoding, values)
+				assert.Nil(t, err)
+				assert.Equal(t, user.statusSU, status)
+
+				if status == http.StatusCreated {
+					t.Run("Validation/"+encodingName, func(t *testing.T) {
+						var clientWrapper map[string]entities.Client
+						err = json.Unmarshal(RegisteredClient, &clientWrapper)
+						assert.NoError(t, err)
+						client := clientWrapper["client"]
+						assert.NotNil(t, client)
+						time.Sleep(1 * time.Second)
+						email, err := getMailFor(user.email)
+						assert.Nil(t, err)
+						assert.Equal(t, user.email, email.To[0].Address)
+						token := extractToken(email.HTML)
+						logger.Info(token)
+						_, status, err = request("PUT", "http://localhost:8888/sign/validation", "", encoding, map[string][]string{
+							"token": {token},
+							"email": {user.email},
+						})
+						assert.Nil(t, err)
+						assert.Equal(t, http.StatusOK, status)
+					})
+				}
+
+				JWT, status, err := request("POST", "http://localhost:8888/sign/in", "", encoding, values)
+				assert.Nil(t, err)
+				assert.Equal(t, user.statusSI, status)
+
+				if status == http.StatusOK {
+					t.Run("Renew/"+encodingName, func(t *testing.T) {
+						var tokenData TokenStructure
+						err = json.Unmarshal(JWT, &tokenData)
+						assert.Nil(t, err)
+
+						access, err := serializer.TokenToClaims(tokenData.JWT)
+						assert.Nil(t, err)
+
+						users := []struct {
+							token  string
+							status int
+						}{
+							{"Bearer " + *access.Refresh, http.StatusOK},
+							{"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y", http.StatusUnauthorized}, // Replace with actual expired JWT token
+							{"Bearer malformed.jwt.token.here", http.StatusUnauthorized},
+							{"", http.StatusBadRequest},
+						}
+
+						for _, user := range users {
+							_, status, err := request("GET", "http://localhost:8888/sign/renew", user.token, encoding)
+							assert.Nil(t, err)
+							assert.Equal(t, user.status, status)
+						}
+					})
+
+					t.Run("Password/"+encodingName, func(t *testing.T) {
+						_, status, err := request("POST", "http://localhost:8888/password/recover", "", encoding, map[string][]string{
+							"email": {user.email + "wrong"},
+						})
+
+						assert.NoError(t, err)
+						assert.Equal(t, http.StatusNotFound, status)
+
+						_, status, err = request("POST", "http://localhost:8888/password/recover", "", encoding, map[string][]string{
+							"email": {user.email},
+						})
+
+						assert.Nil(t, err)
+						assert.Equal(t, http.StatusNoContent, status)
+						time.Sleep(1 * time.Second)
+						email, err := getMailFor(user.email)
+						assert.Nil(t, err)
+						assert.Equal(t, user.email, email.To[0].Address)
+
+						token := extractToken(email.HTML)
+						assert.NotEmpty(t, token)
+
+						_, status, err = request("PUT", "http://localhost:8888/password/update", "", encoding, map[string][]string{
+							"token":    {token},
+							"email":    {user.email},
+							"password": {GOOD_PASS_UPDATED},
+						})
+
+						assert.Nil(t, err)
+						assert.Equal(t, http.StatusOK, status)
+
+						_, status, err = request("POST", "http://localhost:8888/sign/in", "", encoding, values)
+						assert.NoError(t, err)
+						assert.Equal(t, http.StatusBadRequest, status)
+
+						values["password"] = []string{GOOD_PASS_UPDATED}
+						_, status, err = request("POST", "http://localhost:8888/sign/in", "", encoding, values)
+						assert.NoError(t, err)
+						assert.Equal(t, user.statusSI, status)
+					})
+				}
+
+			}
+		})
+	}
 	assert.Nil(t, stop())
 }
