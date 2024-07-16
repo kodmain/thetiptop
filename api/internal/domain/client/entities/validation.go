@@ -73,8 +73,13 @@ func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 }
 
 func CreateValidation(obj *transfert.Validation) *Validation {
-	return &Validation{
-		Token:    obj.Token,
+	v := &Validation{
 		ClientID: obj.ClientID,
 	}
+
+	if obj.Token != nil {
+		v.Token = token.NewLuhn(*obj.Token).Pointer()
+	}
+
+	return v
 }

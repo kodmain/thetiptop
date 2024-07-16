@@ -83,7 +83,10 @@ func TestClient(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignUp", mock.Anything).Return(&entities.Client{}, nil)
 
-		statusCode, response := services.SignUp(mockClient, email, passwordSyntaxFail)
+		statusCode, response := services.SignUp(mockClient, &transfert.Client{
+			Email:    &email,
+			Password: &passwordSyntaxFail,
+		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -92,7 +95,10 @@ func TestClient(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignUp", mock.Anything).Return(&entities.Client{}, nil)
 
-		statusCode, response := services.SignUp(mockClient, email, password)
+		statusCode, response := services.SignUp(mockClient, &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		})
 		assert.Equal(t, fiber.StatusCreated, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -101,7 +107,10 @@ func TestClient(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignUp", mock.Anything).Return(nil, fmt.Errorf(errors.ErrClientAlreadyExists))
 
-		statusCode, response := services.SignUp(mockClient, email, password)
+		statusCode, response := services.SignUp(mockClient, &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		})
 		assert.Equal(t, fiber.StatusConflict, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -110,7 +119,10 @@ func TestClient(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignUp", mock.Anything).Return(nil, fmt.Errorf("boom"))
 
-		statusCode, response := services.SignUp(mockClient, email, password)
+		statusCode, response := services.SignUp(mockClient, &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		})
 		assert.Equal(t, http.StatusInternalServerError, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -122,7 +134,10 @@ func TestSignIn(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignIn", mock.Anything).Return(&entities.Client{}, nil)
 
-		statusCode, response := services.SignIn(mockClient, email, passwordSyntaxFail)
+		statusCode, response := services.SignIn(mockClient, &transfert.Client{
+			Email:    &email,
+			Password: &passwordSyntaxFail,
+		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -131,7 +146,10 @@ func TestSignIn(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignIn", mock.Anything).Return(&entities.Client{}, nil)
 
-		statusCode, response := services.SignIn(mockClient, emailSyntaxFail, password)
+		statusCode, response := services.SignIn(mockClient, &transfert.Client{
+			Email:    &emailSyntaxFail,
+			Password: &password,
+		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -140,7 +158,10 @@ func TestSignIn(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignIn", mock.Anything).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
 
-		statusCode, response := services.SignIn(mockClient, email, password)
+		statusCode, response := services.SignIn(mockClient, &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -149,7 +170,10 @@ func TestSignIn(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignIn", mock.Anything).Return(nil, fmt.Errorf("fail to log in"))
 
-		statusCode, response := services.SignIn(mockClient, email, passwordFail)
+		statusCode, response := services.SignIn(mockClient, &transfert.Client{
+			Email:    &email,
+			Password: &passwordFail,
+		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -162,7 +186,10 @@ func TestSignIn(t *testing.T) {
 			ID: id.String(),
 		}, nil)
 
-		statusCode, response := services.SignIn(mockClient, email, password)
+		statusCode, response := services.SignIn(mockClient, &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		})
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
 
@@ -204,7 +231,10 @@ func TestSignIn(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignIn", mock.Anything).Return(nil, fmt.Errorf("boom"))
 
-		statusCode, response := services.SignIn(mockClient, email, password)
+		statusCode, response := services.SignIn(mockClient, &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		})
 		assert.Equal(t, http.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -218,7 +248,11 @@ func TestSignValidation(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("invalid token"))
 
-		statusCode, response := services.SignValidation(mockClient, email, "invalidToken")
+		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+			Token: aws.String("invalidToken"),
+		}, &transfert.Client{
+			Email: &email,
+		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 		assert.Equal(t, "invalid digit", response["error"])
@@ -233,7 +267,11 @@ func TestSignValidation(t *testing.T) {
 			ID: id.String(),
 		}, nil)
 
-		statusCode, response := services.SignValidation(mockClient, email, luhn.String())
+		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+			Token: luhn.PointerString(),
+		}, &transfert.Client{
+			Email: &email,
+		})
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -241,7 +279,11 @@ func TestSignValidation(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationNotFound))
 
-		statusCode, response := services.SignValidation(mockClient, email, luhn.String())
+		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+			Token: luhn.PointerString(),
+		}, &transfert.Client{
+			Email: &email,
+		})
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
 		assert.NotNil(t, response)
 		assert.Equal(t, errors.ErrValidationNotFound, response["error"])
@@ -251,7 +293,11 @@ func TestSignValidation(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationAlreadyValidated))
 
-		statusCode, response := services.SignValidation(mockClient, email, luhn.String())
+		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+			Token: luhn.PointerString(),
+		}, &transfert.Client{
+			Email: &email,
+		})
 		assert.Equal(t, fiber.StatusConflict, statusCode)
 		assert.NotNil(t, response)
 		assert.Equal(t, errors.ErrValidationAlreadyValidated, response["error"])
@@ -261,7 +307,11 @@ func TestSignValidation(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationExpired))
 
-		statusCode, response := services.SignValidation(mockClient, email, luhn.String())
+		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+			Token: luhn.PointerString(),
+		}, &transfert.Client{
+			Email: &email,
+		})
 		assert.Equal(t, fiber.StatusGone, statusCode)
 		assert.NotNil(t, response)
 		assert.Equal(t, errors.ErrValidationExpired, response["error"])
@@ -275,7 +325,9 @@ func TestPasswordRecover(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("PasswordRecover", mock.Anything).Return(fmt.Errorf("invalid email"))
 
-		statusCode, response := services.PasswordRecover(mockClient, emailSyntaxFail)
+		statusCode, response := services.PasswordRecover(mockClient, &transfert.Client{
+			Email: &emailSyntaxFail,
+		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -284,7 +336,9 @@ func TestPasswordRecover(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("PasswordRecover", mock.Anything).Return(nil)
 
-		statusCode, response := services.PasswordRecover(mockClient, email)
+		statusCode, response := services.PasswordRecover(mockClient, &transfert.Client{
+			Email: &email,
+		})
 		assert.Equal(t, fiber.StatusNoContent, statusCode)
 		assert.Nil(t, response)
 	})
@@ -293,7 +347,9 @@ func TestPasswordRecover(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("PasswordRecover", mock.Anything).Return(fmt.Errorf("boom"))
 
-		statusCode, response := services.PasswordRecover(mockClient, email)
+		statusCode, response := services.PasswordRecover(mockClient, &transfert.Client{
+			Email: &email,
+		})
 		assert.Equal(t, http.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -302,7 +358,9 @@ func TestPasswordRecover(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("PasswordRecover", mock.Anything).Return(fmt.Errorf(errors.ErrClientNotFound))
 
-		statusCode, response := services.PasswordRecover(mockClient, email)
+		statusCode, response := services.PasswordRecover(mockClient, &transfert.Client{
+			Email: &email,
+		})
 		assert.Equal(t, http.StatusNotFound, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -317,7 +375,16 @@ func TestPasswordUpdate(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("PasswordUpdate", mock.Anything).Return(fmt.Errorf("invalid email"))
 
-		statusCode, response := services.PasswordUpdate(mockClient, emailSyntaxFail, password, "token")
+		ClientDTO := &transfert.Client{
+			Email:    &emailSyntaxFail,
+			Password: &password,
+		}
+
+		ValidationDTO := &transfert.Validation{
+			Token: aws.String("token"),
+		}
+
+		statusCode, response := services.PasswordUpdate(mockClient, ValidationDTO, ClientDTO)
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -328,7 +395,16 @@ func TestPasswordUpdate(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("PasswordUpdate", mock.Anything).Return(fmt.Errorf("invalid password"))
 
-		statusCode, response := services.PasswordUpdate(mockClient, email, passwordSyntaxFail, "token")
+		ClientDTO := &transfert.Client{
+			Email:    &email,
+			Password: &passwordSyntaxFail,
+		}
+
+		ValidationDTO := &transfert.Validation{
+			Token: aws.String("token"),
+		}
+
+		statusCode, response := services.PasswordUpdate(mockClient, ValidationDTO, ClientDTO)
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -339,7 +415,16 @@ func TestPasswordUpdate(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("PasswordUpdate", mock.Anything).Return(fmt.Errorf("invalid password"))
 
-		statusCode, response := services.PasswordUpdate(mockClient, email, password, "token")
+		ClientDTO := &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		}
+
+		ValidationDTO := &transfert.Validation{
+			Token: aws.String("token"),
+		}
+
+		statusCode, response := services.PasswordUpdate(mockClient, ValidationDTO, ClientDTO)
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -353,7 +438,16 @@ func TestPasswordUpdate(t *testing.T) {
 
 		luhn := token.Generate(6)
 
-		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		ClientDTO := &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		}
+
+		ValidationDTO := &transfert.Validation{
+			Token: luhn.PointerString(),
+		}
+
+		statusCode, response := services.PasswordUpdate(mockClient, ValidationDTO, ClientDTO)
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -367,7 +461,16 @@ func TestPasswordUpdate(t *testing.T) {
 
 		luhn := token.Generate(6)
 
-		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		ClientDTO := &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		}
+
+		ValidationDTO := &transfert.Validation{
+			Token: luhn.PointerString(),
+		}
+
+		statusCode, response := services.PasswordUpdate(mockClient, ValidationDTO, ClientDTO)
 		assert.Equal(t, fiber.StatusConflict, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -380,8 +483,16 @@ func TestPasswordUpdate(t *testing.T) {
 		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationExpired))
 
 		luhn := token.Generate(6)
+		ClientDTO := &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		}
 
-		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		ValidationDTO := &transfert.Validation{
+			Token: luhn.PointerString(),
+		}
+
+		statusCode, response := services.PasswordUpdate(mockClient, ValidationDTO, ClientDTO)
 		assert.Equal(t, fiber.StatusGone, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -395,7 +506,16 @@ func TestPasswordUpdate(t *testing.T) {
 
 		luhn := token.Generate(6)
 
-		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		ClientDTO := &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		}
+
+		ValidationDTO := &transfert.Validation{
+			Token: luhn.PointerString(),
+		}
+
+		statusCode, response := services.PasswordUpdate(mockClient, ValidationDTO, ClientDTO)
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -409,7 +529,16 @@ func TestPasswordUpdate(t *testing.T) {
 
 		luhn := token.Generate(6)
 
-		statusCode, response := services.PasswordUpdate(mockClient, email, password, luhn.String())
+		ClientDTO := &transfert.Client{
+			Email:    &email,
+			Password: &password,
+		}
+
+		ValidationDTO := &transfert.Validation{
+			Token: luhn.PointerString(),
+		}
+
+		statusCode, response := services.PasswordUpdate(mockClient, ValidationDTO, ClientDTO)
 		assert.Equal(t, http.StatusInternalServerError, statusCode)
 		assert.NotNil(t, response)
 	})

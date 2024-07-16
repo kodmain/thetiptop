@@ -334,7 +334,7 @@ func TestCreateValidationRepository(t *testing.T) {
 
 	// Données de transfert pour créer une validation
 	dto := &transfert.Validation{
-		Token:    &luhn,
+		Token:    luhn.PointerString(),
 		ClientID: aws.String(uuid),
 	}
 
@@ -413,7 +413,7 @@ func TestReadValidationRepository(t *testing.T) {
 
 	// Données de transfert pour lire une validation
 	dto := &transfert.Validation{
-		Token:    &luhn,
+		Token:    luhn.PointerString(),
 		ClientID: aws.String(uuid),
 	}
 
@@ -426,7 +426,7 @@ func TestReadValidationRepository(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.NotNil(t, entity)
-		assert.Equal(t, dto.Token.String(), entity.Token.String())
+		assert.Equal(t, *dto.Token, entity.Token.String())
 
 		err = mock.ExpectationsWereMet()
 		assert.NoError(t, err)
@@ -544,7 +544,7 @@ func TestDeleteValidationRepository(t *testing.T) {
 
 	luhn := token.Generate(6)
 	dto := &transfert.Validation{
-		Token:    &luhn,
+		Token:    luhn.PointerString(),
 		ClientID: aws.String("client-id"),
 	}
 
