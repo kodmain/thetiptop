@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/kodmain/thetiptop/api/internal/application/services"
+	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 
 	"github.com/kodmain/thetiptop/api/internal/domain/client/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/client/services"
@@ -24,13 +25,16 @@ import (
 // @Router		/sign/up [post]
 // @Id			client.SignUp
 func SignUp(c *fiber.Ctx) error {
+	dto := &transfert.Client{}
+	if err := c.BodyParser(dto); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
 	status, response := services.SignUp(
 		domain.Client(
 			repositories.NewClientRepository(database.Get()),
 			mail.Get(),
-		),
-		c.FormValue("email"),
-		c.FormValue("password"),
+		), dto,
 	)
 
 	return c.Status(status).JSON(response)
@@ -50,13 +54,21 @@ func SignUp(c *fiber.Ctx) error {
 // @Router		/sign/validation [put]
 // @Id			client.SignValidation
 func SignValidation(c *fiber.Ctx) error {
+	dtoClient := &transfert.Client{}
+	if err := c.BodyParser(dtoClient); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	dtoValidation := &transfert.Validation{}
+	if err := c.BodyParser(dtoValidation); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
 	status, response := services.SignValidation(
 		domain.Client(
 			repositories.NewClientRepository(database.Get()),
 			mail.Get(),
-		),
-		c.FormValue("email"),
-		c.FormValue("token"),
+		), dtoValidation, dtoClient,
 	)
 
 	return c.Status(status).JSON(response)
@@ -73,13 +85,16 @@ func SignValidation(c *fiber.Ctx) error {
 // @Router		/sign/in [post]
 // @Id			client.SignIn
 func SignIn(c *fiber.Ctx) error {
+	dto := &transfert.Client{}
+	if err := c.BodyParser(dto); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
 	status, response := services.SignIn(
 		domain.Client(
 			repositories.NewClientRepository(database.Get()),
 			mail.Get(),
-		),
-		c.FormValue("email"),
-		c.FormValue("password"),
+		), dto,
 	)
 
 	return c.Status(status).JSON(response)
@@ -118,12 +133,16 @@ func SignRenew(c *fiber.Ctx) error {
 // @Router		/password/recover [post]
 // @Id			client.PasswordRecover
 func PasswordRecover(c *fiber.Ctx) error {
+	dto := &transfert.Client{}
+	if err := c.BodyParser(dto); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
 	status, response := services.PasswordRecover(
 		domain.Client(
 			repositories.NewClientRepository(database.Get()),
 			mail.Get(),
-		),
-		c.FormValue("email"),
+		), dto,
 	)
 
 	return c.Status(status).JSON(response)
@@ -144,14 +163,21 @@ func PasswordRecover(c *fiber.Ctx) error {
 // @Router		/password/update [put]
 // @Id			client.PasswordUpdate
 func PasswordUpdate(c *fiber.Ctx) error {
+	dtoClient := &transfert.Client{}
+	if err := c.BodyParser(dtoClient); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	dtoValidation := &transfert.Validation{}
+	if err := c.BodyParser(dtoValidation); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
 	status, response := services.PasswordUpdate(
 		domain.Client(
 			repositories.NewClientRepository(database.Get()),
 			mail.Get(),
-		),
-		c.FormValue("email"),
-		c.FormValue("password"),
-		c.FormValue("token"),
+		), dtoValidation, dtoClient,
 	)
 
 	return c.Status(status).JSON(response)

@@ -5,12 +5,18 @@ import (
 
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 )
 
 type Validation struct {
-	Token    *token.Luhn `json:"token"`
-	ClientID *string     `json:"client_id"`
+	Token    *string `json:"token" xml:"token" form:"token"`
+	ClientID *string `json:"client_id" xml:"client_id" form:"client_id"`
+}
+
+func (v *Validation) Check(validator data.Validator) error {
+	return validator.Check(data.Object{
+		"token":     v.Token,
+		"client_id": v.ClientID,
+	})
 }
 
 func NewValidation(obj data.Object, mandatory data.Validator) (*Validation, error) {
