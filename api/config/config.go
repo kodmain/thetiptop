@@ -85,11 +85,12 @@ func Load(path *string) error {
 
 	switch {
 	case strings.HasPrefix(*path, "s3://"):
-		fileContents, err = loadFromS3(*path)
+		workingDir, err = os.Getwd()
 		if err != nil {
 			return err
 		}
-		workingDir, err = os.Getwd()
+
+		fileContents, err = loadFromS3(*path)
 		if err != nil {
 			return err
 		}
