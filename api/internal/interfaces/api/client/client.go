@@ -107,6 +107,7 @@ func SignIn(c *fiber.Ctx) error {
 // @Failure		400	{object}	nil "Invalid token"
 // @Failure		401	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
+// @Param 		Authorization header string true "With the bearer started"
 // @Router		/sign/renew [get]
 // @Id			client.SignRenew
 func SignRenew(c *fiber.Ctx) error {
