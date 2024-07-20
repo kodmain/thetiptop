@@ -85,8 +85,6 @@ func start(http, https int) error {
 	env.PORT_HTTP = &env.DEFAULT_PORT_HTTP
 	env.PORT_HTTPS = &env.DEFAULT_PORT_HTTPS
 	config.Load(aws.String("../../../../config.test.yml"))
-	logger.Info(config.Get(" providers.databases.default.dbname"))
-
 	logger.Info("starting application")
 	srv = server.Create()
 
