@@ -15,11 +15,12 @@ providers:
   databases:
     default:
       protocol: sqlite
-      dbname: ':memory:'
+      dbname: ':memory:' # we need memory for test
+      #dbname: ${PWD}/../.build/db.sqlite #uncomment this line to use a file
 
 security:
   validation:
-    expire: 1m
+    expire: 30m
   jwt: 
     #tz: Europe/Paris
     secret: secret

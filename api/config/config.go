@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -80,17 +81,33 @@ func Load(path *string) error {
 
 	var fileContents []byte
 	var err error
+	var workingDir string
 
 	switch {
 	case strings.HasPrefix(*path, "s3://"):
+		workingDir, err = os.Getwd()
+		if err != nil {
+			return err
+		}
+
 		fileContents, err = loadFromS3(*path)
+		if err != nil {
+			return err
+		}
 	default:
 		fileContents, err = os.ReadFile(*path)
+		if err != nil {
+			return err
+		}
+		abs, err := filepath.Abs(*path)
+		if err != nil {
+			return err
+		}
+
+		workingDir = filepath.Dir(abs)
 	}
 
-	if err != nil {
-		return err
-	}
+	fileContents = []byte(strings.ReplaceAll(string(fileContents), "${PWD}", workingDir))
 
 	cfg = &Config{}
 	err = yaml.Unmarshal(fileContents, cfg)

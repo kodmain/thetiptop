@@ -102,6 +102,12 @@ paths:
       consumes:
       - '*/*'
       operationId: client.SignRenew
+      parameters:
+      - description: With the bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:

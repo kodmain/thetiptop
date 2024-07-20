@@ -165,6 +165,15 @@ const docTemplate = `{
                     "Sign"
                 ],
                 "operationId": "client.SignRenew",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "JWT token renewed"

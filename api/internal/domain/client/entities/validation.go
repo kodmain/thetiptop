@@ -13,14 +13,14 @@ import (
 
 type Validation struct {
 	// gorm model
-	ID        string         `gorm:"type:varchar(36);primaryKey;"`
+	ID        string         `gorm:"type:varchar(36);primaryKey;" json:"id"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	// entity
-	Token     *token.Luhn    `gorm:"type:varchar(6);index"`
-	Type      ValidationType `gorm:"type:varchar(10)"`
-	Validated bool           `gorm:"type:boolean;default:false"`
+	Token     *token.Luhn    `gorm:"type:varchar(6);index" json:"token"`
+	Type      ValidationType `gorm:"type:varchar(10)" json:"type"`
+	Validated bool           `gorm:"type:boolean;default:false" json:"validated"`
 	ClientID  *string        `gorm:"type:varchar(36)" json:"-"`
 	ExpiresAt time.Time      `json:"-"`
 }
