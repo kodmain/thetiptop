@@ -12,17 +12,17 @@ import (
 
 type Client struct {
 	// Gorm model
-	ID        string          `gorm:"type:varchar(36);primaryKey;"`
+	ID        string          `gorm:"type:varchar(36);primaryKey;" json:"id"`
 	CreatedAt time.Time       `json:"-"`
 	UpdatedAt time.Time       `json:"-"`
 	DeletedAt *gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Entity
-	Email       *string     `gorm:"type:varchar(320);uniqueIndex"`
+	Email       *string     `gorm:"type:varchar(320);uniqueIndex" json:"email"`
 	Password    *string     `gorm:"type:varchar(255)" json:"-"` // private field
 	Validations Validations `gorm:"foreignKey:ClientID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
-	CGU         *bool       `gorm:"type:boolean;default:false"`
-	Newsletter  *bool       `gorm:"type:boolean;default:false"`
+	CGU         *bool       `gorm:"type:boolean;default:false" json:"cgu"`
+	Newsletter  *bool       `gorm:"type:boolean;default:false" json:"newsletter"`
 }
 
 func (client *Client) HasSuccessValidation(validationType ValidationType) *Validation {
