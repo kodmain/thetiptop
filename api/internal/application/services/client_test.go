@@ -193,7 +193,7 @@ func TestSignIn(t *testing.T) {
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
 
-		tokenJWT, ok := response["jwt"].(string)
+		tokenJWT, ok := response.(string)
 		assert.True(t, ok)
 
 		access, err := jwt.TokenToClaims(tokenJWT)
@@ -203,7 +203,7 @@ func TestSignIn(t *testing.T) {
 		statusCode, response = services.SignRenew(access)
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, "Invalid token type", response["error"])
+		assert.Equal(t, "invalid token type", response.(error).Error())
 
 		assert.False(t, access.HasExpired()) // Le jeton ne doit pas être expiré
 		assert.NotNil(t, access.Refresh)     // Le jeton doit avoir un jeton de rafraîchissement
@@ -255,7 +255,7 @@ func TestSignValidation(t *testing.T) {
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, "invalid digit", response["error"])
+		assert.Equal(t, "invalid digit", response.(error).Error())
 	})
 
 	t.Run("valid token, email", func(t *testing.T) {
@@ -286,7 +286,7 @@ func TestSignValidation(t *testing.T) {
 		})
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, errors.ErrValidationNotFound, response["error"])
+		assert.Equal(t, errors.ErrValidationNotFound, response.(error).Error())
 	})
 
 	t.Run("validation already validated", func(t *testing.T) {
@@ -300,7 +300,7 @@ func TestSignValidation(t *testing.T) {
 		})
 		assert.Equal(t, fiber.StatusConflict, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, errors.ErrValidationAlreadyValidated, response["error"])
+		assert.Equal(t, errors.ErrValidationAlreadyValidated, response.(error).Error())
 	})
 
 	t.Run("validation already validated", func(t *testing.T) {
@@ -314,7 +314,7 @@ func TestSignValidation(t *testing.T) {
 		})
 		assert.Equal(t, fiber.StatusGone, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, errors.ErrValidationExpired, response["error"])
+		assert.Equal(t, errors.ErrValidationExpired, response.(error).Error())
 	})
 }
 
