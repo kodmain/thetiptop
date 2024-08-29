@@ -97,24 +97,29 @@ func TestEmail(t *testing.T) {
 func TestLuhn(t *testing.T) {
 	tests := []struct {
 		name    string
-		value   string
+		value   *string
 		wantErr bool
 	}{
 		{
 			name:    "Valid Luhn",
-			value:   "378282246310005",
+			value:   aws.String("378282246310005"),
 			wantErr: false,
 		},
 		{
 			name:    "Invalid Luhn",
-			value:   "123456789012345",
+			value:   aws.String("123456789012345"),
+			wantErr: true,
+		},
+		{
+			name:    "Empty Luhn",
+			value:   nil,
 			wantErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Luhn(&tt.value)
+			err := validator.Luhn(tt.value)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
