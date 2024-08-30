@@ -224,6 +224,86 @@ func TestIsBool(t *testing.T) {
 	}
 }
 
+func TestIsTrue(t *testing.T) {
+	tests := []struct {
+		name    string
+		boolean *string
+		wantErr bool
+	}{
+		{
+			name:    "Valid true boolean",
+			boolean: aws.String("true"),
+			wantErr: false,
+		},
+		{
+			name:    "Valid 1 boolean",
+			boolean: aws.String("1"),
+			wantErr: false,
+		},
+		{
+			name:    "Invalid boolean",
+			boolean: aws.String("invalid"),
+			wantErr: true,
+		},
+		{
+			name:    "Empty boolean",
+			boolean: nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validator.IsTrue(tt.boolean)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestIsFalse(t *testing.T) {
+	tests := []struct {
+		name    string
+		boolean *string
+		wantErr bool
+	}{
+		{
+			name:    "Valid false boolean",
+			boolean: aws.String("false"),
+			wantErr: false,
+		},
+		{
+			name:    "Valid 0 boolean",
+			boolean: aws.String("0"),
+			wantErr: false,
+		},
+		{
+			name:    "Invalid boolean",
+			boolean: aws.String("invalid"),
+			wantErr: true,
+		},
+		{
+			name:    "Empty boolean",
+			boolean: nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validator.IsFalse(tt.boolean)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestRequired(t *testing.T) {
 	tests := []struct {
 		name    string
