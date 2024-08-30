@@ -8,14 +8,18 @@ import (
 )
 
 type Client struct {
-	Email    *string `json:"email" xml:"email" form:"email"`
-	Password *string `json:"password" xml:"password" form:"password"`
+	Email      *string `json:"email" xml:"email" form:"email"`
+	Password   *string `json:"password" xml:"password" form:"password"`
+	Newsletter *string `json:"newsletter" xml:"newsletter" form:"newsletter"`
+	CGU        *string `json:"cgu" xml:"cgu" form:"cgu"`
 }
 
 func (c *Client) Check(validator data.Validator) error {
 	return validator.Check(data.Object{
-		"email":    c.Email,
-		"password": c.Password,
+		"email":      c.Email,
+		"password":   c.Password,
+		"newsletter": c.Newsletter,
+		"cgu":        c.CGU,
 	})
 }
 

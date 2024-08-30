@@ -14,8 +14,10 @@ import (
 
 func SignUp(service services.ClientServiceInterface, clientDTO *transfert.Client) (int, any) {
 	err := clientDTO.Check(data.Validator{
-		"email":    {validator.Required, validator.Email},
-		"password": {validator.Required, validator.Password},
+		"email":      {validator.Required, validator.Email},
+		"password":   {validator.Required, validator.Password},
+		"newsletter": {validator.Required, validator.IsBool},
+		"cgu":        {validator.Required, validator.IsBool, validator.IsTrue},
 	})
 
 	if err != nil {
