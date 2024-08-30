@@ -73,10 +73,6 @@ type Email struct {
 	} `json:"calculatedBcc"`
 }
 
-type TokenStructure struct {
-	JWT string `json:"jwt"`
-}
-
 var srv *server.Server
 
 func start(http, https int) error {
@@ -344,10 +340,9 @@ func TestClient(t *testing.T) {
 
 				if status == http.StatusCreated {
 					t.Run("Validation/"+encodingName, func(t *testing.T) {
-						var clientWrapper map[string]entities.Client
-						err = json.Unmarshal(RegisteredClient, &clientWrapper)
+						var client entities.Client
+						err = json.Unmarshal(RegisteredClient, &client)
 						assert.NoError(t, err)
-						client := clientWrapper["client"]
 						assert.NotNil(t, client)
 						time.Sleep(1 * time.Second)
 						email, err := getMailFor(user.email)
@@ -370,11 +365,11 @@ func TestClient(t *testing.T) {
 
 				if status == http.StatusOK {
 					t.Run("Renew/"+encodingName, func(t *testing.T) {
-						var tokenData TokenStructure
+						var tokenData string
 						err = json.Unmarshal(JWT, &tokenData)
 						assert.Nil(t, err)
 
-						access, err := serializer.TokenToClaims(tokenData.JWT)
+						access, err := serializer.TokenToClaims(tokenData)
 						assert.Nil(t, err)
 
 						users := []struct {
