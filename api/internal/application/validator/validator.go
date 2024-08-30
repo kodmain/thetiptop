@@ -28,8 +28,8 @@ func Email(email *string) error {
 }
 
 func Luhn(value *string) error {
-	if value == nil {
-		return errors.New("value is required")
+	if err := Required(value); err != nil {
+		return err
 	}
 
 	luhn := token.Luhn(*value)
