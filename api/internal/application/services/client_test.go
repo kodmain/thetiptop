@@ -25,6 +25,8 @@ var (
 	password           = "validP@ssw0rd"
 	passwordFail       = "WrongP@ssw0rd"
 	passwordSyntaxFail = "secret"
+	trueValue          = aws.String("true")
+	falseValue         = aws.String("false")
 
 	ExpiredAccessToken  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDgyMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJyZWZyZXNoIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmxlSEFpT2pFM01UTXhNRGt4TXpFc0ltbGtJam9pTjJNM09UUXdNR1l0TURBMllTMDBOelZsTFRrM1lqWXROV1JpWkdVek56QTNOakF4SWl3aWIyWm1Jam8zTWpBd0xDSjBlWEJsSWpveExDSjBlaUk2SWt4dlkyRnNJbjAuNUxhZTU2SE5jUTFPSGNQX0ZoVGZjT090SHBhWlZnUkZ5NnZ6ekJ1Z043WSIsInR5cGUiOjAsInR6IjoiTG9jYWwifQ.BxW2wfHiiCr0aTsuWwRVmh0Wd-BX20AoUDTGg_rIDoM"
 	ExpiredRefreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y"
@@ -79,13 +81,30 @@ func (dcs DomainClientService) PasswordUpdate(client *transfert.Client) error {
 func TestClient(t *testing.T) {
 	config.Load(aws.String("../../../config.test.yml"))
 
+	t.Run("cgu declined", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		mockClient.On("SignUp", mock.Anything).Return(&entities.Client{}, nil)
+
+		statusCode, response := services.SignUp(mockClient, &transfert.Client{
+			Email:      &email,
+			Password:   &password,
+			Newsletter: falseValue,
+			CGU:        falseValue,
+		})
+
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
+
 	t.Run("invalid password", func(t *testing.T) {
 		mockClient := new(DomainClientService)
 		mockClient.On("SignUp", mock.Anything).Return(&entities.Client{}, nil)
 
 		statusCode, response := services.SignUp(mockClient, &transfert.Client{
-			Email:    &email,
-			Password: &passwordSyntaxFail,
+			Email:      &email,
+			Password:   &passwordSyntaxFail,
+			Newsletter: falseValue,
+			CGU:        trueValue,
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
@@ -96,9 +115,12 @@ func TestClient(t *testing.T) {
 		mockClient.On("SignUp", mock.Anything).Return(&entities.Client{}, nil)
 
 		statusCode, response := services.SignUp(mockClient, &transfert.Client{
-			Email:    &email,
-			Password: &password,
+			Email:      &email,
+			Password:   &password,
+			Newsletter: trueValue,
+			CGU:        trueValue,
 		})
+
 		assert.Equal(t, fiber.StatusCreated, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -108,8 +130,10 @@ func TestClient(t *testing.T) {
 		mockClient.On("SignUp", mock.Anything).Return(nil, fmt.Errorf(errors.ErrClientAlreadyExists))
 
 		statusCode, response := services.SignUp(mockClient, &transfert.Client{
-			Email:    &email,
-			Password: &password,
+			Email:      &email,
+			Password:   &password,
+			Newsletter: trueValue,
+			CGU:        trueValue,
 		})
 		assert.Equal(t, fiber.StatusConflict, statusCode)
 		assert.NotNil(t, response)
@@ -120,8 +144,10 @@ func TestClient(t *testing.T) {
 		mockClient.On("SignUp", mock.Anything).Return(nil, fmt.Errorf("boom"))
 
 		statusCode, response := services.SignUp(mockClient, &transfert.Client{
-			Email:    &email,
-			Password: &password,
+			Email:      &email,
+			Password:   &password,
+			Newsletter: trueValue,
+			CGU:        trueValue,
 		})
 		assert.Equal(t, http.StatusInternalServerError, statusCode)
 		assert.NotNil(t, response)
@@ -135,8 +161,10 @@ func TestSignIn(t *testing.T) {
 		mockClient.On("SignIn", mock.Anything).Return(&entities.Client{}, nil)
 
 		statusCode, response := services.SignIn(mockClient, &transfert.Client{
-			Email:    &email,
-			Password: &passwordSyntaxFail,
+			Email:      &email,
+			Password:   &passwordSyntaxFail,
+			Newsletter: trueValue,
+			CGU:        trueValue,
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
@@ -147,8 +175,10 @@ func TestSignIn(t *testing.T) {
 		mockClient.On("SignIn", mock.Anything).Return(&entities.Client{}, nil)
 
 		statusCode, response := services.SignIn(mockClient, &transfert.Client{
-			Email:    &emailSyntaxFail,
-			Password: &password,
+			Email:      &emailSyntaxFail,
+			Password:   &password,
+			Newsletter: trueValue,
+			CGU:        trueValue,
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
@@ -159,8 +189,10 @@ func TestSignIn(t *testing.T) {
 		mockClient.On("SignIn", mock.Anything).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
 
 		statusCode, response := services.SignIn(mockClient, &transfert.Client{
-			Email:    &email,
-			Password: &password,
+			Email:      &email,
+			Password:   &password,
+			Newsletter: trueValue,
+			CGU:        trueValue,
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
@@ -171,8 +203,10 @@ func TestSignIn(t *testing.T) {
 		mockClient.On("SignIn", mock.Anything).Return(nil, fmt.Errorf("fail to log in"))
 
 		statusCode, response := services.SignIn(mockClient, &transfert.Client{
-			Email:    &email,
-			Password: &passwordFail,
+			Email:      &email,
+			Password:   &passwordFail,
+			Newsletter: trueValue,
+			CGU:        trueValue,
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
@@ -187,8 +221,10 @@ func TestSignIn(t *testing.T) {
 		}, nil)
 
 		statusCode, response := services.SignIn(mockClient, &transfert.Client{
-			Email:    &email,
-			Password: &password,
+			Email:      &email,
+			Password:   &password,
+			Newsletter: trueValue,
+			CGU:        trueValue,
 		})
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
@@ -232,8 +268,10 @@ func TestSignIn(t *testing.T) {
 		mockClient.On("SignIn", mock.Anything).Return(nil, fmt.Errorf("boom"))
 
 		statusCode, response := services.SignIn(mockClient, &transfert.Client{
-			Email:    &email,
-			Password: &password,
+			Email:      &email,
+			Password:   &password,
+			Newsletter: trueValue,
+			CGU:        trueValue,
 		})
 		assert.Equal(t, http.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)

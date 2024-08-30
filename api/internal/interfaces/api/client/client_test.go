@@ -330,8 +330,10 @@ func TestClient(t *testing.T) {
 		t.Run("SignUp/"+encodingName, func(t *testing.T) {
 			for _, user := range users {
 				values := map[string][]string{
-					"email":    {user.email},
-					"password": {user.password},
+					"email":      {user.email},
+					"password":   {user.password},
+					"newsletter": {"true"},
+					"cgu":        {"true"},
 				}
 
 				RegisteredClient, status, err := request("POST", "http://localhost:8888/sign/up", "", encoding, values)
