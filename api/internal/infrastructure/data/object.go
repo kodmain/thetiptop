@@ -2,9 +2,9 @@ package data
 
 import "encoding/json"
 
-type Object map[string]*string
+type Object map[string]any
 
-func (d Object) Get(key string) *string {
+func (d Object) Get(key string) any {
 	if value, ok := d[key]; ok {
 		return value
 	}
