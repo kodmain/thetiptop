@@ -10,8 +10,8 @@ import (
 type Client struct {
 	Email      *string `json:"email" xml:"email" form:"email"`
 	Password   *string `json:"password" xml:"password" form:"password"`
-	Newsletter *string `json:"newsletter" xml:"newsletter" form:"newsletter"`
-	CGU        *string `json:"cgu" xml:"cgu" form:"cgu"`
+	Newsletter *bool   `json:"newsletter" xml:"newsletter" form:"newsletter"`
+	CGU        *bool   `json:"cgu" xml:"cgu" form:"cgu"`
 }
 
 func (c *Client) Check(validator data.Validator) error {

@@ -59,7 +59,7 @@ func TestPassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Password(tt.password)
+			err := validator.Password(tt.password, "password")
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -94,7 +94,7 @@ func TestEmail(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Email(tt.email)
+			err := validator.Email(tt.email, "email")
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -129,7 +129,7 @@ func TestLuhn(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Luhn(tt.value)
+			err := validator.Luhn(tt.value, "token")
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -164,7 +164,7 @@ func TestID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.ID(tt.uuid)
+			err := validator.ID(tt.uuid, "id")
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -177,33 +177,18 @@ func TestID(t *testing.T) {
 func TestIsBool(t *testing.T) {
 	tests := []struct {
 		name    string
-		boolean *string
+		boolean *bool
 		wantErr bool
 	}{
 		{
 			name:    "Valid true boolean",
-			boolean: aws.String("true"),
-			wantErr: false,
-		},
-		{
-			name:    "Valid 1 boolean",
-			boolean: aws.String("1"),
+			boolean: aws.Bool(true),
 			wantErr: false,
 		},
 		{
 			name:    "Valid false boolean",
-			boolean: aws.String("false"),
+			boolean: aws.Bool(false),
 			wantErr: false,
-		},
-		{
-			name:    "Valid 0 boolean",
-			boolean: aws.String("0"),
-			wantErr: false,
-		},
-		{
-			name:    "Invalid boolean",
-			boolean: aws.String("invalid"),
-			wantErr: true,
 		},
 		{
 			name:    "Empty boolean",
@@ -214,7 +199,7 @@ func TestIsBool(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.IsBool(tt.boolean)
+			err := validator.IsBool(tt.boolean, "boolean")
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -227,22 +212,17 @@ func TestIsBool(t *testing.T) {
 func TestIsTrue(t *testing.T) {
 	tests := []struct {
 		name    string
-		boolean *string
+		boolean *bool
 		wantErr bool
 	}{
 		{
 			name:    "Valid true boolean",
-			boolean: aws.String("true"),
+			boolean: aws.Bool(true),
 			wantErr: false,
 		},
 		{
-			name:    "Valid 1 boolean",
-			boolean: aws.String("1"),
-			wantErr: false,
-		},
-		{
-			name:    "Invalid boolean",
-			boolean: aws.String("invalid"),
+			name:    "Invalid false boolean",
+			boolean: aws.Bool(false),
 			wantErr: true,
 		},
 		{
@@ -254,7 +234,7 @@ func TestIsTrue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.IsTrue(tt.boolean)
+			err := validator.IsTrue(tt.boolean, "boolean")
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -267,23 +247,19 @@ func TestIsTrue(t *testing.T) {
 func TestIsFalse(t *testing.T) {
 	tests := []struct {
 		name    string
-		boolean *string
+		boolean *bool
 		wantErr bool
 	}{
+
+		{
+			name:    "Invalid true boolean",
+			boolean: aws.Bool(true),
+			wantErr: true,
+		},
 		{
 			name:    "Valid false boolean",
-			boolean: aws.String("false"),
+			boolean: aws.Bool(false),
 			wantErr: false,
-		},
-		{
-			name:    "Valid 0 boolean",
-			boolean: aws.String("0"),
-			wantErr: false,
-		},
-		{
-			name:    "Invalid boolean",
-			boolean: aws.String("invalid"),
-			wantErr: true,
 		},
 		{
 			name:    "Empty boolean",
@@ -294,7 +270,7 @@ func TestIsFalse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.IsFalse(tt.boolean)
+			err := validator.IsFalse(tt.boolean, "boolean")
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -324,7 +300,7 @@ func TestRequired(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validator.Required(tt.value)
+			err := validator.Required(tt.value, "value")
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

@@ -25,8 +25,8 @@ var (
 	password           = "validP@ssw0rd"
 	passwordFail       = "WrongP@ssw0rd"
 	passwordSyntaxFail = "secret"
-	trueValue          = aws.String("true")
-	falseValue         = aws.String("false")
+	trueValue          = aws.Bool(true)
+	falseValue         = aws.Bool(false)
 
 	ExpiredAccessToken  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDgyMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJyZWZyZXNoIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmxlSEFpT2pFM01UTXhNRGt4TXpFc0ltbGtJam9pTjJNM09UUXdNR1l0TURBMllTMDBOelZsTFRrM1lqWXROV1JpWkdVek56QTNOakF4SWl3aWIyWm1Jam8zTWpBd0xDSjBlWEJsSWpveExDSjBlaUk2SWt4dlkyRnNJbjAuNUxhZTU2SE5jUTFPSGNQX0ZoVGZjT090SHBhWlZnUkZ5NnZ6ekJ1Z043WSIsInR5cGUiOjAsInR6IjoiTG9jYWwifQ.BxW2wfHiiCr0aTsuWwRVmh0Wd-BX20AoUDTGg_rIDoM"
 	ExpiredRefreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y"
@@ -239,7 +239,7 @@ func TestSignIn(t *testing.T) {
 		statusCode, response = services.SignRenew(access)
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, "invalid token type", response.(error).Error())
+		assert.Equal(t, "invalid token type", response.(string))
 
 		assert.False(t, access.HasExpired()) // Le jeton ne doit pas être expiré
 		assert.NotNil(t, access.Refresh)     // Le jeton doit avoir un jeton de rafraîchissement
@@ -293,7 +293,7 @@ func TestSignValidation(t *testing.T) {
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, "invalid digit", response.(error).Error())
+		assert.Equal(t, "invalid digit", response.(string))
 	})
 
 	t.Run("valid token, email", func(t *testing.T) {
@@ -324,7 +324,7 @@ func TestSignValidation(t *testing.T) {
 		})
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, errors.ErrValidationNotFound, response.(error).Error())
+		assert.Equal(t, errors.ErrValidationNotFound, response.(string))
 	})
 
 	t.Run("validation already validated", func(t *testing.T) {
@@ -338,7 +338,7 @@ func TestSignValidation(t *testing.T) {
 		})
 		assert.Equal(t, fiber.StatusConflict, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, errors.ErrValidationAlreadyValidated, response.(error).Error())
+		assert.Equal(t, errors.ErrValidationAlreadyValidated, response.(string))
 	})
 
 	t.Run("validation already validated", func(t *testing.T) {
@@ -352,7 +352,7 @@ func TestSignValidation(t *testing.T) {
 		})
 		assert.Equal(t, fiber.StatusGone, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, errors.ErrValidationExpired, response.(error).Error())
+		assert.Equal(t, errors.ErrValidationExpired, response.(string))
 	})
 }
 

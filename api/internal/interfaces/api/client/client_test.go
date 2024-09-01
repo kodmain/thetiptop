@@ -102,11 +102,23 @@ func stop() error {
 //
 // Returns:
 // - url.Values: Les valeurs du formulaire encodées
-func createFormValues(values ...map[string][]string) url.Values {
+func createFormValues(values ...map[string][]any) url.Values {
 	form := url.Values{}
 	if len(values) > 0 {
-		for key, value := range values[0] {
-			form.Set(key, value[0])
+		for key, valueSlice := range values[0] {
+			if len(valueSlice) > 0 {
+				switch v := valueSlice[0].(type) {
+				case string:
+					form.Set(key, v)
+				case int:
+					form.Set(key, fmt.Sprintf("%d", v))
+				case bool:
+					form.Set(key, fmt.Sprintf("%t", v))
+				default:
+					// Gérer les types non supportés
+					form.Set(key, fmt.Sprintf("%v", v))
+				}
+			}
 		}
 	}
 	return form
@@ -127,11 +139,11 @@ const (
 //
 // Returns:
 // - map[string]string: Les valeurs converties en map pour l'encodage JSON
-func convertFormToJSON(form url.Values) map[string]string {
-	jsonMap := make(map[string]string)
+func convertFormToJSON(form map[string][]any) map[string]any {
+	jsonMap := make(map[string]any)
 	for key, values := range form {
 		if len(values) > 0 {
-			jsonMap[key] = values[0]
+			jsonMap[key] = values[0] // Garder le type original (string, int, bool)
 		}
 	}
 	return jsonMap
@@ -149,7 +161,7 @@ func convertFormToJSON(form url.Values) map[string]string {
 // Returns:
 // - *http.Request: La requête HTTP créée
 // - error: L'erreur rencontrée (le cas échéant)
-func createRequest(method, uri, token string, form url.Values, encoding EncodingType) (*http.Request, error) {
+func createRequest(method, uri, token string, form map[string][]any, encoding EncodingType) (*http.Request, error) {
 	var req *http.Request
 	var err error
 
@@ -167,14 +179,16 @@ func createRequest(method, uri, token string, form url.Values, encoding Encoding
 			}
 			req.Header.Set("Content-Type", "application/json")
 		} else {
-			req, err = http.NewRequest(method, uri, strings.NewReader(form.Encode()))
+			formValues := createFormValues(form)
+			req, err = http.NewRequest(method, uri, strings.NewReader(formValues.Encode()))
 			if err != nil {
 				return nil, err
 			}
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 	case http.MethodGet, http.MethodDelete:
-		uri = fmt.Sprintf("%s?%s", uri, form.Encode())
+		formValues := createFormValues(form)
+		uri = fmt.Sprintf("%s?%s", uri, formValues.Encode())
 		req, err = http.NewRequest(method, uri, nil)
 		if err != nil {
 			return nil, err
@@ -206,8 +220,11 @@ func createRequest(method, uri, token string, form url.Values, encoding Encoding
 // - []byte: Le contenu de la réponse
 // - int: Le code de statut HTTP
 // - error: L'erreur rencontrée (le cas échéant)
-func request(method, uri string, token string, encoding EncodingType, values ...map[string][]string) ([]byte, int, error) {
-	form := createFormValues(values...)
+func request(method, uri string, token string, encoding EncodingType, values ...map[string][]any) ([]byte, int, error) {
+	form := map[string][]any{}
+	if len(values) > 0 {
+		form = values[0]
+	}
 	req, err := createRequest(method, uri, token, form, encoding)
 	if err != nil {
 		return nil, 0, err
@@ -329,11 +346,11 @@ func TestClient(t *testing.T) {
 
 		t.Run("SignUp/"+encodingName, func(t *testing.T) {
 			for _, user := range users {
-				values := map[string][]string{
+				values := map[string][]any{
 					"email":      {user.email},
 					"password":   {user.password},
-					"newsletter": {"true"},
-					"cgu":        {"true"},
+					"newsletter": {true},
+					"cgu":        {true},
 				}
 
 				RegisteredClient, status, err := request("POST", "http://localhost:8888/sign/up", "", encoding, values)
@@ -352,7 +369,7 @@ func TestClient(t *testing.T) {
 						assert.Equal(t, user.email, email.To[0].Address)
 						token := extractToken(email.HTML)
 						logger.Info(token)
-						_, status, err = request("PUT", "http://localhost:8888/sign/validation", "", encoding, map[string][]string{
+						_, status, err = request("PUT", "http://localhost:8888/sign/validation", "", encoding, map[string][]any{
 							"token": {token},
 							"email": {user.email},
 						})
@@ -392,14 +409,14 @@ func TestClient(t *testing.T) {
 					})
 
 					t.Run("Password/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", "http://localhost:8888/password/recover", "", encoding, map[string][]string{
+						_, status, err := request("POST", "http://localhost:8888/password/recover", "", encoding, map[string][]any{
 							"email": {user.email + "wrong"},
 						})
 
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusNotFound, status)
 
-						_, status, err = request("POST", "http://localhost:8888/password/recover", "", encoding, map[string][]string{
+						_, status, err = request("POST", "http://localhost:8888/password/recover", "", encoding, map[string][]any{
 							"email": {user.email},
 						})
 
@@ -413,7 +430,7 @@ func TestClient(t *testing.T) {
 						token := extractToken(email.HTML)
 						assert.NotEmpty(t, token)
 
-						_, status, err = request("PUT", "http://localhost:8888/password/update", "", encoding, map[string][]string{
+						_, status, err = request("PUT", "http://localhost:8888/password/update", "", encoding, map[string][]any{
 							"token":    {token},
 							"email":    {user.email},
 							"password": {GOOD_PASS_UPDATED},
@@ -426,7 +443,7 @@ func TestClient(t *testing.T) {
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusBadRequest, status)
 
-						values["password"] = []string{GOOD_PASS_UPDATED}
+						values["password"] = []any{GOOD_PASS_UPDATED}
 						_, status, err = request("POST", "http://localhost:8888/sign/in", "", encoding, values)
 						assert.NoError(t, err)
 						assert.Equal(t, user.statusSI, status)

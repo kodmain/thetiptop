@@ -21,16 +21,16 @@ func SignUp(service services.ClientServiceInterface, clientDTO *transfert.Client
 	})
 
 	if err != nil {
-		return fiber.StatusBadRequest, err
+		return fiber.StatusBadRequest, err.Error()
 	}
 
 	client, err := service.SignUp(clientDTO)
 	if err != nil {
 		if err.Error() == errors.ErrClientAlreadyExists {
-			return fiber.StatusConflict, err
+			return fiber.StatusConflict, err.Error()
 		}
 
-		return fiber.StatusInternalServerError, err
+		return fiber.StatusInternalServerError, err.Error()
 	}
 
 	return fiber.StatusCreated, client
@@ -43,17 +43,17 @@ func SignIn(service services.ClientServiceInterface, clientDTO *transfert.Client
 	})
 
 	if err != nil {
-		return fiber.StatusBadRequest, err
+		return fiber.StatusBadRequest, err.Error()
 	}
 
 	client, err := service.SignIn(clientDTO)
 	if err != nil {
-		return fiber.StatusBadRequest, err
+		return fiber.StatusBadRequest, err.Error()
 	}
 
 	token, err := serializer.FromID(client.ID)
 	if err != nil {
-		return fiber.StatusInternalServerError, err
+		return fiber.StatusInternalServerError, err.Error()
 	}
 
 	return fiber.StatusOK, token
@@ -61,20 +61,20 @@ func SignIn(service services.ClientServiceInterface, clientDTO *transfert.Client
 
 func SignRenew(refresh *serializer.Token) (int, any) {
 	if refresh == nil {
-		return fiber.StatusBadRequest, fmt.Errorf("invalid token")
+		return fiber.StatusBadRequest, fmt.Errorf("invalid token").Error()
 	}
 
 	if refresh.Type != serializer.REFRESH {
-		return fiber.StatusBadRequest, fmt.Errorf("invalid token type")
+		return fiber.StatusBadRequest, fmt.Errorf("invalid token type").Error()
 	}
 
 	if refresh.HasExpired() {
-		return fiber.StatusUnauthorized, fmt.Errorf("refresh token has expired")
+		return fiber.StatusUnauthorized, fmt.Errorf("refresh token has expired").Error()
 	}
 
 	refreshToken, err := serializer.FromID(refresh.ID)
 	if err != nil {
-		return fiber.StatusInternalServerError, err
+		return fiber.StatusInternalServerError, err.Error()
 	}
 
 	return fiber.StatusOK, refreshToken
@@ -86,7 +86,7 @@ func SignValidation(service services.ClientServiceInterface, validationDTO *tran
 	})
 
 	if err != nil {
-		return fiber.StatusBadRequest, err
+		return fiber.StatusBadRequest, err.Error()
 	}
 
 	err = clientDTO.Check(data.Validator{
@@ -94,7 +94,7 @@ func SignValidation(service services.ClientServiceInterface, validationDTO *tran
 	})
 
 	if err != nil {
-		return fiber.StatusBadRequest, err
+		return fiber.StatusBadRequest, err.Error()
 	}
 
 	validation, err := service.SignValidation(validationDTO, clientDTO)
@@ -109,7 +109,7 @@ func SignValidation(service services.ClientServiceInterface, validationDTO *tran
 			status = fiber.StatusGone
 		}
 
-		return status, err
+		return status, err.Error()
 	}
 
 	return fiber.StatusOK, validation
@@ -122,15 +122,15 @@ func PasswordRecover(service services.ClientServiceInterface, clientDTO *transfe
 	})
 
 	if err != nil {
-		return fiber.StatusBadRequest, err
+		return fiber.StatusBadRequest, err.Error()
 	}
 
 	if err = service.PasswordRecover(clientDTO); err != nil {
 		if err.Error() == errors.ErrClientNotFound {
-			return fiber.StatusNotFound, err
+			return fiber.StatusNotFound, err.Error()
 		}
 
-		return fiber.StatusBadRequest, err
+		return fiber.StatusBadRequest, err.Error()
 	}
 
 	return fiber.StatusNoContent, nil
@@ -142,7 +142,7 @@ func PasswordUpdate(service services.ClientServiceInterface, validationDTO *tran
 	})
 
 	if err != nil {
-		return fiber.StatusBadRequest, err
+		return fiber.StatusBadRequest, err.Error()
 	}
 
 	err = clientDTO.Check(data.Validator{
@@ -151,7 +151,7 @@ func PasswordUpdate(service services.ClientServiceInterface, validationDTO *tran
 	})
 
 	if err != nil {
-		return fiber.StatusBadRequest, err
+		return fiber.StatusBadRequest, err.Error()
 	}
 
 	validation, err := service.PasswordValidation(validationDTO, &transfert.Client{
@@ -169,12 +169,12 @@ func PasswordUpdate(service services.ClientServiceInterface, validationDTO *tran
 			status = fiber.StatusGone
 		}
 
-		return status, err
+		return status, err.Error()
 	}
 
 	err = service.PasswordUpdate(clientDTO)
 	if err != nil {
-		return fiber.StatusInternalServerError, err
+		return fiber.StatusInternalServerError, err.Error()
 	}
 
 	return fiber.StatusOK, validation
