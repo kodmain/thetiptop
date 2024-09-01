@@ -2,7 +2,9 @@ package validator
 
 import (
 	"errors"
+	"fmt"
 	"net/mail"
+	"reflect"
 	"strings"
 	"unicode"
 
@@ -14,74 +16,54 @@ const (
 	CANT_BE_NIL = false
 )
 
-func Required(value *string) error {
-	if value == nil {
-		return errors.New("value is required")
+func Required(value any, name string) error {
+	if value == nil || (reflect.ValueOf(value).Kind() == reflect.Ptr && reflect.ValueOf(value).IsNil()) {
+		return fmt.Errorf("value %v is required", name)
 	}
 
 	return nil
 }
 
-func Email(email *string) error {
-	if err := Required(email); err != nil {
+func Email(value any, name string) error {
+	if err := Required(value, name); err != nil {
 		return err
 	}
 
-	_, err := mail.ParseAddress(*email)
+	str := anyToPtrString(value)
+	if str == nil {
+		return fmt.Errorf("%v is not a string", name)
+	}
+
+	_, err := mail.ParseAddress(*str)
 	return err
 }
 
-func IsTrue(value *string) error {
-	if err := Required(value); err != nil {
+func Luhn(value any, name string) error {
+	if err := Required(value, name); err != nil {
 		return err
 	}
 
-	if !(*value == "true" || *value == "1") {
-		return errors.New("value is not true")
+	str := anyToPtrString(value)
+	if str == nil {
+		return fmt.Errorf("%v is not a string", name)
 	}
 
-	return nil
-}
+	luhn := token.Luhn(*str)
 
-func IsFalse(value *string) error {
-	if err := Required(value); err != nil {
-		return err
-	}
-
-	if !(*value == "false" || *value == "0") {
-		return errors.New("value is not false")
-	}
-
-	return nil
-}
-
-func IsBool(value *string) error {
-	if err := Required(value); err != nil {
-		return err
-	}
-
-	if !(*value == "true" || *value == "false" || *value == "0" || *value == "1") {
-		return errors.New("value is not a boolean")
-	}
-
-	return nil
-}
-
-func Luhn(value *string) error {
-	if err := Required(value); err != nil {
-		return err
-	}
-
-	luhn := token.Luhn(*value)
 	return luhn.Validate()
 }
 
-func ID(uuid *string) error {
-	if err := Required(uuid); err != nil {
+func ID(value any, name string) error {
+	if err := Required(value, name); err != nil {
 		return err
 	}
 
-	id := *uuid
+	str := anyToPtrString(value)
+	if str == nil {
+		return fmt.Errorf("%v is not a string", name)
+	}
+
+	id := *str
 	if len(id) != 36 || id[8] != '-' || id[13] != '-' || id[18] != '-' || id[23] != '-' {
 		return errors.New("invalid UUID")
 	}
@@ -89,9 +71,14 @@ func ID(uuid *string) error {
 	return nil
 }
 
-func Password(password *string) error {
-	if err := Required(password); err != nil {
+func Password(value any, name string) error {
+	if err := Required(value, name); err != nil {
 		return err
+	}
+
+	str := anyToPtrString(value)
+	if str == nil {
+		return fmt.Errorf("%v is not a string", name)
 	}
 
 	var (
@@ -102,15 +89,15 @@ func Password(password *string) error {
 		errs       []string
 	)
 
-	if len(*password) < 8 {
+	if len(*str) < 8 {
 		errs = append(errs, "- password is too short")
 	}
 
-	if len(*password) > 64 {
+	if len(*str) > 64 {
 		errs = append(errs, "- password is too long")
 	}
 
-	for _, c := range *password {
+	for _, c := range *str {
 		switch {
 		case unicode.IsLower(c):
 			hasMin = true
@@ -141,6 +128,53 @@ func Password(password *string) error {
 
 	if len(errs) > 0 {
 		return errors.New("invalid password: \n" + strings.Join(errs, "\n"))
+	}
+
+	return nil
+}
+
+func IsTrue(value any, name string) error {
+	if err := Required(value, name); err != nil {
+		return err
+	}
+
+	str := anyToPtrBool(value)
+	if str == nil {
+		return fmt.Errorf("%v is not a boolean", name)
+	}
+
+	if !*str {
+		return fmt.Errorf("%v sould be true", name)
+	}
+
+	return nil
+}
+
+func IsFalse(value any, name string) error {
+	if err := Required(value, name); err != nil {
+		return err
+	}
+
+	str := anyToPtrBool(value)
+	if str == nil {
+		return fmt.Errorf("%v is not a boolean", name)
+	}
+
+	if *str {
+		return fmt.Errorf("%v sould be false", name)
+	}
+
+	return nil
+}
+
+func IsBool(value any, name string) error {
+	if err := Required(value, name); err != nil {
+		return err
+	}
+
+	str := anyToPtrBool(value)
+	if str == nil {
+		return fmt.Errorf("%v is not a boolean", name)
 	}
 
 	return nil

@@ -12,8 +12,13 @@ func TestValidator_Check(t *testing.T) {
 	ns1 := newString("value1")
 	ns2 := newString("value2")
 	// setup control functions
-	successControl := func(value *string) error {
-		if value == nil || *value == "" {
+	successControl := func(value any, name string) error {
+		stringValue, ok := value.(*string)
+		if !ok {
+			return errors.New("value is not a string")
+		}
+
+		if value == nil || *stringValue == "" {
 			return errors.New("value is empty")
 		}
 		return nil

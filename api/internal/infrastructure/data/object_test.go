@@ -16,8 +16,24 @@ func TestObjectGet(t *testing.T) {
 		"key2": &v2,
 	}
 
-	if result1 := obj.Get("key1"); *result1 != v1 {
-		t.Errorf("expected %s, but got %s", v1, *result1)
+	if result1 := obj.Get("key1"); result1 != nil {
+		if str, ok := result1.(*string); ok {
+			if *str != v1 {
+				t.Errorf("expected %s, but got %s", v1, *str)
+			}
+		} else {
+			t.Errorf("expected type *string, but got %T", result1)
+		}
+	}
+
+	if result2 := obj.Get("key2"); result2 != nil {
+		if str, ok := result2.(*string); ok {
+			if *str != v2 {
+				t.Errorf("expected %s, but got %s", v2, *str)
+			}
+		} else {
+			t.Errorf("expected type *string, but got %T", result2)
+		}
 	}
 
 	assert.Nil(t, obj.Get("key3"))
