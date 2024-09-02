@@ -51,12 +51,15 @@ func SignIn(service services.ClientServiceInterface, clientDTO *transfert.Client
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	token, err := serializer.FromID(client.ID)
+	accessToken, refreshToken, err := serializer.FromID(client.ID)
 	if err != nil {
 		return fiber.StatusInternalServerError, err.Error()
 	}
 
-	return fiber.StatusOK, token
+	return fiber.StatusOK, fiber.Map{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+	}
 }
 
 func SignRenew(refresh *serializer.Token) (int, any) {
@@ -72,12 +75,15 @@ func SignRenew(refresh *serializer.Token) (int, any) {
 		return fiber.StatusUnauthorized, fmt.Errorf("refresh token has expired").Error()
 	}
 
-	refreshToken, err := serializer.FromID(refresh.ID)
+	accessToken, refreshToken, err := serializer.FromID(refresh.ID)
 	if err != nil {
 		return fiber.StatusInternalServerError, err.Error()
 	}
 
-	return fiber.StatusOK, refreshToken
+	return fiber.StatusOK, fiber.Map{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+	}
 }
 
 func SignValidation(service services.ClientServiceInterface, validationDTO *transfert.Validation, clientDTO *transfert.Client) (int, any) {
