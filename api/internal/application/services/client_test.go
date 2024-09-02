@@ -13,6 +13,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/stretchr/testify/assert"
@@ -229,10 +230,14 @@ func TestSignIn(t *testing.T) {
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
 
-		tokenJWT, ok := response.(string)
+		logger.Info("response", response)
+		auth, ok := response.(fiber.Map)
 		assert.True(t, ok)
 
-		access, err := jwt.TokenToClaims(tokenJWT)
+		assert.NotNil(t, auth["access_token"])
+		assert.NotNil(t, auth["refresh_token"])
+
+		access, err := jwt.TokenToClaims(auth["access_token"].(string))
 		assert.Nil(t, err)
 		assert.NotNil(t, access)
 
@@ -242,15 +247,14 @@ func TestSignIn(t *testing.T) {
 		assert.Equal(t, "invalid token type", response.(string))
 
 		assert.False(t, access.HasExpired()) // Le jeton ne doit pas être expiré
-		assert.NotNil(t, access.Refresh)     // Le jeton doit avoir un jeton de rafraîchissement
+		//assert.NotNil(t, access.Refresh)     // Le jeton doit avoir un jeton de rafraîchissement
 
-		refresh, err := jwt.TokenToClaims(*access.Refresh)
+		refresh, err := jwt.TokenToClaims(auth["refresh_token"].(string))
 		if err != nil {
 			t.Error(err)
 		}
 
 		assert.False(t, refresh.HasExpired())
-		assert.Nil(t, refresh.Refresh)
 		statusCode, response = services.SignRenew(refresh)
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
