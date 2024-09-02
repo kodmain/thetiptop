@@ -170,18 +170,6 @@ func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
 		return fmt.Errorf(errors.ErrClientNotValidate, entities.MailValidation.String())
 	}
 
-	/*
-		passwordValidation := client.HasNotExpiredValidation(entities.PasswordRecover)
-		if passwordValidation == nil {
-			return fmt.Errorf(errors.ErrValidationExpired, entities.PasswordRecover.String())
-		}
-
-		if passwordValidation.Token.String() != *obj.Token {
-			return fmt.Errorf(errors.ErrValidationTokenNotFound)
-		}
-
-	*/
-
 	password, err := hash.Hash(aws.String(*client.Email+":"+*obj.Password), hash.BCRYPT)
 	if err != nil {
 		return err
