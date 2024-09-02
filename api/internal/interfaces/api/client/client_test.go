@@ -14,11 +14,11 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
-	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/stretchr/testify/assert"
@@ -384,18 +384,15 @@ func TestClient(t *testing.T) {
 
 				if status == http.StatusOK {
 					t.Run("Renew/"+encodingName, func(t *testing.T) {
-						var tokenData string
+						var tokenData fiber.Map
 						err = json.Unmarshal(JWT, &tokenData)
 						assert.Nil(t, err)
-
-						access, err := serializer.TokenToClaims(tokenData)
-						assert.Nil(t, err)
-
+						refresh_token_sting := tokenData["refresh_token"].(string)
 						users := []struct {
 							token  string
 							status int
 						}{
-							{"Bearer " + *access.Refresh, http.StatusOK},
+							{"Bearer " + refresh_token_sting, http.StatusOK},
 							{"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y", http.StatusUnauthorized}, // Replace with actual expired JWT token
 							{"Bearer malformed.jwt.token.here", http.StatusUnauthorized},
 							{"", http.StatusBadRequest},

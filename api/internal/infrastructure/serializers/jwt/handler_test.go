@@ -111,8 +111,10 @@ func TestParser(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, status)
 	assert.Equal(t, "No token", string(content))
 
-	token, err := jwt.FromID("hello")
+	token, refresh, err := jwt.FromID("hello")
 	assert.NoError(t, err)
+	assert.NotEmpty(t, token)
+	assert.NotEmpty(t, refresh)
 
 	content, status, err = request("GET", restricted, token, nil)
 	assert.NoError(t, err)
@@ -136,8 +138,10 @@ func TestParser(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, status)
 	assert.Equal(t, "Invalid token: token has invalid claims: token is expired", string(content))
 
-	realToken, err := jwt.FromID("hello")
+	realToken, refreshToken, err := jwt.FromID("hello")
 	assert.NoError(t, err)
+	assert.NotEmpty(t, realToken)
+	assert.NotEmpty(t, refreshToken)
 
 	jwt.New(&jwt.JWT{
 		Secret: "secret",
