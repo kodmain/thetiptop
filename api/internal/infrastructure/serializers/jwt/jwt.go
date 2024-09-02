@@ -68,10 +68,10 @@ func New(t *JWT) error {
 	return nil
 }
 
-func FromID(id string) (string, error) {
+func FromID(id string) (string, string, error) {
 	location, err := time.LoadLocation(instance.TZ)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	now := time.Now().In(location)
@@ -87,24 +87,24 @@ func FromID(id string) (string, error) {
 
 	refresh, err := token.SignedString([]byte(instance.Secret))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	token = jwt.NewWithClaims(jwt.SigningMethodHS256, Token{
-		ID:      id,
-		Exp:     now.Add(instance.Duration * time.Duration(instance.Expire)).Unix(),
-		TZ:      location.String(),
-		Offset:  offset,
-		Type:    ACCESS,
-		Refresh: &refresh,
+		ID:     id,
+		Exp:    now.Add(instance.Duration * time.Duration(instance.Expire)).Unix(),
+		TZ:     location.String(),
+		Offset: offset,
+		Type:   ACCESS,
+		//Refresh: &refresh,
 	}.Claims())
 
 	access, err := token.SignedString([]byte(instance.Secret))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return access, nil
+	return access, refresh, nil
 }
 
 func TokenToClaims(tokenString string) (*Token, error) {

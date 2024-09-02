@@ -21,9 +21,10 @@ type Token struct {
 	Offset int    `json:"offset"`
 	Type   TYPE   `json:"type"`
 
-	Refresh *string `json:"refresh,omitempty"`
+	//Refresh *string `json:"refresh,omitempty"`
 }
 
+/*
 func (t *Token) HasRefresh() *Token {
 	if t.Refresh == nil {
 		return nil
@@ -36,6 +37,7 @@ func (t *Token) HasRefresh() *Token {
 
 	return token
 }
+*/
 
 func (t *Token) IsNotValid() bool {
 	return t.Type != ACCESS
@@ -67,21 +69,23 @@ func (a Token) Claims() jwt.MapClaims {
 		"type": a.Type,
 	}
 
-	if a.Refresh != nil {
-		claims["refresh"] = a.Refresh
-	}
+	/*
+		if a.Refresh != nil {
+			claims["refresh"] = a.Refresh
+		}
+	*/
 
 	return claims
 }
 
 func fromClaims(claims jwt.MapClaims) *Token {
 	return &Token{
-		ID:      claims["id"].(string),
-		Exp:     convertToInt64(claims["exp"]),
-		TZ:      claims["tz"].(string),
-		Type:    TYPE(convertToInt(claims["type"])),
-		Offset:  convertToInt(claims["off"]),
-		Refresh: convertToStringPointer(claims["refresh"]),
+		ID:     claims["id"].(string),
+		Exp:    convertToInt64(claims["exp"]),
+		TZ:     claims["tz"].(string),
+		Type:   TYPE(convertToInt(claims["type"])),
+		Offset: convertToInt(claims["off"]),
+		//Refresh: convertToStringPointer(claims["refresh"]),
 	}
 }
 
