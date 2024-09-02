@@ -74,7 +74,7 @@ jobs:
           path: .
       
       - name: GitGuardian
-        uses: GitGuardian/ggshield/actions/secret@v1.26.0
+        uses: GitGuardian/ggshield/actions/secret@v1.31.0
         env:
           GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
           GITHUB_PUSH_BASE_SHA: ${{ github.event.base_ref }}
