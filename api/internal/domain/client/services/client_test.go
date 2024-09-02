@@ -282,6 +282,77 @@ func TestSignIn(t *testing.T) {
 	})
 }
 
+func TestValidationRecover(t *testing.T) {
+
+	idClient, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
+	assert.NoError(t, err)
+
+	inputClient := &transfert.Client{
+		Email: aws.String("hello@thetiptop"),
+	}
+
+	expectedClient := &entities.Client{
+		ID:    idClient.String(),
+		Email: inputClient.Email,
+		Validations: []*entities.Validation{
+			{
+				ID:        uuid.New().String(),
+				Type:      entities.MailValidation,
+				Validated: true,
+				ClientID:  aws.String(idClient.String()),
+			},
+		},
+	}
+
+	t.Run("validation recover", func(t *testing.T) {
+		service, mockRepository, mockMailer := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
+		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(nil)
+		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
+		err := service.ValidationRecover(inputClient)
+		require.NoError(t, err)
+	})
+
+	t.Run("client not found", func(t *testing.T) {
+		service, mockRepository, mockMailer := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
+		err := service.ValidationRecover(inputClient)
+		require.Error(t, err)
+	})
+
+	t.Run("client not validated", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		clientWithoutValidation := &entities.Client{
+			ID:          idClient.String(),
+			Email:       inputClient.Email,
+			Validations: []*entities.Validation{},
+		}
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(clientWithoutValidation, nil)
+		err := service.ValidationRecover(inputClient)
+		require.Error(t, err)
+		require.Equal(t, fmt.Errorf(errors.ErrClientNotValidate, entities.MailValidation.String()), err)
+	})
+
+	t.Run("validation update fail", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(fmt.Errorf("failed to update validation"))
+		err := service.ValidationRecover(inputClient)
+		require.Error(t, err)
+	})
+
+	t.Run("client update fail", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(nil)
+		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(fmt.Errorf("failed to update client"))
+		err := service.ValidationRecover(inputClient)
+		require.Error(t, err)
+	})
+}
+
 func TestPasswordRecover(t *testing.T) {
 
 	idClient, err := uuid.Parse("42debee6-2063-4566-baf1-37a7bdd139ff")
