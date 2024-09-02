@@ -16,8 +16,10 @@ import (
 // @Tags		Sign
 // @Accept		multipart/form-data
 // @Produce		application/json
-// @Param		email		formData	string	true	"Email address" format(email)
-// @Param		password	formData	string	true	"Password"
+// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
+// @Param		password	formData	string	true	"Password" default(Aa1@azetyuiop)
+// @Param 		cgu			formData	bool	true	"CGU" default(true)
+// @Param 		newsletter	formData	bool	true	"Newsletter" default(false)
 // @Success		201	{object}	nil "Client created"
 // @Failure		400	{object}	nil "Invalid email or password"
 // @Failure		409	{object}	nil "Client already exists"
@@ -75,10 +77,10 @@ func SignValidation(c *fiber.Ctx) error {
 }
 
 // @Tags		Sign
-// @Accept		*/*
+// @Accept		multipart/form-data
 // @Produce		application/json
-// @Param		email		formData	string	true	"Email address" format(email)
-// @Param		password	formData	string	true	"Password"
+// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
+// @Param		password	formData	string	true	"Password" default(Aa1@azetyuiop)
 // @Success		200	{object}	nil "Client signed in"
 // @Failure		400	{object}	nil "Invalid email or password"
 // @Failure		500	{object}	nil "Internal server error"
@@ -87,6 +89,9 @@ func SignValidation(c *fiber.Ctx) error {
 func SignIn(c *fiber.Ctx) error {
 	dto := &transfert.Client{}
 	if err := c.BodyParser(dto); err != nil {
+		if err.Error() == "Unprocessable Entity" {
+			return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
+		}
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -102,6 +107,7 @@ func SignIn(c *fiber.Ctx) error {
 
 // @Tags		Sign
 // @Accept		*/*
+// @Accept		multipart/form-data
 // @Produce		application/json
 // @Success		200	{object}	nil "JWT token renewed"
 // @Failure		400	{object}	nil "Invalid token"
@@ -123,8 +129,32 @@ func SignRenew(c *fiber.Ctx) error {
 	return c.Status(status).JSON(response)
 }
 
+// @Tags		Validation
+// @Accept		*/*
+// @Accept		multipart/form-data
+// @Produce		application/json
+// @Param		email		formData	string	true	"Email address" format(email)
+// @Router		/validation/recover [post]
+// @Id			client.ValidationRecover
+func ValidationRecover(c *fiber.Ctx) error {
+	dto := &transfert.Client{}
+	if err := c.BodyParser(dto); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	status, response := services.ValidationRecover(
+		domain.Client(
+			repositories.NewClientRepository(database.Get()),
+			mail.Get(),
+		), dto,
+	)
+
+	return c.Status(status).JSON(response)
+}
+
 // @Tags		Password
 // @Accept		*/*
+// @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email)
 // @Success		204	{object}	nil "Password recover"
@@ -151,6 +181,7 @@ func PasswordRecover(c *fiber.Ctx) error {
 
 // @Tags		Password
 // @Accept		*/*
+// @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email)
 // @Param		password	formData	string	true	"Password"
