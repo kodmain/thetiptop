@@ -18,7 +18,8 @@ const docTemplate = `{
         "/password/recover": {
             "post": {
                 "consumes": [
-                    "*/*"
+                    "*/*",
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -56,7 +57,8 @@ const docTemplate = `{
         "/password/update": {
             "put": {
                 "consumes": [
-                    "*/*"
+                    "*/*",
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -114,7 +116,7 @@ const docTemplate = `{
         "/sign/in": {
             "post": {
                 "consumes": [
-                    "*/*"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -127,6 +129,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
                         "description": "Email address",
                         "name": "email",
                         "in": "formData",
@@ -134,6 +137,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "default": "Aa1@azetyuiop",
                         "description": "Password",
                         "name": "password",
                         "in": "formData",
@@ -156,7 +160,8 @@ const docTemplate = `{
         "/sign/renew": {
             "get": {
                 "consumes": [
-                    "*/*"
+                    "*/*",
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -206,6 +211,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
                         "description": "Email address",
                         "name": "email",
                         "in": "formData",
@@ -213,8 +219,25 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "default": "Aa1@azetyuiop",
                         "description": "Password",
                         "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "CGU",
+                        "name": "cgu",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Newsletter",
+                        "name": "newsletter",
                         "in": "formData",
                         "required": true
                     }
@@ -326,6 +349,32 @@ const docTemplate = `{
                         "description": "OK"
                     }
                 }
+            }
+        },
+        "/validation/recover": {
+            "post": {
+                "consumes": [
+                    "*/*",
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Validation"
+                ],
+                "operationId": "client.ValidationRecover",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
             }
         }
     }

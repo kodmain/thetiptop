@@ -66,6 +66,11 @@ func (dcs DomainClientService) SignValidation(dtoValidation *transfert.Validatio
 	return args.Get(0).(*entities.Validation), args.Error(1)
 }
 
+func (dcs DomainClientService) ValidationRecover(client *transfert.Client) error {
+	args := dcs.Called(client)
+	return args.Error(0)
+}
+
 func (dcs DomainClientService) PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
 	args := dcs.Called(dtoValidation, dtoClient)
 	if args.Get(0) == nil {

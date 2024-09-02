@@ -67,6 +67,13 @@ func (m *ClientRepositoryMock) ReadValidation(validation *transfert.Validation) 
 
 func (m *ClientRepositoryMock) UpdateValidation(validation *entities.Validation) error {
 	args := m.Called(validation)
+
+	if args.Get(0) == nil {
+		validation.ID = uuid.New().String()
+		validation.Token = token.NewLuhn("666666").Pointer()
+		return nil
+	}
+
 	return args.Error(0)
 }
 
@@ -169,6 +176,9 @@ func TestSignUp(t *testing.T) {
 
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
 		mockRepository.On("CreateClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
+		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(nil)
+
 		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
 
 		result, err := service.SignUp(inputClient)
@@ -187,6 +197,8 @@ func TestSignUp(t *testing.T) {
 
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
 		mockRepository.On("CreateClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
+		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
+		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(nil)
 		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(fmt.Errorf("failed to send mail"))
 
 		result, err := service.SignUp(inputClient)
@@ -305,6 +317,7 @@ func TestPasswordRecover(t *testing.T) {
 		service, mockRepository, mockMailer := setup()
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
 		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
+		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(nil)
 		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
 		err := service.PasswordRecover(inputClient)
 		require.NoError(t, err)
@@ -322,6 +335,7 @@ func TestPasswordRecover(t *testing.T) {
 		service, mockRepository, _ := setup()
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
 		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(fmt.Errorf("failed to update client"))
+		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(nil)
 		err := service.PasswordRecover(inputClient)
 		require.Error(t, err)
 	})
@@ -359,6 +373,13 @@ func TestPasswordUpdate(t *testing.T) {
 		Email:    inputClient.Email,
 		Password: hashedPassword,
 		Validations: []*entities.Validation{
+			{
+				ID:        idValidation.String(),
+				Token:     token.NewLuhn("555555").Pointer(),
+				Type:      entities.MailValidation,
+				Validated: true,
+				ClientID:  &sidClient,
+			},
 			{
 				ID:        idValidation.String(),
 				Token:     token.NewLuhn("666666").Pointer(),
