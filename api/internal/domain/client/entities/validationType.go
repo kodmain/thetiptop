@@ -1,6 +1,9 @@
 package entities
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // ValidationType defines the type of validation
 type ValidationType int
@@ -12,15 +15,23 @@ const (
 )
 
 var validationTypeToString = map[ValidationType]string{
-	MailValidation:  "email",
+	MailValidation:  "mail",
 	PhoneValidation: "phone",
-	PasswordRecover: "recover",
+	PasswordRecover: "password",
 }
 
 var stringToValidationType = map[string]ValidationType{
-	"email":   MailValidation,
-	"phone":   PhoneValidation,
-	"recover": PasswordRecover,
+	"mail":     MailValidation,
+	"phone":    PhoneValidation,
+	"password": PasswordRecover,
+}
+
+func newValidationType(v *string) (ValidationType, error) {
+	if v == nil {
+		return 0, fmt.Errorf("ValidationType is required")
+	}
+
+	return stringToValidationType[*v], nil
 }
 
 func (v ValidationType) String() string {

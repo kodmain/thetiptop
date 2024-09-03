@@ -245,6 +245,11 @@ paths:
         name: email
         required: true
         type: string
+      - description: Type of validation
+        in: formData
+        name: type
+        required: true
+        type: string
       produces:
       - application/json
       responses: {}

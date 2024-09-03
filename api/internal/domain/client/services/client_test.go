@@ -291,6 +291,8 @@ func TestValidationRecover(t *testing.T) {
 		Email: aws.String("hello@thetiptop"),
 	}
 
+	inputValidation := &transfert.Validation{}
+
 	expectedClient := &entities.Client{
 		ID:    idClient.String(),
 		Email: inputClient.Email,
@@ -310,7 +312,7 @@ func TestValidationRecover(t *testing.T) {
 		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
 		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(nil)
 		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
-		err := service.ValidationRecover(inputClient)
+		err := service.ValidationRecover(inputValidation, inputClient)
 		require.NoError(t, err)
 	})
 
@@ -318,19 +320,60 @@ func TestValidationRecover(t *testing.T) {
 		service, mockRepository, mockMailer := setup()
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
 		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
-		err := service.ValidationRecover(inputClient)
+		err := service.ValidationRecover(inputValidation, inputClient)
 		require.Error(t, err)
 	})
 
-	t.Run("client not validated", func(t *testing.T) {
-		service, mockRepository, _ := setup()
+	t.Run("dated", func(t *testing.T) {
+		service, mockRepository, mockMailer := setup()
+
 		clientWithoutValidation := &entities.Client{
 			ID:          idClient.String(),
 			Email:       inputClient.Email,
 			Validations: []*entities.Validation{},
 		}
+
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(clientWithoutValidation, nil)
-		err := service.ValidationRecover(inputClient)
+		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(nil)
+		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
+
+		mockMailer.On("Send", mock.MatchedBy(func(m *mail.Mail) bool {
+			fmt.Printf("Received mail with Subject: %s, To: %v\n", m.Subject, m.To)
+			return m.Subject == "Bienvenue chez The Tip Top" &&
+				len(m.To) == 1 &&
+				m.To[0] == "hello@thetiptop"
+		})).Return(nil)
+
+		err := service.ValidationRecover(inputValidation, inputClient)
+		require.NoError(t, err)
+
+		time.Sleep(1 * time.Second)
+
+		// Vérifier que tous les mocks ont bien été appelés
+		mockRepository.AssertExpectations(t)
+		mockMailer.AssertExpectations(t)
+	})
+
+	t.Run("client not validated", func(t *testing.T) {
+		service, mockRepository, _ := setup()
+		input := &transfert.Client{
+			Email:    inputClient.Email,
+			Password: aws.String("@Az3rtyuiop"),
+		}
+
+		hashedPassword, err := hash.Hash(aws.String(*input.Email+":"+*input.Password), hash.BCRYPT)
+		require.NoError(t, err)
+
+		clientWithoutValidation := &entities.Client{
+			ID:          idClient.String(),
+			Email:       inputClient.Email,
+			Password:    hashedPassword,
+			Validations: []*entities.Validation{},
+		}
+
+		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(clientWithoutValidation, nil)
+		client, err := service.SignIn(input)
+		require.Nil(t, client)
 		require.Error(t, err)
 		require.Equal(t, fmt.Errorf(errors.ErrClientNotValidate, entities.MailValidation.String()), err)
 	})
@@ -339,7 +382,7 @@ func TestValidationRecover(t *testing.T) {
 		service, mockRepository, _ := setup()
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
 		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(fmt.Errorf("failed to update validation"))
-		err := service.ValidationRecover(inputClient)
+		err := service.ValidationRecover(inputValidation, inputClient)
 		require.Error(t, err)
 	})
 
@@ -348,7 +391,7 @@ func TestValidationRecover(t *testing.T) {
 		mockRepository.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(expectedClient, nil)
 		mockRepository.On("UpdateValidation", mock.AnythingOfType("*entities.Validation")).Return(nil)
 		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(fmt.Errorf("failed to update client"))
-		err := service.ValidationRecover(inputClient)
+		err := service.ValidationRecover(inputValidation, inputClient)
 		require.Error(t, err)
 	})
 }

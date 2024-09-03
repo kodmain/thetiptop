@@ -66,8 +66,8 @@ func (dcs DomainClientService) SignValidation(dtoValidation *transfert.Validatio
 	return args.Get(0).(*entities.Validation), args.Error(1)
 }
 
-func (dcs DomainClientService) ValidationRecover(client *transfert.Client) error {
-	args := dcs.Called(client)
+func (dcs DomainClientService) ValidationRecover(validation *transfert.Validation, client *transfert.Client) error {
+	args := dcs.Called(validation, client)
 	return args.Error(0)
 }
 
@@ -590,4 +590,80 @@ func TestPasswordUpdate(t *testing.T) {
 		assert.NotNil(t, response)
 	})
 
+}
+
+func TestValidationRecover(t *testing.T) {
+	config.Load(aws.String("../../../config.test.yml"))
+	validationType := entities.MailValidation.String()
+
+	t.Run("invalid syntax email", func(t *testing.T) {
+		mockClientService := new(DomainClientService)
+		mockClientService.On("ValidationRecover", mock.Anything).Return(fmt.Errorf("invalid email"))
+
+		clientDTO := &transfert.Client{
+			Email: &emailSyntaxFail,
+		}
+
+		validationDTO := &transfert.Validation{
+			Token: &validationType,
+		}
+
+		statusCode, response := services.ValidationRecover(mockClientService, clientDTO, validationDTO)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+		assert.Equal(t, "mail: missing '@' or angle-addr", response) // Mise à jour du message d'erreur attendu
+	})
+
+	t.Run("valid email, successful validation recovery", func(t *testing.T) {
+		mockClientService := new(DomainClientService)
+		mockClientService.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Client")).Return(nil)
+
+		clientDTO := &transfert.Client{
+			Email: &email,
+		}
+
+		validationDTO := &transfert.Validation{
+			Type: &validationType,
+		}
+
+		statusCode, response := services.ValidationRecover(mockClientService, clientDTO, validationDTO)
+		assert.Equal(t, fiber.StatusNoContent, statusCode)
+		assert.Nil(t, response)
+	})
+
+	t.Run("client not found", func(t *testing.T) {
+		mockClientService := new(DomainClientService)
+		mockClientService.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Client")).Return(fmt.Errorf(errors.ErrClientNotFound))
+
+		clientDTO := &transfert.Client{
+			Email: &email,
+		}
+
+		validationDTO := &transfert.Validation{
+			Type: &validationType,
+		}
+
+		statusCode, response := services.ValidationRecover(mockClientService, clientDTO, validationDTO)
+		assert.Equal(t, fiber.StatusNotFound, statusCode)
+		assert.NotNil(t, response)
+		assert.Equal(t, errors.ErrClientNotFound, response)
+	})
+
+	t.Run("validation recovery failure", func(t *testing.T) {
+		mockClientService := new(DomainClientService)
+		mockClientService.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Client")).Return(fmt.Errorf("some other error"))
+
+		clientDTO := &transfert.Client{
+			Email: &email,
+		}
+
+		validationDTO := &transfert.Validation{
+			Type: &validationType,
+		}
+
+		statusCode, response := services.ValidationRecover(mockClientService, clientDTO, validationDTO)
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+		assert.Equal(t, "some other error", response)
+	})
 }

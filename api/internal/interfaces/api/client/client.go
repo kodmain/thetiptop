@@ -134,11 +134,17 @@ func SignRenew(c *fiber.Ctx) error {
 // @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email)
+// @Param		type		formData	string	true	"Type of validation" enum(mail, password, phone)
 // @Router		/validation/recover [post]
 // @Id			client.ValidationRecover
 func ValidationRecover(c *fiber.Ctx) error {
-	dto := &transfert.Client{}
-	if err := c.BodyParser(dto); err != nil {
+	dtoClient := &transfert.Client{}
+	if err := c.BodyParser(dtoClient); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	dtoValidation := &transfert.Validation{}
+	if err := c.BodyParser(dtoValidation); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -146,7 +152,7 @@ func ValidationRecover(c *fiber.Ctx) error {
 		domain.Client(
 			repositories.NewClientRepository(database.Get()),
 			mail.Get(),
-		), dto,
+		), dtoClient, dtoValidation,
 	)
 
 	return c.Status(status).JSON(response)
