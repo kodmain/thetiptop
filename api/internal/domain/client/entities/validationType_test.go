@@ -12,11 +12,11 @@ func TestValidationType(t *testing.T) {
 
 	vt := entities.MailValidation
 
-	assert.Equal(t, "email", vt.String())
+	assert.Equal(t, "mail", vt.String())
 
 	by, err := json.Marshal(vt)
 	assert.NoError(t, err)
-	assert.Equal(t, []byte(`"email"`), by)
+	assert.Equal(t, []byte(`"mail"`), by)
 
 	var vt2 entities.ValidationType
 	err = json.Unmarshal(by, &vt2)

@@ -77,6 +77,12 @@ func CreateValidation(obj *transfert.Validation) *Validation {
 		ClientID: obj.ClientID,
 	}
 
+	if obj.Type != nil {
+		if vt, err := newValidationType(obj.Type); err == nil {
+			v.Type = vt
+		}
+	}
+
 	if obj.Token != nil {
 		v.Token = token.NewLuhn(*obj.Token).Pointer()
 	}

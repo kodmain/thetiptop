@@ -9,6 +9,7 @@ paths:
     post:
       consumes:
       - '*/*'
+      - multipart/form-data
       operationId: client.PasswordRecover
       parameters:
       - description: Email address
@@ -34,6 +35,7 @@ paths:
     put:
       consumes:
       - '*/*'
+      - multipart/form-data
       operationId: client.PasswordUpdate
       parameters:
       - description: Email address
@@ -72,16 +74,18 @@ paths:
   /sign/in:
     post:
       consumes:
-      - '*/*'
+      - multipart/form-data
       operationId: client.SignIn
       parameters:
-      - description: Email address
+      - default: user-thetiptop@yopmail.com
+        description: Email address
         format: email
         in: formData
         name: email
         required: true
         type: string
-      - description: Password
+      - default: Aa1@azetyuiop
+        description: Password
         in: formData
         name: password
         required: true
@@ -101,6 +105,7 @@ paths:
     get:
       consumes:
       - '*/*'
+      - multipart/form-data
       operationId: client.SignRenew
       parameters:
       - description: With the bearer started
@@ -127,17 +132,31 @@ paths:
       - multipart/form-data
       operationId: client.SignUp
       parameters:
-      - description: Email address
+      - default: user-thetiptop@yopmail.com
+        description: Email address
         format: email
         in: formData
         name: email
         required: true
         type: string
-      - description: Password
+      - default: Aa1@azetyuiop
+        description: Password
         in: formData
         name: password
         required: true
         type: string
+      - default: true
+        description: CGU
+        in: formData
+        name: cgu
+        required: true
+        type: boolean
+      - default: false
+        description: Newsletter
+        in: formData
+        name: newsletter
+        required: true
+        type: boolean
       produces:
       - application/json
       responses:
@@ -213,4 +232,27 @@ paths:
       summary: Show the ip of user.
       tags:
       - Status
+  /validation/recover:
+    post:
+      consumes:
+      - '*/*'
+      - multipart/form-data
+      operationId: client.ValidationRecover
+      parameters:
+      - description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Type of validation
+        in: formData
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      tags:
+      - Validation
 swagger: "2.0"

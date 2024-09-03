@@ -80,5 +80,7 @@ func CreateClient(obj *transfert.Client) *Client {
 		Email:       obj.Email,
 		Password:    obj.Password,
 		Validations: []*Validation{},
+		CGU:         obj.CGU,
+		Newsletter:  obj.Newsletter,
 	}
 }

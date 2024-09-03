@@ -10,12 +10,14 @@ import (
 type Validation struct {
 	Token    *string `json:"token" xml:"token" form:"token"`
 	ClientID *string `json:"client_id" xml:"client_id" form:"client_id"`
+	Type     *string `json:"type" xml:"type" form:"type"`
 }
 
 func (v *Validation) Check(validator data.Validator) error {
 	return validator.Check(data.Object{
 		"token":     v.Token,
 		"client_id": v.ClientID,
+		"type":      v.Type,
 	})
 }
 

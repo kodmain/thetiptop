@@ -54,7 +54,10 @@ func TestCreateClientRepository(t *testing.T) {
 
 	// Cas de création réussie
 	t.Run("successful creation", func(t *testing.T) {
+		// Démarrage de la transaction
 		mock.ExpectBegin()
+
+		// Insertion dans la table clients
 		mock.ExpectExec(`INSERT INTO "clients" \("id","created_at","updated_at","deleted_at","email","password","cgu","newsletter"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7,\$8\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID
@@ -67,6 +70,7 @@ func TestCreateClientRepository(t *testing.T) {
 				false,            // Newsletter
 			).WillReturnResult(sqlmock.NewResult(1, 1))
 
+		// Insertion dans la table validations
 		mock.ExpectExec(`INSERT INTO "validations" \("id","created_at","updated_at","deleted_at","token","type","validated","client_id","expires_at"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7,\$8,\$9\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID
@@ -79,14 +83,18 @@ func TestCreateClientRepository(t *testing.T) {
 				sqlmock.AnyArg(), // ClientID
 				sqlmock.AnyArg(), // ExpiresAt
 			).WillReturnResult(sqlmock.NewResult(1, 1))
+
+		// Validation de la transaction
 		mock.ExpectCommit()
 
 		// Appeler la fonction CreateClient à tester
 		entity, err := repo.CreateClient(dto)
 
+		// Vérification des résultats
 		assert.Nil(t, err)
 		assert.NotNil(t, entity)
 
+		// Vérification des attentes
 		err = mock.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
