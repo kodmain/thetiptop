@@ -363,12 +363,24 @@ func TestClient(t *testing.T) {
 						err = json.Unmarshal(RegisteredClient, &client)
 						assert.NoError(t, err)
 						assert.NotNil(t, client)
-						time.Sleep(1 * time.Second)
+						time.Sleep(3 * time.Second)
+						email, err := getMailFor(user.email)
+						assert.Nil(t, err)
+						assert.Equal(t, user.email, email.To[0].Address)
+					})
+
+					t.Run("Validation/recover/"+encodingName, func(t *testing.T) {
+						_, status, err := request("POST", "http://localhost:8888/validation/recover", "", encoding, map[string][]any{
+							"email": {user.email},
+							"type":  {entities.MailValidation.String()},
+						})
+						assert.Nil(t, err)
+						assert.Equal(t, http.StatusNoContent, status)
+						time.Sleep(3 * time.Second)
 						email, err := getMailFor(user.email)
 						assert.Nil(t, err)
 						assert.Equal(t, user.email, email.To[0].Address)
 						token := extractToken(email.HTML)
-						logger.Info(token)
 						_, status, err = request("PUT", "http://localhost:8888/sign/validation", "", encoding, map[string][]any{
 							"token": {token},
 							"email": {user.email},

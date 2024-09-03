@@ -142,6 +142,34 @@ func PasswordRecover(service services.ClientServiceInterface, clientDTO *transfe
 	return fiber.StatusNoContent, nil
 }
 
+func ValidationRecover(service services.ClientServiceInterface, clientDTO *transfert.Client, validationDTO *transfert.Validation) (int, any) {
+	err := clientDTO.Check(data.Validator{
+		"email": {validator.Required, validator.Email},
+	})
+
+	if err != nil {
+		return fiber.StatusBadRequest, err.Error()
+	}
+
+	err = validationDTO.Check(data.Validator{
+		"type": {validator.Required},
+	})
+
+	if err != nil {
+		return fiber.StatusBadRequest, err.Error()
+	}
+
+	if err = service.ValidationRecover(validationDTO, clientDTO); err != nil {
+		if err.Error() == errors.ErrClientNotFound {
+			return fiber.StatusNotFound, err.Error()
+		}
+
+		return fiber.StatusBadRequest, err.Error()
+	}
+
+	return fiber.StatusNoContent, nil
+}
+
 func PasswordUpdate(service services.ClientServiceInterface, validationDTO *transfert.Validation, clientDTO *transfert.Client) (int, any) {
 	err := validationDTO.Check(data.Validator{
 		"token": {validator.Required, validator.Luhn},
