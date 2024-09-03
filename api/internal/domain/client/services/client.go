@@ -27,7 +27,7 @@ type ClientServiceInterface interface {
 	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error)
 
 	// Validation
-	ValidationRecover(obj *transfert.Client) error
+	ValidationRecover(dtoValidation *transfert.Validation, obj *transfert.Client) error
 }
 
 type ClientService struct {
@@ -90,24 +90,17 @@ func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) 
 	return client, nil
 }
 
-func (s *ClientService) ValidationRecover(obj *transfert.Client) error {
+func (s *ClientService) ValidationRecover(dtoValidation *transfert.Validation, dtoClient *transfert.Client) error {
 	client, err := s.repo.ReadClient(&transfert.Client{
-		Email: obj.Email,
+		Email: dtoClient.Email,
 	})
 
 	if err != nil {
 		return fmt.Errorf(errors.ErrClientNotFound)
 	}
 
-	if validation := client.HasSuccessValidation(entities.MailValidation); validation == nil {
-		return fmt.Errorf(errors.ErrClientNotValidate, entities.MailValidation.String())
-	}
-
-	validation := &entities.Validation{
-		ClientID: &client.ID,
-		Type:     entities.MailValidation,
-	}
-
+	dtoValidation.ClientID = &client.ID
+	validation := entities.CreateValidation(dtoValidation)
 	client.Validations = append(client.Validations, validation)
 
 	if err := s.repo.UpdateValidation(validation); err != nil {

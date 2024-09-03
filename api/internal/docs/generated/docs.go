@@ -372,6 +372,13 @@ const docTemplate = `{
                         "name": "email",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type of validation",
+                        "name": "type",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {}
