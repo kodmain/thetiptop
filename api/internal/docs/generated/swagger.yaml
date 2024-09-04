@@ -8,7 +8,6 @@ paths:
   /recover/password:
     post:
       consumes:
-      - '*/*'
       - multipart/form-data
       operationId: client.PasswordRecover
       parameters:
@@ -35,7 +34,6 @@ paths:
   /recover/validation:
     post:
       consumes:
-      - '*/*'
       - multipart/form-data
       operationId: client.ValidationRecover
       parameters:
@@ -47,6 +45,10 @@ paths:
         required: true
         type: string
       - description: Type of validation
+        enum:
+        - mail
+        - password
+        - phone
         in: formData
         name: type
         required: true
@@ -142,7 +144,6 @@ paths:
   /user/password/update:
     put:
       consumes:
-      - '*/*'
       - multipart/form-data
       operationId: client.PasswordUpdate
       parameters:
@@ -228,7 +229,7 @@ paths:
   /user/register/validation:
     put:
       consumes:
-      - '*/*'
+      - multipart/form-data
       operationId: client.SignValidation
       parameters:
       - description: Token

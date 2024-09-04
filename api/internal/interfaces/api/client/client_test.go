@@ -324,14 +324,16 @@ func TestClient(t *testing.T) {
 	assert.Nil(t, start(8888, 8444))
 
 	const (
-		USER_REGISTER            = "http://localhost:8888/user/register"
-		USER_REGISTER_VALIDATION = "http://localhost:8888/user/register/validation"
-		USER_AUTH                = "http://localhost:8888/user/auth"
-		USER_AUTH_RENEW          = "http://localhost:8888/user/auth/renew"
-		USER_PASSWORD_UPDATE     = "http://localhost:8888/user/password/update"
+		DOMAIN = "http://localhost:8888"
 
-		RECOVER_PASSWORD   = "http://localhost:8888/recover/password"
-		RECOVER_VALIDATION = "http://localhost:8888/recover/validation"
+		USER_REGISTER            = DOMAIN + "/user/register"
+		USER_REGISTER_VALIDATION = DOMAIN + "/user/register/validation"
+		USER_AUTH                = DOMAIN + "/user/auth"
+		USER_AUTH_RENEW          = DOMAIN + "/user/auth/renew"
+		USER_PASSWORD_UPDATE     = DOMAIN + "/user/password/update"
+
+		RECOVER_PASSWORD   = DOMAIN + "/recover/password"
+		RECOVER_VALIDATION = DOMAIN + "/recover/validation"
 	)
 
 	for _, encoding := range encodingTypes {
@@ -359,13 +361,22 @@ func TestClient(t *testing.T) {
 		t.Run("SignUp/"+encodingName, func(t *testing.T) {
 			for _, user := range users {
 				values := map[string][]any{
+					"oki": {user.email},
+				}
+
+				RegisteredClient, status, err := request("POST", USER_REGISTER, "", encoding, values)
+
+				assert.Nil(t, err)
+				assert.Equal(t, http.StatusBadRequest, status)
+
+				values = map[string][]any{
 					"email":      {user.email},
 					"password":   {user.password},
 					"newsletter": {true},
 					"cgu":        {true},
 				}
 
-				RegisteredClient, status, err := request("POST", USER_REGISTER, "", encoding, values)
+				RegisteredClient, status, err = request("POST", USER_REGISTER, "", encoding, values)
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSU, status)
 

@@ -55,9 +55,6 @@ func SignUp(c *fiber.Ctx) error {
 func SignIn(c *fiber.Ctx) error {
 	dto := &transfert.Client{}
 	if err := c.BodyParser(dto); err != nil {
-		if err.Error() == "Unprocessable Entity" {
-			return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
-		}
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -72,7 +69,7 @@ func SignIn(c *fiber.Ctx) error {
 }
 
 // @Tags		User
-// @Accept		*/*
+// @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		token	formData	string	true	"Token"
 // @Param		email	formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
@@ -130,11 +127,10 @@ func SignRenew(c *fiber.Ctx) error {
 }
 
 // @Tags		Recover
-// @Accept		*/*
 // @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
-// @Param		type		formData	string	true	"Type of validation" enum(mail, password, phone)
+// @Param		type		formData	string	true	"Type of validation" enums(mail, password, phone)
 // @Router		/recover/validation [post]
 // @Id			client.ValidationRecover
 func ValidationRecover(c *fiber.Ctx) error {
@@ -159,7 +155,6 @@ func ValidationRecover(c *fiber.Ctx) error {
 }
 
 // @Tags		Recover
-// @Accept		*/*
 // @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
@@ -186,7 +181,6 @@ func PasswordRecover(c *fiber.Ctx) error {
 }
 
 // @Tags		User
-// @Accept		*/*
 // @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
