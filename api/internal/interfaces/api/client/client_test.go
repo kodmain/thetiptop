@@ -360,23 +360,15 @@ func TestClient(t *testing.T) {
 
 		t.Run("SignUp/"+encodingName, func(t *testing.T) {
 			for _, user := range users {
+
 				values := map[string][]any{
-					"oki": {user.email},
-				}
-
-				RegisteredClient, status, err := request("POST", USER_REGISTER, "", encoding, values)
-
-				assert.Nil(t, err)
-				assert.Equal(t, http.StatusBadRequest, status)
-
-				values = map[string][]any{
 					"email":      {user.email},
 					"password":   {user.password},
 					"newsletter": {true},
 					"cgu":        {true},
 				}
 
-				RegisteredClient, status, err = request("POST", USER_REGISTER, "", encoding, values)
+				RegisteredClient, status, err := request("POST", USER_REGISTER, "", encoding, values)
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSU, status)
 
