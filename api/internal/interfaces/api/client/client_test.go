@@ -322,6 +322,18 @@ func extractToken(html string) string {
 func TestClient(t *testing.T) {
 	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}
 	assert.Nil(t, start(8888, 8444))
+
+	const (
+		USER_REGISTER            = "http://localhost:8888/user/register"
+		USER_REGISTER_VALIDATION = "http://localhost:8888/user/register/validation"
+		USER_AUTH                = "http://localhost:8888/user/auth"
+		USER_AUTH_RENEW          = "http://localhost:8888/user/auth/renew"
+		USER_PASSWORD_UPDATE     = "http://localhost:8888/user/password/update"
+
+		RECOVER_PASSWORD   = "http://localhost:8888/recover/password"
+		RECOVER_VALIDATION = "http://localhost:8888/recover/validation"
+	)
+
 	for _, encoding := range encodingTypes {
 
 		var encodingName string = "FormURLEncoded"
@@ -353,7 +365,7 @@ func TestClient(t *testing.T) {
 					"cgu":        {true},
 				}
 
-				RegisteredClient, status, err := request("POST", "http://localhost:8888/sign/up", "", encoding, values)
+				RegisteredClient, status, err := request("POST", USER_REGISTER, "", encoding, values)
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSU, status)
 
@@ -370,7 +382,7 @@ func TestClient(t *testing.T) {
 					})
 
 					t.Run("Validation/recover/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", "http://localhost:8888/validation/recover", "", encoding, map[string][]any{
+						_, status, err := request("POST", RECOVER_VALIDATION, "", encoding, map[string][]any{
 							"email": {user.email},
 							"type":  {entities.MailValidation.String()},
 						})
@@ -381,7 +393,7 @@ func TestClient(t *testing.T) {
 						assert.Nil(t, err)
 						assert.Equal(t, user.email, email.To[0].Address)
 						token := extractToken(email.HTML)
-						_, status, err = request("PUT", "http://localhost:8888/sign/validation", "", encoding, map[string][]any{
+						_, status, err = request("PUT", USER_REGISTER_VALIDATION, "", encoding, map[string][]any{
 							"token": {token},
 							"email": {user.email},
 						})
@@ -390,7 +402,7 @@ func TestClient(t *testing.T) {
 					})
 				}
 
-				JWT, status, err := request("POST", "http://localhost:8888/sign/in", "", encoding, values)
+				JWT, status, err := request("POST", USER_AUTH, "", encoding, values)
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSI, status)
 
@@ -411,21 +423,21 @@ func TestClient(t *testing.T) {
 						}
 
 						for _, user := range users {
-							_, status, err := request("GET", "http://localhost:8888/sign/renew", user.token, encoding)
+							_, status, err := request("GET", USER_AUTH_RENEW, user.token, encoding)
 							assert.Nil(t, err)
 							assert.Equal(t, user.status, status)
 						}
 					})
 
 					t.Run("Password/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", "http://localhost:8888/password/recover", "", encoding, map[string][]any{
+						_, status, err := request("POST", RECOVER_PASSWORD, "", encoding, map[string][]any{
 							"email": {user.email + "wrong"},
 						})
 
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusNotFound, status)
 
-						_, status, err = request("POST", "http://localhost:8888/password/recover", "", encoding, map[string][]any{
+						_, status, err = request("POST", RECOVER_PASSWORD, "", encoding, map[string][]any{
 							"email": {user.email},
 						})
 
@@ -439,7 +451,7 @@ func TestClient(t *testing.T) {
 						token := extractToken(email.HTML)
 						assert.NotEmpty(t, token)
 
-						_, status, err = request("PUT", "http://localhost:8888/password/update", "", encoding, map[string][]any{
+						_, status, err = request("PUT", USER_PASSWORD_UPDATE, "", encoding, map[string][]any{
 							"token":    {token},
 							"email":    {user.email},
 							"password": {GOOD_PASS_UPDATED},
@@ -448,12 +460,12 @@ func TestClient(t *testing.T) {
 						assert.Nil(t, err)
 						assert.Equal(t, http.StatusOK, status)
 
-						_, status, err = request("POST", "http://localhost:8888/sign/in", "", encoding, values)
+						_, status, err = request("POST", USER_AUTH, "", encoding, values)
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusBadRequest, status)
 
 						values["password"] = []any{GOOD_PASS_UPDATED}
-						_, status, err = request("POST", "http://localhost:8888/sign/in", "", encoding, values)
+						_, status, err = request("POST", USER_AUTH, "", encoding, values)
 						assert.NoError(t, err)
 						assert.Equal(t, user.statusSI, status)
 					})
