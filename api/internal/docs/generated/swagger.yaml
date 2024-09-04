@@ -5,14 +5,14 @@ info:
   title: TheTipTop
   version: dev
 paths:
-  /password/recover:
+  /recover/password:
     post:
       consumes:
-      - '*/*'
       - multipart/form-data
       operationId: client.PasswordRecover
       parameters:
-      - description: Email address
+      - default: user-thetiptop@yopmail.com
+        description: Email address
         format: email
         in: formData
         name: email
@@ -30,48 +30,63 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - Password
-  /password/update:
-    put:
+      - Recover
+  /recover/validation:
+    post:
       consumes:
-      - '*/*'
       - multipart/form-data
-      operationId: client.PasswordUpdate
+      operationId: client.ValidationRecover
       parameters:
-      - description: Email address
+      - default: user-thetiptop@yopmail.com
+        description: Email address
         format: email
         in: formData
         name: email
         required: true
         type: string
-      - description: Password
+      - description: Type of validation
+        enum:
+        - mail
+        - password
+        - phone
         in: formData
-        name: password
-        required: true
-        type: string
-      - description: Token
-        in: formData
-        name: token
+        name: type
         required: true
         type: string
       produces:
       - application/json
+      responses: {}
+      tags:
+      - Recover
+  /status/healthcheck:
+    get:
+      consumes:
+      - '*/*'
+      description: get the status of server.
+      operationId: status.HealthCheck
+      produces:
+      - application/json
       responses:
         "204":
-          description: Password updated
-        "400":
-          description: Invalid email, password or token
-        "404":
-          description: Client not found
-        "409":
-          description: Client already validated
-        "410":
-          description: Token expired
-        "500":
-          description: Internal server error
+          description: No Content
+      summary: Show the status of server.
       tags:
-      - Password
-  /sign/in:
+      - Status
+  /status/ip:
+    get:
+      consumes:
+      - '*/*'
+      description: get the ip of user.
+      operationId: status.IP
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Show the ip of user.
+      tags:
+      - Status
+  /user/auth:
     post:
       consumes:
       - multipart/form-data
@@ -100,8 +115,8 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - Sign
-  /sign/renew:
+      - User
+  /user/auth/renew:
     get:
       consumes:
       - '*/*'
@@ -125,8 +140,49 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - Sign
-  /sign/up:
+      - User
+  /user/password/update:
+    put:
+      consumes:
+      - multipart/form-data
+      operationId: client.PasswordUpdate
+      parameters:
+      - default: user-thetiptop@yopmail.com
+        description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - default: Aa1@azetyuiop
+        description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Token
+        in: formData
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Password updated
+        "400":
+          description: Invalid email, password or token
+        "404":
+          description: Client not found
+        "409":
+          description: Client already validated
+        "410":
+          description: Token expired
+        "500":
+          description: Internal server error
+      tags:
+      - User
+  /user/register:
     post:
       consumes:
       - multipart/form-data
@@ -169,11 +225,11 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - Sign
-  /sign/validation:
+      - User
+  /user/register/validation:
     put:
       consumes:
-      - '*/*'
+      - multipart/form-data
       operationId: client.SignValidation
       parameters:
       - description: Token
@@ -181,7 +237,8 @@ paths:
         name: token
         required: true
         type: string
-      - description: Email address
+      - default: user-thetiptop@yopmail.com
+        description: Email address
         format: email
         in: formData
         name: email
@@ -203,56 +260,5 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - Sign
-  /status/healthcheck:
-    get:
-      consumes:
-      - '*/*'
-      description: get the status of server.
-      operationId: status.HealthCheck
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-      summary: Show the status of server.
-      tags:
-      - Status
-  /status/ip:
-    get:
-      consumes:
-      - '*/*'
-      description: get the ip of user.
-      operationId: status.IP
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: Show the ip of user.
-      tags:
-      - Status
-  /validation/recover:
-    post:
-      consumes:
-      - '*/*'
-      - multipart/form-data
-      operationId: client.ValidationRecover
-      parameters:
-      - description: Email address
-        format: email
-        in: formData
-        name: email
-        required: true
-        type: string
-      - description: Type of validation
-        in: formData
-        name: type
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      tags:
-      - Validation
+      - User
 swagger: "2.0"

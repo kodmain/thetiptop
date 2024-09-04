@@ -13,7 +13,7 @@ import (
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
-// @Tags		Sign
+// @Tags		User
 // @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
@@ -24,7 +24,7 @@ import (
 // @Failure		400	{object}	nil "Invalid email or password"
 // @Failure		409	{object}	nil "Client already exists"
 // @Failure		500	{object}	nil "Internal server error"
-// @Router		/sign/up [post]
+// @Router		/user/register [post]
 // @Id			client.SignUp
 func SignUp(c *fiber.Ctx) error {
 	dto := &transfert.Client{}
@@ -42,18 +42,44 @@ func SignUp(c *fiber.Ctx) error {
 	return c.Status(status).JSON(response)
 }
 
-// @Tags		Sign
-// @Accept		*/*
+// @Tags		User
+// @Accept		multipart/form-data
+// @Produce		application/json
+// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
+// @Param		password	formData	string	true	"Password" default(Aa1@azetyuiop)
+// @Success		200	{object}	nil "Client signed in"
+// @Failure		400	{object}	nil "Invalid email or password"
+// @Failure		500	{object}	nil "Internal server error"
+// @Router		/user/auth [post]
+// @Id			client.SignIn
+func SignIn(c *fiber.Ctx) error {
+	dto := &transfert.Client{}
+	if err := c.BodyParser(dto); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	status, response := services.SignIn(
+		domain.Client(
+			repositories.NewClientRepository(database.Get()),
+			mail.Get(),
+		), dto,
+	)
+
+	return c.Status(status).JSON(response)
+}
+
+// @Tags		User
+// @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		token	formData	string	true	"Token"
-// @Param		email	formData	string	true	"Email address" format(email)
+// @Param		email	formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
 // @Success		204	{object}	nil "Client email validate"
 // @Failure		400	{object}	nil "Invalid email or token"
 // @Failure		404	{object}	nil "Client not found"
 // @Failure		409	{object}	nil "Client already validated"
 // @Failure		410 {object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
-// @Router		/sign/validation [put]
+// @Router		/user/register/validation [put]
 // @Id			client.SignValidation
 func SignValidation(c *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}
@@ -76,36 +102,7 @@ func SignValidation(c *fiber.Ctx) error {
 	return c.Status(status).JSON(response)
 }
 
-// @Tags		Sign
-// @Accept		multipart/form-data
-// @Produce		application/json
-// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
-// @Param		password	formData	string	true	"Password" default(Aa1@azetyuiop)
-// @Success		200	{object}	nil "Client signed in"
-// @Failure		400	{object}	nil "Invalid email or password"
-// @Failure		500	{object}	nil "Internal server error"
-// @Router		/sign/in [post]
-// @Id			client.SignIn
-func SignIn(c *fiber.Ctx) error {
-	dto := &transfert.Client{}
-	if err := c.BodyParser(dto); err != nil {
-		if err.Error() == "Unprocessable Entity" {
-			return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
-		}
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	status, response := services.SignIn(
-		domain.Client(
-			repositories.NewClientRepository(database.Get()),
-			mail.Get(),
-		), dto,
-	)
-
-	return c.Status(status).JSON(response)
-}
-
-// @Tags		Sign
+// @Tags		User
 // @Accept		*/*
 // @Accept		multipart/form-data
 // @Produce		application/json
@@ -114,7 +111,7 @@ func SignIn(c *fiber.Ctx) error {
 // @Failure		401	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
 // @Param 		Authorization header string true "With the bearer started"
-// @Router		/sign/renew [get]
+// @Router		/user/auth/renew [get]
 // @Id			client.SignRenew
 func SignRenew(c *fiber.Ctx) error {
 	token := c.Locals("token")
@@ -129,13 +126,12 @@ func SignRenew(c *fiber.Ctx) error {
 	return c.Status(status).JSON(response)
 }
 
-// @Tags		Validation
-// @Accept		*/*
+// @Tags		Recover
 // @Accept		multipart/form-data
 // @Produce		application/json
-// @Param		email		formData	string	true	"Email address" format(email)
-// @Param		type		formData	string	true	"Type of validation" enum(mail, password, phone)
-// @Router		/validation/recover [post]
+// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
+// @Param		type		formData	string	true	"Type of validation" enums(mail, password, phone)
+// @Router		/recover/validation [post]
 // @Id			client.ValidationRecover
 func ValidationRecover(c *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}
@@ -158,16 +154,15 @@ func ValidationRecover(c *fiber.Ctx) error {
 	return c.Status(status).JSON(response)
 }
 
-// @Tags		Password
-// @Accept		*/*
+// @Tags		Recover
 // @Accept		multipart/form-data
 // @Produce		application/json
-// @Param		email		formData	string	true	"Email address" format(email)
+// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
 // @Success		204	{object}	nil "Password recover"
 // @Failure		400	{object}	nil "Invalid email"
 // @Failure		404	{object}	nil "Client not found"
 // @Failure		500	{object}	nil "Internal server error"
-// @Router		/password/recover [post]
+// @Router		/recover/password [post]
 // @Id			client.PasswordRecover
 func PasswordRecover(c *fiber.Ctx) error {
 	dto := &transfert.Client{}
@@ -185,12 +180,11 @@ func PasswordRecover(c *fiber.Ctx) error {
 	return c.Status(status).JSON(response)
 }
 
-// @Tags		Password
-// @Accept		*/*
+// @Tags		User
 // @Accept		multipart/form-data
 // @Produce		application/json
-// @Param		email		formData	string	true	"Email address" format(email)
-// @Param		password	formData	string	true	"Password"
+// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
+// @Param		password	formData	string	true	"Password" default(Aa1@azetyuiop)
 // @Param		token		formData	string	true	"Token"
 // @Success		204	{object}	nil "Password updated"
 // @Failure		400	{object}	nil "Invalid email, password or token"
@@ -198,7 +192,7 @@ func PasswordRecover(c *fiber.Ctx) error {
 // @Failure		409	{object}	nil "Client already validated"
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
-// @Router		/password/update [put]
+// @Router		/user/password/update [put]
 // @Id			client.PasswordUpdate
 func PasswordUpdate(c *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}
