@@ -18,7 +18,6 @@ const docTemplate = `{
         "/recover/password": {
             "post": {
                 "consumes": [
-                    "*/*",
                     "multipart/form-data"
                 ],
                 "produces": [
@@ -58,7 +57,6 @@ const docTemplate = `{
         "/recover/validation": {
             "post": {
                 "consumes": [
-                    "*/*",
                     "multipart/form-data"
                 ],
                 "produces": [
@@ -79,6 +77,11 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "enum": [
+                            "mail",
+                            "password",
+                            "phone"
+                        ],
                         "type": "string",
                         "description": "Type of validation",
                         "name": "type",
@@ -216,7 +219,6 @@ const docTemplate = `{
         "/user/password/update": {
             "put": {
                 "consumes": [
-                    "*/*",
                     "multipart/form-data"
                 ],
                 "produces": [
@@ -340,7 +342,7 @@ const docTemplate = `{
         "/user/register/validation": {
             "put": {
                 "consumes": [
-                    "*/*"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
