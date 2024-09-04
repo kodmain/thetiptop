@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/password/recover": {
+        "/recover/password": {
             "post": {
                 "consumes": [
                     "*/*",
@@ -25,13 +25,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Password"
+                    "Recover"
                 ],
                 "operationId": "client.PasswordRecover",
                 "parameters": [
                     {
                         "type": "string",
                         "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
                         "description": "Email address",
                         "name": "email",
                         "in": "formData",
@@ -54,7 +55,165 @@ const docTemplate = `{
                 }
             }
         },
-        "/password/update": {
+        "/recover/validation": {
+            "post": {
+                "consumes": [
+                    "*/*",
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Recover"
+                ],
+                "operationId": "client.ValidationRecover",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type of validation",
+                        "name": "type",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/status/healthcheck": {
+            "get": {
+                "description": "get the status of server.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status"
+                ],
+                "summary": "Show the status of server.",
+                "operationId": "status.HealthCheck",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/status/ip": {
+            "get": {
+                "description": "get the ip of user.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status"
+                ],
+                "summary": "Show the ip of user.",
+                "operationId": "status.IP",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/user/auth": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "operationId": "client.SignIn",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Aa1@azetyuiop",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Client signed in"
+                    },
+                    "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/auth/renew": {
+            "get": {
+                "consumes": [
+                    "*/*",
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "operationId": "client.SignRenew",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token renewed"
+                    },
+                    "400": {
+                        "description": "Invalid token"
+                    },
+                    "401": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/password/update": {
             "put": {
                 "consumes": [
                     "*/*",
@@ -64,13 +223,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Password"
+                    "User"
                 ],
                 "operationId": "client.PasswordUpdate",
                 "parameters": [
                     {
                         "type": "string",
                         "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
                         "description": "Email address",
                         "name": "email",
                         "in": "formData",
@@ -78,6 +238,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "default": "Aa1@azetyuiop",
                         "description": "Password",
                         "name": "password",
                         "in": "formData",
@@ -113,7 +274,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/sign/in": {
+        "/user/register": {
             "post": {
                 "consumes": [
                     "multipart/form-data"
@@ -122,89 +283,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Sign"
-                ],
-                "operationId": "client.SignIn",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "default": "user-thetiptop@yopmail.com",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "default": "Aa1@azetyuiop",
-                        "description": "Password",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Client signed in"
-                    },
-                    "400": {
-                        "description": "Invalid email or password"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/sign/renew": {
-            "get": {
-                "consumes": [
-                    "*/*",
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Sign"
-                ],
-                "operationId": "client.SignRenew",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "With the bearer started",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "JWT token renewed"
-                    },
-                    "400": {
-                        "description": "Invalid token"
-                    },
-                    "401": {
-                        "description": "Token expired"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/sign/up": {
-            "post": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Sign"
+                    "User"
                 ],
                 "operationId": "client.SignUp",
                 "parameters": [
@@ -258,7 +337,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/sign/validation": {
+        "/user/register/validation": {
             "put": {
                 "consumes": [
                     "*/*"
@@ -267,7 +346,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Sign"
+                    "User"
                 ],
                 "operationId": "client.SignValidation",
                 "parameters": [
@@ -281,6 +360,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
                         "description": "Email address",
                         "name": "email",
                         "in": "formData",
@@ -307,81 +387,6 @@ const docTemplate = `{
                         "description": "Internal server error"
                     }
                 }
-            }
-        },
-        "/status/healthcheck": {
-            "get": {
-                "description": "get the status of server.",
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Status"
-                ],
-                "summary": "Show the status of server.",
-                "operationId": "status.HealthCheck",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/status/ip": {
-            "get": {
-                "description": "get the ip of user.",
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Status"
-                ],
-                "summary": "Show the ip of user.",
-                "operationId": "status.IP",
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/validation/recover": {
-            "post": {
-                "consumes": [
-                    "*/*",
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Validation"
-                ],
-                "operationId": "client.ValidationRecover",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Type of validation",
-                        "name": "type",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {}
             }
         }
     }
