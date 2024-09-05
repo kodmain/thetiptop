@@ -15,83 +15,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/recover/password": {
-            "post": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Recover"
-                ],
-                "operationId": "client.PasswordRecover",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "default": "user-thetiptop@yopmail.com",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Password recover"
-                    },
-                    "400": {
-                        "description": "Invalid email"
-                    },
-                    "404": {
-                        "description": "Client not found"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/recover/validation": {
-            "post": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Recover"
-                ],
-                "operationId": "client.ValidationRecover",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "default": "user-thetiptop@yopmail.com",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "enum": [
-                            "mail",
-                            "password",
-                            "phone"
-                        ],
-                        "type": "string",
-                        "description": "Type of validation",
-                        "name": "type",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/status/healthcheck": {
             "get": {
                 "description": "get the status of server.",
@@ -143,7 +66,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Client"
                 ],
                 "operationId": "client.SignIn",
                 "parameters": [
@@ -188,7 +111,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Client"
                 ],
                 "operationId": "client.SignRenew",
                 "parameters": [
@@ -216,7 +139,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/password/update": {
+        "/user/password": {
             "put": {
                 "consumes": [
                     "multipart/form-data"
@@ -225,7 +148,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Client"
                 ],
                 "operationId": "client.PasswordUpdate",
                 "parameters": [
@@ -285,7 +208,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Client"
                 ],
                 "operationId": "client.SignUp",
                 "parameters": [
@@ -348,7 +271,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Client"
                 ],
                 "operationId": "client.SignValidation",
                 "parameters": [
@@ -389,6 +312,44 @@ const docTemplate = `{
                         "description": "Internal server error"
                     }
                 }
+            }
+        },
+        "/validation/renew": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Client"
+                ],
+                "operationId": "client.ValidationRecover",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "mail",
+                            "password",
+                            "phone"
+                        ],
+                        "type": "string",
+                        "description": "Type of validation",
+                        "name": "type",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
             }
         }
     }
