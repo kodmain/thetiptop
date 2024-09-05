@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -298,16 +297,6 @@ func getMailFor(emailAddr string) (*Email, error) {
 	}
 
 	return nil, fmt.Errorf("aucun email trouvé pour l'adresse %s", emailAddr)
-}
-
-func generateRandomNumber(min, max int) int {
-	return rand.Intn(max-min+1) + min
-}
-
-func extractURLs(html string) []string {
-	re := regexp.MustCompile(`https?://[^\s"']+`)
-	matches := re.FindAllString(html, -1)
-	return matches
 }
 
 func extractToken(html string) string {
