@@ -22,7 +22,6 @@ type ClientServiceInterface interface {
 	SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error)
 
 	// Password
-	PasswordRecover(obj *transfert.Client) error
 	PasswordUpdate(obj *transfert.Client) error
 	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error)
 
@@ -116,40 +115,6 @@ func (s *ClientService) ValidationRecover(dtoValidation *transfert.Validation, d
 	return nil
 }
 
-func (s *ClientService) PasswordRecover(obj *transfert.Client) error {
-	query := &transfert.Client{
-		Email: obj.Email,
-	}
-
-	client, err := s.repo.ReadClient(query)
-	if err != nil {
-		return fmt.Errorf(errors.ErrClientNotFound)
-	}
-
-	if mailValidation := client.HasSuccessValidation(entities.MailValidation); mailValidation == nil {
-		return fmt.Errorf(errors.ErrClientNotValidate, entities.MailValidation.String())
-	}
-
-	validation := &entities.Validation{
-		ClientID: &client.ID,
-		Type:     entities.MailValidation,
-	}
-
-	client.Validations = append(client.Validations, validation)
-
-	if err := s.repo.UpdateValidation(validation); err != nil {
-		return err
-	}
-
-	if err := s.repo.UpdateClient(client); err != nil {
-		return err
-	}
-
-	go s.sendMailRecover(client, validation)
-
-	return nil
-}
-
 func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
 	client, err := s.repo.ReadClient(&transfert.Client{
 		Email: obj.Email,
@@ -187,7 +152,7 @@ func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
 //
 // Returns:
 // - error: error An error object if an error occurs, nil otherwise.
-func (s *ClientService) sendMail(client *entities.Client, validation *entities.Validation, templateName string, validationType entities.ValidationType) error {
+func (s *ClientService) sendMail(client *entities.Client, validation *entities.Validation, templateName string) error {
 	tpl := template.NewTemplate(templateName)
 	if tpl == nil {
 		return fmt.Errorf(errors.ErrTemplateNotFound, templateName)
@@ -203,9 +168,9 @@ func (s *ClientService) sendMail(client *entities.Client, validation *entities.V
 	}
 
 	subject := ""
-	if validationType == entities.PasswordRecover {
+	if validation.Type == entities.PasswordRecover {
 		subject = "Récupération de mot de passe"
-	} else if validationType == entities.MailValidation {
+	} else if validation.Type == entities.MailValidation {
 		subject = "Bienvenue chez The Tip Top"
 	}
 
@@ -226,18 +191,6 @@ func (s *ClientService) sendMail(client *entities.Client, validation *entities.V
 	return fmt.Errorf(errors.ErrMailSendFailed)
 }
 
-// sendMailRecover Send a password recovery email to a client
-// This function sends a password recovery email to the specified client.
-//
-// Parameters:
-// - client: *entities.Client The client to send the email to.
-//
-// Returns:
-// - error: error An error object if an error occurs, nil otherwise.
-func (s *ClientService) sendMailRecover(client *entities.Client, token *entities.Validation) error {
-	return s.sendMail(client, token, "recover", entities.PasswordRecover)
-}
-
 // sendSignUpMail Send a signup confirmation email to a client
 // This function sends a signup confirmation email to the specified client.
 //
@@ -247,5 +200,5 @@ func (s *ClientService) sendMailRecover(client *entities.Client, token *entities
 // Returns:
 // - error: error An error object if an error occurs, nil otherwise.
 func (s *ClientService) sendSignUpMail(client *entities.Client, token *entities.Validation) error {
-	return s.sendMail(client, token, "signup", entities.MailValidation)
+	return s.sendMail(client, token, "token")
 }

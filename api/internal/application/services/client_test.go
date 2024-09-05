@@ -365,54 +365,6 @@ func TestSignValidation(t *testing.T) {
 	})
 }
 
-func TestPasswordRecover(t *testing.T) {
-	config.Load(aws.String("../../../config.test.yml"))
-
-	t.Run("invalid syntax email", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		mockClient.On("PasswordRecover", mock.Anything).Return(fmt.Errorf("invalid email"))
-
-		statusCode, response := services.PasswordRecover(mockClient, &transfert.Client{
-			Email: &emailSyntaxFail,
-		})
-		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.NotNil(t, response)
-	})
-
-	t.Run("valid email", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		mockClient.On("PasswordRecover", mock.Anything).Return(nil)
-
-		statusCode, response := services.PasswordRecover(mockClient, &transfert.Client{
-			Email: &email,
-		})
-		assert.Equal(t, fiber.StatusNoContent, statusCode)
-		assert.Nil(t, response)
-	})
-
-	t.Run("client fail to recover password", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		mockClient.On("PasswordRecover", mock.Anything).Return(fmt.Errorf("boom"))
-
-		statusCode, response := services.PasswordRecover(mockClient, &transfert.Client{
-			Email: &email,
-		})
-		assert.Equal(t, http.StatusBadRequest, statusCode)
-		assert.NotNil(t, response)
-	})
-
-	t.Run("client not found", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		mockClient.On("PasswordRecover", mock.Anything).Return(fmt.Errorf(errors.ErrClientNotFound))
-
-		statusCode, response := services.PasswordRecover(mockClient, &transfert.Client{
-			Email: &email,
-		})
-		assert.Equal(t, http.StatusNotFound, statusCode)
-		assert.NotNil(t, response)
-	})
-}
-
 func TestPasswordUpdate(t *testing.T) {
 	config.Load(aws.String("../../../config.test.yml"))
 
