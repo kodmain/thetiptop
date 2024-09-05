@@ -5,59 +5,6 @@ info:
   title: TheTipTop
   version: dev
 paths:
-  /recover/password:
-    post:
-      consumes:
-      - multipart/form-data
-      operationId: client.PasswordRecover
-      parameters:
-      - default: user-thetiptop@yopmail.com
-        description: Email address
-        format: email
-        in: formData
-        name: email
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: Password recover
-        "400":
-          description: Invalid email
-        "404":
-          description: Client not found
-        "500":
-          description: Internal server error
-      tags:
-      - Recover
-  /recover/validation:
-    post:
-      consumes:
-      - multipart/form-data
-      operationId: client.ValidationRecover
-      parameters:
-      - default: user-thetiptop@yopmail.com
-        description: Email address
-        format: email
-        in: formData
-        name: email
-        required: true
-        type: string
-      - description: Type of validation
-        enum:
-        - mail
-        - password
-        - phone
-        in: formData
-        name: type
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      tags:
-      - Recover
   /status/healthcheck:
     get:
       consumes:
@@ -115,7 +62,7 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - User
+      - Client
   /user/auth/renew:
     get:
       consumes:
@@ -140,8 +87,8 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - User
-  /user/password/update:
+      - Client
+  /user/password:
     put:
       consumes:
       - multipart/form-data
@@ -181,7 +128,7 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - User
+      - Client
   /user/register:
     post:
       consumes:
@@ -225,7 +172,7 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - User
+      - Client
   /user/register/validation:
     put:
       consumes:
@@ -260,5 +207,32 @@ paths:
         "500":
           description: Internal server error
       tags:
-      - User
+      - Client
+  /validation/renew:
+    post:
+      consumes:
+      - multipart/form-data
+      operationId: client.ValidationRecover
+      parameters:
+      - default: user-thetiptop@yopmail.com
+        description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Type of validation
+        enum:
+        - mail
+        - password
+        - phone
+        in: formData
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      tags:
+      - Client
 swagger: "2.0"

@@ -1,9 +1,0 @@
-Bonjour,
-
-Merci de vous être inscrit. Veuillez saisir votre token de validation dans votre application :
-
-{{.Token}}
-
-Si vous n'avez pas demandé cette inscription, veuillez ignorer ce message.
-
-&copy; {{.AppName}}
