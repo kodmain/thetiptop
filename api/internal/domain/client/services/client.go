@@ -68,7 +68,7 @@ func (s *ClientService) SignUp(obj *transfert.Client) (*entities.Client, error) 
 		return nil, err
 	}
 
-	go s.sendSignUpMail(client, validation)
+	go s.sendValidationMail(client, validation)
 
 	return client, nil
 }
@@ -110,7 +110,9 @@ func (s *ClientService) ValidationRecover(dtoValidation *transfert.Validation, d
 		return err
 	}
 
-	go s.sendSignUpMail(client, validation)
+	if validation.Type != entities.PhoneValidation {
+		go s.sendValidationMail(client, validation)
+	}
 
 	return nil
 }
@@ -167,12 +169,7 @@ func (s *ClientService) sendMail(client *entities.Client, validation *entities.V
 		return err
 	}
 
-	subject := ""
-	if validation.Type == entities.PasswordRecover {
-		subject = "Récupération de mot de passe"
-	} else if validation.Type == entities.MailValidation {
-		subject = "Bienvenue chez The Tip Top"
-	}
+	subject := "The Tip Top"
 
 	m := &mail.Mail{
 		To:      []string{*client.Email},
@@ -191,7 +188,7 @@ func (s *ClientService) sendMail(client *entities.Client, validation *entities.V
 	return fmt.Errorf(errors.ErrMailSendFailed)
 }
 
-// sendSignUpMail Send a signup confirmation email to a client
+// sendValidationMail Send a signup confirmation email to a client
 // This function sends a signup confirmation email to the specified client.
 //
 // Parameters:
@@ -199,6 +196,6 @@ func (s *ClientService) sendMail(client *entities.Client, validation *entities.V
 //
 // Returns:
 // - error: error An error object if an error occurs, nil otherwise.
-func (s *ClientService) sendSignUpMail(client *entities.Client, token *entities.Validation) error {
+func (s *ClientService) sendValidationMail(client *entities.Client, token *entities.Validation) error {
 	return s.sendMail(client, token, "token")
 }

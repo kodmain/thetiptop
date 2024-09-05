@@ -3,6 +3,7 @@ package services_test
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -35,14 +36,15 @@ var (
 
 type DomainClientService struct {
 	mock.Mock
+	mu sync.Mutex
 }
 
-func (dcs DomainClientService) PasswordRecover(obj *transfert.Client) error {
+func (dcs *DomainClientService) PasswordRecover(obj *transfert.Client) error {
 	args := dcs.Called(obj)
 	return args.Error(0)
 }
 
-func (dcs DomainClientService) SignUp(obj *transfert.Client) (*entities.Client, error) {
+func (dcs *DomainClientService) SignUp(obj *transfert.Client) (*entities.Client, error) {
 	args := dcs.Called(obj)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -50,7 +52,7 @@ func (dcs DomainClientService) SignUp(obj *transfert.Client) (*entities.Client, 
 	return args.Get(0).(*entities.Client), args.Error(1)
 }
 
-func (dcs DomainClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
+func (dcs *DomainClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
 	args := dcs.Called(obj)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -58,7 +60,7 @@ func (dcs DomainClientService) SignIn(obj *transfert.Client) (*entities.Client, 
 	return args.Get(0).(*entities.Client), args.Error(1)
 }
 
-func (dcs DomainClientService) SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
+func (dcs *DomainClientService) SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
 	args := dcs.Called(dtoValidation, dtoClient)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -66,12 +68,15 @@ func (dcs DomainClientService) SignValidation(dtoValidation *transfert.Validatio
 	return args.Get(0).(*entities.Validation), args.Error(1)
 }
 
-func (dcs DomainClientService) ValidationRecover(validation *transfert.Validation, client *transfert.Client) error {
+func (dcs *DomainClientService) ValidationRecover(validation *transfert.Validation, client *transfert.Client) error {
 	args := dcs.Called(validation, client)
 	return args.Error(0)
 }
 
-func (dcs DomainClientService) PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
+func (dcs *DomainClientService) PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error) {
+	dcs.mu.Lock()
+	defer dcs.mu.Unlock()
+
 	args := dcs.Called(dtoValidation, dtoClient)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -79,7 +84,7 @@ func (dcs DomainClientService) PasswordValidation(dtoValidation *transfert.Valid
 	return args.Get(0).(*entities.Validation), args.Error(1)
 }
 
-func (dcs DomainClientService) PasswordUpdate(client *transfert.Client) error {
+func (dcs *DomainClientService) PasswordUpdate(client *transfert.Client) error {
 	args := dcs.Called(client)
 	return args.Error(0)
 }

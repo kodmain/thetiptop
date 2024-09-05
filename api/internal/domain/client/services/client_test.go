@@ -333,10 +333,7 @@ func TestValidationRecover(t *testing.T) {
 		mockRepository.On("UpdateClient", mock.AnythingOfType("*entities.Client")).Return(nil)
 
 		mockMailer.On("Send", mock.MatchedBy(func(m *mail.Mail) bool {
-			fmt.Printf("Received mail with Subject: %s, To: %v\n", m.Subject, m.To)
-			return m.Subject == "Bienvenue chez The Tip Top" &&
-				len(m.To) == 1 &&
-				m.To[0] == "hello@thetiptop"
+			return m.To[0] == "hello@thetiptop" && m.Subject == "The Tip Top"
 		})).Return(nil)
 
 		err := service.ValidationRecover(inputValidation, inputClient)
