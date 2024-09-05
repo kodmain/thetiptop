@@ -122,26 +122,6 @@ func SignValidation(service services.ClientServiceInterface, validationDTO *tran
 
 }
 
-func PasswordRecover(service services.ClientServiceInterface, clientDTO *transfert.Client) (int, any) {
-	err := clientDTO.Check(data.Validator{
-		"email": {validator.Required, validator.Email},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
-	}
-
-	if err = service.PasswordRecover(clientDTO); err != nil {
-		if err.Error() == errors.ErrClientNotFound {
-			return fiber.StatusNotFound, err.Error()
-		}
-
-		return fiber.StatusBadRequest, err.Error()
-	}
-
-	return fiber.StatusNoContent, nil
-}
-
 func ValidationRecover(service services.ClientServiceInterface, clientDTO *transfert.Client, validationDTO *transfert.Validation) (int, any) {
 	err := clientDTO.Check(data.Validator{
 		"email": {validator.Required, validator.Email},

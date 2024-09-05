@@ -330,10 +330,8 @@ func TestClient(t *testing.T) {
 		USER_REGISTER_VALIDATION = DOMAIN + "/user/register/validation"
 		USER_AUTH                = DOMAIN + "/user/auth"
 		USER_AUTH_RENEW          = DOMAIN + "/user/auth/renew"
-		USER_PASSWORD_UPDATE     = DOMAIN + "/user/password/update"
-
-		RECOVER_PASSWORD   = DOMAIN + "/recover/password"
-		RECOVER_VALIDATION = DOMAIN + "/recover/validation"
+		USER_PASSWORD            = DOMAIN + "/user/password"
+		RECOVER_VALIDATION       = DOMAIN + "/validation/renew"
 	)
 
 	for _, encoding := range encodingTypes {
@@ -433,15 +431,17 @@ func TestClient(t *testing.T) {
 					})
 
 					t.Run("Password/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", RECOVER_PASSWORD, "", encoding, map[string][]any{
+						_, status, err := request("POST", RECOVER_VALIDATION, "", encoding, map[string][]any{
 							"email": {user.email + "wrong"},
+							"type":  {entities.PasswordRecover.String()},
 						})
 
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusNotFound, status)
 
-						_, status, err = request("POST", RECOVER_PASSWORD, "", encoding, map[string][]any{
+						_, status, err = request("POST", RECOVER_VALIDATION, "", encoding, map[string][]any{
 							"email": {user.email},
+							"type":  {entities.PasswordRecover.String()},
 						})
 
 						assert.Nil(t, err)
@@ -454,7 +454,7 @@ func TestClient(t *testing.T) {
 						token := extractToken(email.HTML)
 						assert.NotEmpty(t, token)
 
-						_, status, err = request("PUT", USER_PASSWORD_UPDATE, "", encoding, map[string][]any{
+						_, status, err = request("PUT", USER_PASSWORD, "", encoding, map[string][]any{
 							"token":    {token},
 							"email":    {user.email},
 							"password": {GOOD_PASS_UPDATED},

@@ -8,7 +8,7 @@ import (
 )
 
 func TestData(t *testing.T) {
-	tpl := template.NewTemplate("signup")
+	tpl := template.NewTemplate("token")
 	assert.NotNil(t, tpl)
 
 	text, html, err := tpl.Inject(template.Data{
