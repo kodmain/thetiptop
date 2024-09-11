@@ -68,7 +68,7 @@ const docTemplate = `{
                 "tags": [
                     "Client"
                 ],
-                "operationId": "client.SignIn",
+                "operationId": "client.UserAuth",
                 "parameters": [
                     {
                         "type": "string",
@@ -113,7 +113,7 @@ const docTemplate = `{
                 "tags": [
                     "Client"
                 ],
-                "operationId": "client.SignRenew",
+                "operationId": "client.UserAuthRenew",
                 "parameters": [
                     {
                         "type": "string",
@@ -210,7 +210,7 @@ const docTemplate = `{
                 "tags": [
                     "Client"
                 ],
-                "operationId": "client.SignUp",
+                "operationId": "client.Register",
                 "parameters": [
                     {
                         "type": "string",
@@ -298,6 +298,58 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid email or token"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "409": {
+                        "description": "Client already validated"
+                    },
+                    "410": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/update": {
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Client"
+                ],
+                "operationId": "client.UpdateClient",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Newsletter",
+                        "name": "newsletter",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Password updated"
+                    },
+                    "400": {
+                        "description": "Invalid email, password or token"
                     },
                     "404": {
                         "description": "Client not found"
