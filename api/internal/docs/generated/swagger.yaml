@@ -37,7 +37,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      operationId: client.SignIn
+      operationId: client.UserAuth
       parameters:
       - default: user-thetiptop@yopmail.com
         description: Email address
@@ -68,7 +68,7 @@ paths:
       consumes:
       - '*/*'
       - multipart/form-data
-      operationId: client.SignRenew
+      operationId: client.UserAuthRenew
       parameters:
       - description: With the bearer started
         in: header
@@ -133,7 +133,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      operationId: client.SignUp
+      operationId: client.Register
       parameters:
       - default: user-thetiptop@yopmail.com
         description: Email address
@@ -198,6 +198,41 @@ paths:
           description: Client email validate
         "400":
           description: Invalid email or token
+        "404":
+          description: Client not found
+        "409":
+          description: Client already validated
+        "410":
+          description: Token expired
+        "500":
+          description: Internal server error
+      tags:
+      - Client
+  /user/update:
+    put:
+      consumes:
+      - multipart/form-data
+      operationId: client.UpdateClient
+      parameters:
+      - description: Client ID
+        format: uuid
+        in: formData
+        name: id
+        required: true
+        type: string
+      - default: false
+        description: Newsletter
+        in: formData
+        name: newsletter
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Password updated
+        "400":
+          description: Invalid email, password or token
         "404":
           description: Client not found
         "409":

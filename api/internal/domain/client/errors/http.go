@@ -11,6 +11,11 @@ const (
 	ErrClientNotValidate      = "client not validate %s"
 	ErrClientAlreadyValidated = "client already validated"
 
+	// credential errors
+	ErrCredentialNotFound      = "credential not found"
+	ErrCredentialInvalid       = "credential invalid"
+	ErrCredentialAlreadyExists = "credential already exists"
+
 	// mail errors
 	ErrMailSendFailed = "failed to send mail"
 

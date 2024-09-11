@@ -351,7 +351,7 @@ func TestClient(t *testing.T) {
 				values := map[string][]any{
 					"email":      {user.email},
 					"password":   {user.password},
-					"newsletter": {true},
+					"newsletter": {false},
 					"cgu":        {true},
 				}
 
