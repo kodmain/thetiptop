@@ -9,7 +9,28 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
-func SignValidation(service services.ClientServiceInterface, dtoValidation *transfert.Validation, dtoCredential *transfert.Credential) (int, any) {
+func GetClient(service services.ClientServiceInterface, dtoClient *transfert.Client) (int, any) {
+	err := dtoClient.Check(data.Validator{
+		"id": {validator.Required, validator.ID},
+	})
+
+	if err != nil {
+		return fiber.StatusBadRequest, err.Error()
+	}
+
+	client, err := service.GetClient(dtoClient)
+	if err != nil {
+		if err.Error() == errors.ErrClientNotFound {
+			return fiber.StatusNotFound, err.Error()
+		}
+
+		return fiber.StatusInternalServerError, err.Error()
+	}
+
+	return fiber.StatusOK, client
+}
+
+func MailValidation(service services.ClientServiceInterface, dtoValidation *transfert.Validation, dtoCredential *transfert.Credential) (int, any) {
 	err := dtoValidation.Check(data.Validator{
 		"token": {validator.Required, validator.Luhn},
 	})
@@ -26,7 +47,7 @@ func SignValidation(service services.ClientServiceInterface, dtoValidation *tran
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	validation, err := service.SignValidation(dtoValidation, dtoCredential)
+	validation, err := service.MailValidation(dtoValidation, dtoCredential)
 	if err != nil {
 		status := fiber.StatusInternalServerError
 		switch err.Error() {

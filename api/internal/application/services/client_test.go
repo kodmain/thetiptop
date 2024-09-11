@@ -35,6 +35,14 @@ type DomainClientService struct {
 	mu sync.Mutex
 }
 
+func (dcs *DomainClientService) GetClient(client *transfert.Client) (*entities.Client, error) {
+	args := dcs.Called(client)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entities.Client), args.Error(1)
+}
+
 func (dcs *DomainClientService) PasswordRecover(obj *transfert.Credential) error {
 	args := dcs.Called(obj)
 	return args.Error(0)
@@ -56,7 +64,7 @@ func (dcs *DomainClientService) UserAuth(obj *transfert.Credential) (*entities.C
 	return args.Get(0).(*entities.Client), args.Error(1)
 }
 
-func (dcs *DomainClientService) SignValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, error) {
+func (dcs *DomainClientService) MailValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, error) {
 	args := dcs.Called(validation, credential)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -90,7 +98,7 @@ func (dcs *DomainClientService) PasswordUpdate(credential *transfert.Credential)
 	return args.Error(0)
 }
 
-func TestSignValidation(t *testing.T) {
+func TestMailValidation(t *testing.T) {
 	luhn := token.Generate(6)
 
 	// Cas de validation réussie
@@ -101,12 +109,12 @@ func TestSignValidation(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Simulation de la réponse du mock pour une validation réussie
-		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(&entities.Validation{
+		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(&entities.Validation{
 			ID: id.String(),
 		}, nil)
 
 		// Appel de la fonction à tester
-		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: luhn.PointerString(),
 		}, &transfert.Credential{
 			Email: aws.String(email),
@@ -125,7 +133,7 @@ func TestSignValidation(t *testing.T) {
 	t.Run("invalid token syntax", func(t *testing.T) {
 		mockClient := new(DomainClientService)
 		// Appel avec un token invalide
-		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: aws.String("invalidToken"),
 		}, &transfert.Credential{
 			Email: aws.String(emailSyntaxFail),
@@ -140,7 +148,7 @@ func TestSignValidation(t *testing.T) {
 	t.Run("invalid email syntax", func(t *testing.T) {
 		mockClient := new(DomainClientService)
 		// Appel avec un token invalide
-		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: luhn.PointerString(),
 		}, &transfert.Credential{
 			Email: aws.String(emailSyntaxFail),
@@ -155,9 +163,9 @@ func TestSignValidation(t *testing.T) {
 	t.Run("validation not found", func(t *testing.T) {
 		mockClient := new(DomainClientService)
 		// Configuration du mock pour renvoyer l'erreur "validation not found"
-		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationNotFound))
+		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationNotFound))
 
-		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: luhn.PointerString(),
 		}, &transfert.Credential{
 			Email: aws.String(email),
@@ -170,9 +178,9 @@ func TestSignValidation(t *testing.T) {
 
 	t.Run("validation already validated", func(t *testing.T) {
 		mockClient := new(DomainClientService)
-		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationExpired))
+		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationExpired))
 
-		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: luhn.PointerString(),
 		}, &transfert.Credential{
 			Email: aws.String(email),
@@ -186,9 +194,9 @@ func TestSignValidation(t *testing.T) {
 	t.Run("validation already validated", func(t *testing.T) {
 		mockClient := new(DomainClientService)
 		// Configuration du mock pour renvoyer l'erreur "validation already validated"
-		mockClient.On("SignValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationAlreadyValidated))
+		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationAlreadyValidated))
 
-		statusCode, response := services.SignValidation(mockClient, &transfert.Validation{
+		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: luhn.PointerString(),
 		}, &transfert.Credential{
 			Email: aws.String(email),
