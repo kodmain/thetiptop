@@ -12,41 +12,8 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
-// @Tags		Client
-// @Accept		multipart/form-data
-// @Produce		application/json
-// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
-// @Param		password	formData	string	true	"Password" default(Aa1@azetyuiop)
-// @Param 		cgu			formData	bool	true	"CGU" default(true)
-// @Param 		newsletter	formData	bool	true	"Newsletter" default(false)
-// @Success		201	{object}	nil "Client created"
-// @Failure		400	{object}	nil "Invalid email or password"
-// @Failure		409	{object}	nil "Client already exists"
-// @Failure		500	{object}	nil "Internal server error"
-// @Router		/user/register [post]
-// @Id			client.Register
-func Register(c *fiber.Ctx) error {
-	dtoCredential := &transfert.Credential{}
-	if err := c.BodyParser(dtoCredential); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	dtoClient := &transfert.Client{}
-	if err := c.BodyParser(dtoClient); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	status, response := services.UserRegister(
-		domain.Client(
-			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
-			mail.Get(),
-		), dtoCredential, dtoClient,
-	)
-
-	return c.Status(status).JSON(response)
-}
-
-// @Tags		Client
+// @Tags		User
+// @Summary		Authenticate a client/employees.
 // @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
@@ -72,7 +39,8 @@ func UserAuth(c *fiber.Ctx) error {
 	return c.Status(status).JSON(response)
 }
 
-// @Tags		Client
+// @Tags		User
+// @Summary		Renew JWT for a client/employees.
 // @Accept		*/*
 // @Accept		multipart/form-data
 // @Produce		application/json
@@ -96,7 +64,8 @@ func UserAuthRenew(c *fiber.Ctx) error {
 	return c.Status(status).JSON(response)
 }
 
-// @Tags		Client
+// @Tags		User
+// @Summary		Update a client/employees password.
 // @Accept		multipart/form-data
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
@@ -109,8 +78,8 @@ func UserAuthRenew(c *fiber.Ctx) error {
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/user/password [put]
-// @Id			client.PasswordUpdate
-func PasswordUpdate(c *fiber.Ctx) error {
+// @Id			client.CredentialUpdate
+func CredentialUpdate(c *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := c.BodyParser(dtoCredential); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
@@ -126,6 +95,70 @@ func PasswordUpdate(c *fiber.Ctx) error {
 			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
 			mail.Get(),
 		), dtoValidation, dtoCredential,
+	)
+
+	return c.Status(status).JSON(response)
+}
+
+// @Tags		User
+// @Summary		Validate a client/employees email.
+// @Accept		multipart/form-data
+// @Produce		application/json
+// @Param		token	formData	string	true	"Token"
+// @Param		email	formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
+// @Success		204	{object}	nil "Client email validate"
+// @Failure		400	{object}	nil "Invalid email or token"
+// @Failure		404	{object}	nil "Client not found"
+// @Failure		409	{object}	nil "Client already validated"
+// @Failure		410 {object}	nil "Token expired"
+// @Failure		500	{object}	nil "Internal server error"
+// @Router		/user/register/validation [put]
+// @Id			client.MailValidation
+func MailValidation(c *fiber.Ctx) error {
+	dtoCredential := &transfert.Credential{}
+	if err := c.BodyParser(dtoCredential); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	dtoValidation := &transfert.Validation{}
+	if err := c.BodyParser(dtoValidation); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	status, response := services.MailValidation(
+		domain.Client(
+			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+			mail.Get(),
+		), dtoValidation, dtoCredential,
+	)
+
+	return c.Status(status).JSON(response)
+}
+
+// @Tags		User
+// @Summary		Recover a client/employees validation type.
+// @Accept		multipart/form-data
+// @Produce		application/json
+// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
+// @Param		type		formData	string	true	"Type of validation" enums(mail, password, phone)
+// @Router		/user/validation/renew [post]
+// @Id			client.ValidationRecover
+func ValidationRecover(c *fiber.Ctx) error {
+	dtoCredential := &transfert.Credential{}
+	if err := c.BodyParser(dtoCredential); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	dtoValidation := &transfert.Validation{}
+	if err := c.BodyParser(dtoValidation); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	status, response := services.ValidationRecover(
+		domain.Client(
+			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+			mail.Get(),
+		), dtoCredential, dtoValidation,
 	)
 
 	return c.Status(status).JSON(response)

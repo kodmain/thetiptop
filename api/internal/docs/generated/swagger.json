@@ -8,49 +8,7 @@
     },
     "host": "localhost",
     "paths": {
-        "/status/healthcheck": {
-            "get": {
-                "description": "get the status of server.",
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Status"
-                ],
-                "summary": "Show the status of server.",
-                "operationId": "status.HealthCheck",
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    }
-                }
-            }
-        },
-        "/status/ip": {
-            "get": {
-                "description": "get the ip of user.",
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Status"
-                ],
-                "summary": "Show the ip of user.",
-                "operationId": "status.IP",
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/user/auth": {
+        "/client/register": {
             "post": {
                 "consumes": [
                     "multipart/form-data"
@@ -61,148 +19,7 @@
                 "tags": [
                     "Client"
                 ],
-                "operationId": "client.UserAuth",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "default": "user-thetiptop@yopmail.com",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "default": "Aa1@azetyuiop",
-                        "description": "Password",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Client signed in"
-                    },
-                    "400": {
-                        "description": "Invalid email or password"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/user/auth/renew": {
-            "get": {
-                "consumes": [
-                    "*/*",
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Client"
-                ],
-                "operationId": "client.UserAuthRenew",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "With the bearer started",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "JWT token renewed"
-                    },
-                    "400": {
-                        "description": "Invalid token"
-                    },
-                    "401": {
-                        "description": "Token expired"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/user/password": {
-            "put": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Client"
-                ],
-                "operationId": "client.PasswordUpdate",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "default": "user-thetiptop@yopmail.com",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "default": "Aa1@azetyuiop",
-                        "description": "Password",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Token",
-                        "name": "token",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Password updated"
-                    },
-                    "400": {
-                        "description": "Invalid email, password or token"
-                    },
-                    "404": {
-                        "description": "Client not found"
-                    },
-                    "409": {
-                        "description": "Client already validated"
-                    },
-                    "410": {
-                        "description": "Token expired"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/user/register": {
-            "post": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Client"
-                ],
+                "summary": "Register a client.",
                 "operationId": "client.Register",
                 "parameters": [
                     {
@@ -255,7 +72,7 @@
                 }
             }
         },
-        "/user/register/validation": {
+        "/client/update": {
             "put": {
                 "consumes": [
                     "multipart/form-data"
@@ -266,58 +83,7 @@
                 "tags": [
                     "Client"
                 ],
-                "operationId": "client.SignValidation",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Token",
-                        "name": "token",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "default": "user-thetiptop@yopmail.com",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Client email validate"
-                    },
-                    "400": {
-                        "description": "Invalid email or token"
-                    },
-                    "404": {
-                        "description": "Client not found"
-                    },
-                    "409": {
-                        "description": "Client already validated"
-                    },
-                    "410": {
-                        "description": "Token expired"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/user/update": {
-            "put": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Client"
-                ],
+                "summary": "Update a client.",
                 "operationId": "client.UpdateClient",
                 "parameters": [
                     {
@@ -359,8 +125,8 @@
                 }
             }
         },
-        "/validation/renew": {
-            "post": {
+        "/client/{id}": {
+            "get": {
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -370,6 +136,289 @@
                 "tags": [
                     "Client"
                 ],
+                "summary": "Get a client by ID.",
+                "operationId": "client.GetClientByID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Client details",
+                        "schema": {
+                            "$ref": "#/definitions/transfert.Client"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid client ID"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/status/healthcheck": {
+            "get": {
+                "description": "get the status of server.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status"
+                ],
+                "summary": "Show the status of server.",
+                "operationId": "status.HealthCheck",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/status/ip": {
+            "get": {
+                "description": "get the ip of user.",
+                "consumes": [
+                    "*/*"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status"
+                ],
+                "summary": "Show the ip of user.",
+                "operationId": "status.IP",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/user/auth": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Authenticate a client/employees.",
+                "operationId": "client.UserAuth",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Aa1@azetyuiop",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Client signed in"
+                    },
+                    "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/auth/renew": {
+            "get": {
+                "consumes": [
+                    "*/*",
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Renew JWT for a client/employees.",
+                "operationId": "client.UserAuthRenew",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token renewed"
+                    },
+                    "400": {
+                        "description": "Invalid token"
+                    },
+                    "401": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/password": {
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update a client/employees password.",
+                "operationId": "client.CredentialUpdate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Aa1@azetyuiop",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token",
+                        "name": "token",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Password updated"
+                    },
+                    "400": {
+                        "description": "Invalid email, password or token"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "409": {
+                        "description": "Client already validated"
+                    },
+                    "410": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/register/validation": {
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Validate a client/employees email.",
+                "operationId": "client.MailValidation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token",
+                        "name": "token",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Client email validate"
+                    },
+                    "400": {
+                        "description": "Invalid email or token"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "409": {
+                        "description": "Client already validated"
+                    },
+                    "410": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/validation/renew": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Recover a client/employees validation type.",
                 "operationId": "client.ValidationRecover",
                 "parameters": [
                     {
@@ -395,6 +444,22 @@
                     }
                 ],
                 "responses": {}
+            }
+        }
+    },
+    "definitions": {
+        "transfert.Client": {
+            "type": "object",
+            "properties": {
+                "cgu": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "newsletter": {
+                    "type": "boolean"
+                }
             }
         }
     }

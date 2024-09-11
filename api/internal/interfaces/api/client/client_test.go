@@ -315,12 +315,15 @@ func TestClient(t *testing.T) {
 	const (
 		DOMAIN = "http://localhost:8888"
 
-		USER_REGISTER            = DOMAIN + "/user/register"
-		USER_REGISTER_VALIDATION = DOMAIN + "/user/register/validation"
+		// Client
+		CLIENT_REGISTER = DOMAIN + "/client/register"
+
+		// User
 		USER_AUTH                = DOMAIN + "/user/auth"
 		USER_AUTH_RENEW          = DOMAIN + "/user/auth/renew"
 		USER_PASSWORD            = DOMAIN + "/user/password"
-		RECOVER_VALIDATION       = DOMAIN + "/validation/renew"
+		USER_REGISTER_VALIDATION = DOMAIN + "/user/register/validation"
+		USER_VALIDATION_RENEW    = DOMAIN + "/user/validation/renew"
 	)
 
 	for _, encoding := range encodingTypes {
@@ -355,7 +358,7 @@ func TestClient(t *testing.T) {
 					"cgu":        {true},
 				}
 
-				RegisteredClient, status, err := request("POST", USER_REGISTER, "", encoding, values)
+				RegisteredClient, status, err := request("POST", CLIENT_REGISTER, "", encoding, values)
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSU, status)
 
@@ -372,7 +375,7 @@ func TestClient(t *testing.T) {
 					})
 
 					t.Run("Validation/recover/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", RECOVER_VALIDATION, "", encoding, map[string][]any{
+						_, status, err := request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
 							"email": {user.email},
 							"type":  {entities.MailValidation.String()},
 						})
@@ -420,7 +423,7 @@ func TestClient(t *testing.T) {
 					})
 
 					t.Run("Password/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", RECOVER_VALIDATION, "", encoding, map[string][]any{
+						_, status, err := request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
 							"email": {user.email + "wrong"},
 							"type":  {entities.PasswordRecover.String()},
 						})
@@ -428,7 +431,7 @@ func TestClient(t *testing.T) {
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusNotFound, status)
 
-						_, status, err = request("POST", RECOVER_VALIDATION, "", encoding, map[string][]any{
+						_, status, err = request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
 							"email": {user.email},
 							"type":  {entities.PasswordRecover.String()},
 						})
