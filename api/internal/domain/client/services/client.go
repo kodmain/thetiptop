@@ -10,24 +10,11 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/repositories"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail/template"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 )
-
-type ClientServiceInterface interface {
-	// Sign
-	SignUp(obj *transfert.Client) (*entities.Client, error)
-	SignIn(obj *transfert.Client) (*entities.Client, error)
-	SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error)
-
-	// Password
-	PasswordUpdate(obj *transfert.Client) error
-	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Client) (*entities.Validation, error)
-
-	// Validation
-	ValidationRecover(dtoValidation *transfert.Validation, obj *transfert.Client) error
-}
 
 type ClientService struct {
 	repo repositories.ClientRepositoryInterface
@@ -38,60 +25,106 @@ func Client(repo repositories.ClientRepositoryInterface, mail mail.ServiceInterf
 	return &ClientService{repo, mail}
 }
 
-func (s *ClientService) SignUp(obj *transfert.Client) (*entities.Client, error) {
-	if obj == nil {
+func (s *ClientService) UserRegister(dtoCredential *transfert.Credential, dtoClient *transfert.Client) (*entities.Client, error) {
+	if dtoCredential == nil || dtoClient == nil {
 		return nil, fmt.Errorf(errors.ErrNoDto)
 	}
 
-	_, err := s.repo.ReadClient(obj)
+	logger.Info("UserRegister", "dtoCredential", dtoCredential, "dtoClient", dtoClient)
+	_, err := s.repo.ReadCredential(dtoCredential)
 	if err == nil {
 		return nil, fmt.Errorf(errors.ErrClientAlreadyExists)
 	}
 
-	client, err := s.repo.CreateClient(obj)
+	credential, err := s.repo.CreateCredential(dtoCredential)
 	if err != nil {
 		return nil, err
 	}
 
-	validation := &entities.Validation{
-		ClientID: &client.ID,
-		Type:     entities.MailValidation,
-	}
-
-	client.Validations = append(client.Validations, validation)
-
-	if err := s.repo.UpdateValidation(validation); err != nil {
+	client, err := s.repo.CreateClient(dtoClient)
+	if err != nil {
 		return nil, err
 	}
+
+	credential.ClientID = &client.ID
+
+	client.Validations = append(client.Validations, &entities.Validation{
+		ClientID: &client.ID,
+		Type:     entities.MailValidation,
+	})
 
 	if err := s.repo.UpdateClient(client); err != nil {
 		return nil, err
 	}
 
-	go s.sendValidationMail(client, validation)
+	if err := s.repo.UpdateCredential(credential); err != nil {
+		return nil, err
+	}
+
+	go s.sendValidationMail(credential, client.Validations[0])
 
 	return client, nil
 }
 
-func (s *ClientService) SignIn(obj *transfert.Client) (*entities.Client, error) {
-	client, err := s.repo.ReadClient(&transfert.Client{
-		Email: obj.Email,
+func (s *ClientService) UserAuth(credential *transfert.Credential) (*entities.Client, error) {
+	if credential == nil {
+		return nil, fmt.Errorf(errors.ErrNoDto)
+	}
+
+	// Lire les informations d'identification de l'utilisateur
+	clientCredential, err := s.repo.ReadCredential(&transfert.Credential{
+		Email: credential.Email,
 	})
 
-	if err != nil || !client.CompareHash(*obj.Password) {
+	if err != nil {
+		return nil, err // Erreur si les credentials ne sont pas trouvés
+	}
+
+	// Comparer les hashs si les credentials existent
+	if !clientCredential.CompareHash(*credential.Password) {
+		return nil, fmt.Errorf(errors.ErrCredentialNotFound)
+	}
+
+	client, err := s.repo.ReadClient(&transfert.Client{
+		ID: clientCredential.ClientID,
+	})
+
+	if err != nil {
 		return nil, fmt.Errorf(errors.ErrClientNotFound)
 	}
 
-	if validation := client.HasSuccessValidation(entities.MailValidation); validation == nil {
-		return nil, fmt.Errorf(errors.ErrClientNotValidate, entities.MailValidation.String())
-	}
-
+	// Continuer le processus d'authentification
 	return client, nil
 }
 
-func (s *ClientService) ValidationRecover(dtoValidation *transfert.Validation, dtoClient *transfert.Client) error {
+func (s *ClientService) UpdateClient(dtoClient *transfert.Client) error {
+	client, err := s.repo.ReadClient(dtoClient)
+	if err != nil {
+		return fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	if err := s.repo.UpdateClient(client); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ClientService) ValidationRecover(dtoValidation *transfert.Validation, dtoCredential *transfert.Credential) error {
+	if dtoValidation == nil || dtoCredential == nil {
+		return fmt.Errorf(errors.ErrNoDto)
+	}
+
+	credential, err := s.repo.ReadCredential(&transfert.Credential{
+		Email: dtoCredential.Email,
+	})
+
+	if err != nil {
+		return fmt.Errorf(errors.ErrClientNotFound)
+	}
+
 	client, err := s.repo.ReadClient(&transfert.Client{
-		Email: dtoClient.Email,
+		ID: credential.ClientID,
 	})
 
 	if err != nil {
@@ -99,45 +132,39 @@ func (s *ClientService) ValidationRecover(dtoValidation *transfert.Validation, d
 	}
 
 	dtoValidation.ClientID = &client.ID
-	validation := entities.CreateValidation(dtoValidation)
-	client.Validations = append(client.Validations, validation)
-
-	if err := s.repo.UpdateValidation(validation); err != nil {
-		return err
-	}
-
-	if err := s.repo.UpdateClient(client); err != nil {
+	validation, err := s.repo.CreateValidation(dtoValidation)
+	if err != nil {
 		return err
 	}
 
 	if validation.Type != entities.PhoneValidation {
-		go s.sendValidationMail(client, validation)
+		go s.sendValidationMail(credential, validation)
 	}
 
 	return nil
 }
 
-func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
-	client, err := s.repo.ReadClient(&transfert.Client{
-		Email: obj.Email,
+func (s *ClientService) PasswordUpdate(dto *transfert.Credential) error {
+	if dto == nil {
+		return fmt.Errorf(errors.ErrNoDto)
+	}
+
+	credential, err := s.repo.ReadCredential(&transfert.Credential{
+		Email: dto.Email,
 	})
 
 	if err != nil {
 		return fmt.Errorf(errors.ErrClientNotFound)
 	}
 
-	if mailValidation := client.HasSuccessValidation(entities.MailValidation); mailValidation == nil {
-		return fmt.Errorf(errors.ErrClientNotValidate, entities.MailValidation.String())
-	}
-
-	password, err := hash.Hash(aws.String(*client.Email+":"+*obj.Password), hash.BCRYPT)
+	password, err := hash.Hash(aws.String(*credential.Email+":"+*dto.Password), hash.BCRYPT)
 	if err != nil {
 		return err
 	}
 
-	client.Password = password
+	credential.Password = password
 
-	if err := s.repo.UpdateClient(client); err != nil {
+	if err := s.repo.UpdateCredential(credential); err != nil {
 		return err
 	}
 
@@ -154,7 +181,7 @@ func (s *ClientService) PasswordUpdate(obj *transfert.Client) error {
 //
 // Returns:
 // - error: error An error object if an error occurs, nil otherwise.
-func (s *ClientService) sendMail(client *entities.Client, validation *entities.Validation, templateName string) error {
+func (s *ClientService) sendMail(credential *entities.Credential, validation *entities.Validation, templateName string) error {
 	tpl := template.NewTemplate(templateName)
 	if tpl == nil {
 		return fmt.Errorf(errors.ErrTemplateNotFound, templateName)
@@ -172,7 +199,7 @@ func (s *ClientService) sendMail(client *entities.Client, validation *entities.V
 	subject := "The Tip Top"
 
 	m := &mail.Mail{
-		To:      []string{*client.Email},
+		To:      []string{*credential.Email},
 		Subject: subject,
 		Text:    text,
 		Html:    html,
@@ -192,10 +219,86 @@ func (s *ClientService) sendMail(client *entities.Client, validation *entities.V
 // This function sends a signup confirmation email to the specified client.
 //
 // Parameters:
-// - client: *entities.Client The client to send the email to.
+// - client: *entities.Credential The client to send the email to.
 //
 // Returns:
 // - error: error An error object if an error occurs, nil otherwise.
-func (s *ClientService) sendValidationMail(client *entities.Client, token *entities.Validation) error {
-	return s.sendMail(client, token, "token")
+func (s *ClientService) sendValidationMail(credential *entities.Credential, token *entities.Validation) error {
+	if credential == nil || credential.Email == nil || token == nil {
+		// Évitez d'envoyer un e-mail si les données sont manquantes
+		return fmt.Errorf("missing data")
+	}
+
+	return s.sendMail(credential, token, "token")
+}
+
+// validateClientAndValidation Validate client and validation entities
+// This function handles the common logic for validating client and validation entities.
+//
+// Parameters:
+// - dtoValidation: *transfert.Validation The validation DTO.
+// - dtoClient: *transfert.Client The client DTO.
+//
+// Returns:
+// - validation: *entities.Validation The validated validation entity.
+// - error: error An error object if an error occurs, nil otherwise.
+func (s *ClientService) validateClientAndValidation(dtoValidation *transfert.Validation, dtoCredential *transfert.Credential) (*entities.Validation, error) {
+	if dtoValidation == nil || dtoCredential == nil {
+		return nil, fmt.Errorf(errors.ErrNoDto)
+	}
+
+	credential, err := s.repo.ReadCredential(dtoCredential)
+	if err != nil {
+		return nil, fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	dtoValidation.ClientID = credential.ClientID
+	validation, err := s.repo.ReadValidation(dtoValidation)
+	if err != nil {
+		return nil, fmt.Errorf(errors.ErrValidationNotFound)
+	}
+
+	if validation.ExpiresAt.Before(time.Now()) {
+		return nil, fmt.Errorf(errors.ErrValidationExpired)
+	}
+
+	if validation.Validated {
+		return nil, fmt.Errorf(errors.ErrValidationAlreadyValidated)
+	}
+
+	validation.Validated = true
+
+	if err := s.repo.UpdateValidation(validation); err != nil {
+		return nil, err
+	}
+
+	return validation, nil
+}
+
+// PasswordValidation Validate password recovery
+// This function validates a password recovery request.
+//
+// Parameters:
+// - dtoValidation: *transfert.Validation The validation DTO.
+// - dtoClient: *transfert.Client The client DTO.
+//
+// Returns:
+// - validation: *entities.Validation The validated validation entity.
+// - error: error An error object if an error occurs, nil otherwise.
+func (s *ClientService) PasswordValidation(dtoValidation *transfert.Validation, dtoCredential *transfert.Credential) (*entities.Validation, error) {
+	return s.validateClientAndValidation(dtoValidation, dtoCredential)
+}
+
+// SignValidation Validate sign-up
+// This function validates a sign-up request.
+//
+// Parameters:
+// - dtoValidation: *transfert.Validation The validation DTO.
+// - dtoClient: *transfert.Client The client DTO.
+//
+// Returns:
+// - validation: *entities.Validation The validated validation entity.
+// - error: error An error object if an error occurs, nil otherwise.
+func (s *ClientService) SignValidation(dtoValidation *transfert.Validation, dtoCredential *transfert.Credential) (*entities.Validation, error) {
+	return s.validateClientAndValidation(dtoValidation, dtoCredential)
 }

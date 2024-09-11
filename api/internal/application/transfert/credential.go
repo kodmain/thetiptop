@@ -7,26 +7,25 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
-type Client struct {
-	ID         *string `json:"id" xml:"id" form:"id"`
-	Newsletter *bool   `json:"newsletter" xml:"newsletter" form:"newsletter"`
-	CGU        *bool   `json:"cgu" xml:"cgu" form:"cgu"`
+type Credential struct {
+	ID       *string `json:"id" xml:"id" form:"id"`
+	Email    *string `json:"email" xml:"email" form:"email"`
+	Password *string `json:"password" xml:"password" form:"password"`
 }
 
-func (c *Client) Check(validator data.Validator) error {
+func (c *Credential) Check(validator data.Validator) error {
 	return validator.Check(data.Object{
-		"id":         c.ID,
-		"newsletter": c.Newsletter,
-		"cgu":        c.CGU,
+		"email":    c.Email,
+		"password": c.Password,
 	})
 }
 
-func NewClient(obj data.Object, mandatory data.Validator) (*Client, error) {
+func NewCredential(obj data.Object, mandatory data.Validator) (*Credential, error) {
 	if obj == nil {
 		return nil, fmt.Errorf(errors.ErrNoData)
 	}
 
-	c := &Client{}
+	c := &Credential{}
 
 	if mandatory == nil {
 		if err := obj.Hydrate(c); err != nil {

@@ -52,17 +52,21 @@ func Get(key string) interface{} {
 			val = val.FieldByNameFunc(func(name string) bool {
 				return strings.EqualFold(elem, name)
 			})
+		} else if val.Kind() == reflect.Map {
+			val = val.MapIndex(reflect.ValueOf(elem))
+		} else {
+			return nil
 		}
 
-		if !val.IsValid() || (val.Kind() == reflect.Ptr && val.IsNil()) {
+		if val.Kind() == reflect.Ptr && val.IsNil() {
 			return nil
 		}
 	}
 
-	// Check if the value is a zero value.
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
+
 	if val.IsValid() && !val.IsZero() {
 		return val.Interface()
 	}
