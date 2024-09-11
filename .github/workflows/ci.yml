@@ -95,7 +95,7 @@ jobs:
           branch: main
           skipInvalidTags: true
           noNewCommitBehavior: 'current'
-          patchList: 'update, fix, bugfix, perf, refactor, test, tests, chore, ci, docs, improve, style, build, revert, improvement, enhancement, coverage'
+          patchList: 'vendor, update, fix, bugfix, perf, refactor, test, tests, chore, ci, docs, improve, style, build, revert, improvement, enhancement, coverage'
 
       - name: SonarScanner Analyze
         run: sonar-scanner -Dsonar.projectVersion=${{ steps.semver.outputs.next }} -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true || echo "EXIT_STATUS=$?" >> $GITHUB_ENV

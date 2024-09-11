@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 func TestClient_HasSuccessValidation(t *testing.T) {
@@ -38,7 +40,6 @@ func TestClient_HasSuccessValidation(t *testing.T) {
 
 	result = client.HasSuccessValidation(entities.MailValidation)
 	assert.Nil(t, result)
-
 }
 
 func TestClient_HasNotExpiredValidation(t *testing.T) {
@@ -74,55 +75,109 @@ func TestClient_HasNotExpiredValidation(t *testing.T) {
 	assert.Nil(t, result)
 }
 
-func TestNewClient(t *testing.T) {
-	email := aws.String("user-thetiptop@yopmail.com")
-	password := aws.String("Aa1@azetyuiop")
-
-	obj := &transfert.Client{
-		Email:    email,
-		Password: password,
-	}
-
-	client := entities.CreateClient(obj)
-
-	if *client.Email != *email {
-		t.Errorf("Expected email %s, got %s", *email, *client.Email)
-	}
-
-	hash, err := hash.Hash(aws.String(*email+":"+*password), hash.BCRYPT)
-	assert.Nil(t, err)
-	if client.CompareHash(*email + ":" + *password) {
-		t.Errorf("Expected password %s", *hash)
-	}
-
-	now := time.Now()
-	if client.CreatedAt.After(now) {
-		t.Errorf("Expected CreatedAt to be before or equal to current time, got %s", client.CreatedAt)
-	}
-
-	if client.UpdatedAt.After(now) {
-		t.Errorf("Expected UpdatedAt to be before or equal to current time, got %s", client.UpdatedAt)
-	}
-}
-func TestClientBefore(t *testing.T) {
-	email := aws.String("user-thetiptop@yopmail.com")
-	password := aws.String("Aa1@azetyuiop")
-
+func TestClientBeforeCreateAndUpdate(t *testing.T) {
 	client := &entities.Client{
-		Email:    email,
-		Password: password,
+		CGU:        aws.Bool(true),
+		Newsletter: aws.Bool(false),
 	}
 
+	client.Validations = append(client.Validations, &entities.Validation{
+		Type: entities.MailValidation,
+	})
+
+	client.Credential = &entities.Credential{
+		Email: aws.String(""), // Email is not required
+	}
+
+	assert.Nil(t, client.Credential.ClientID)
+
+	// Test BeforeCreate
 	err := client.BeforeCreate(nil)
 	assert.Nil(t, err)
-
 	assert.NotEmpty(t, client.ID)
-	assert.NotEmpty(t, client.Password)
+	assert.Equal(t, client.ID, *client.Credential.ClientID)
 
+	// Simule un timestamp précédent pour comparer avec AfterUpdate
 	old := client.UpdatedAt
 	time.Sleep(100 * time.Millisecond)
 
+	// Test BeforeUpdate
 	err = client.BeforeUpdate(nil)
 	assert.Nil(t, err)
 	assert.True(t, client.UpdatedAt.After(old))
+}
+
+func TestClient_AfterFind(t *testing.T) {
+	// Setup SQLite in-memory database for testing
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	assert.Nil(t, err)
+
+	// Automigrate for Client and Validation tables
+	err = db.AutoMigrate(&entities.Client{}, &entities.Validation{})
+	assert.Nil(t, err)
+
+	// Create a new client with no validations
+	client := &entities.Client{
+		ID: uuid.New().String(),
+	}
+
+	// Insert the client into the database
+	err = db.Create(&client).Error
+	assert.Nil(t, err)
+
+	// Call AfterFind by retrieving the client from the database
+	err = db.First(&client, "id = ?", client.ID).Error
+	assert.Nil(t, err)
+
+	// Test if the Validations relation is properly loaded
+	assert.NotNil(t, client.Validations)
+	assert.True(t, len(client.Validations) == 0) // The client should have 0 validations
+}
+
+func TestCreateClient(t *testing.T) {
+	// Cas de test avec des valeurs valides pour CGU et Newsletter
+	cgu := aws.Bool(true)
+	newsletter := aws.Bool(false)
+
+	// Crée un objet de type transfert.Client avec les champs nécessaires
+	input := &transfert.Client{
+		CGU:        cgu,
+		Newsletter: newsletter,
+	}
+
+	// Appelle la fonction CreateClient
+	client := entities.CreateClient(input)
+
+	// Vérifie que le client n'est pas nil
+	assert.NotNil(t, client)
+
+	// Vérifie que les champs CGU et Newsletter ont été correctement transférés
+	assert.Equal(t, cgu, client.CGU)
+	assert.Equal(t, newsletter, client.Newsletter)
+
+	// Vérifie que le champ Validations est bien initialisé à une liste vide
+	assert.NotNil(t, client.Validations)
+	assert.Equal(t, 0, len(client.Validations))
+}
+
+func TestCreateClientWithNilFields(t *testing.T) {
+	// Cas de test où CGU et Newsletter sont nil
+	input := &transfert.Client{
+		CGU:        nil,
+		Newsletter: nil,
+	}
+
+	// Appelle la fonction CreateClient
+	client := entities.CreateClient(input)
+
+	// Vérifie que le client n'est pas nil
+	assert.NotNil(t, client)
+
+	// Vérifie que les champs CGU et Newsletter sont nil
+	assert.Nil(t, client.CGU)
+	assert.Nil(t, client.Newsletter)
+
+	// Vérifie que le champ Validations est bien initialisé à une liste vide
+	assert.NotNil(t, client.Validations)
+	assert.Equal(t, 0, len(client.Validations))
 }

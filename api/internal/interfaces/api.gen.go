@@ -20,10 +20,11 @@ func init() {
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
 		"client.PasswordUpdate":    client.PasswordUpdate,
-		"client.SignIn":            client.SignIn,
-		"client.SignRenew":         client.SignRenew,
-		"client.SignUp":            client.SignUp,
+		"client.Register":          client.Register,
 		"client.SignValidation":    client.SignValidation,
+		"client.UpdateClient":      client.UpdateClient,
+		"client.UserAuth":          client.UserAuth,
+		"client.UserAuthRenew":     client.UserAuthRenew,
 		"client.ValidationRecover": client.ValidationRecover,
 		"status.HealthCheck":       status.HealthCheck,
 		"status.IP":                status.IP,

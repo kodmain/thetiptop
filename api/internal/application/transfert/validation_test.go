@@ -7,7 +7,6 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/stretchr/testify/assert"
 )
@@ -63,8 +62,6 @@ func TestNewValidation(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, validation)
-
-				logger.Info(validation)
 
 				err = validation.Check(data.Validator{
 					"client_id": {validator.ID},
