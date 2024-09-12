@@ -20,7 +20,8 @@ func init() {
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
 		"client.CredentialUpdate":  client.CredentialUpdate,
-		"client.GetClientByID":     client.GetClientByID,
+		"client.DeleteClient":      client.DeleteClient,
+		"client.GetClient":         client.GetClient,
 		"client.MailValidation":    client.MailValidation,
 		"client.Register":          client.Register,
 		"client.UpdateClient":      client.UpdateClient,

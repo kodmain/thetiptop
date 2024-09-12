@@ -313,3 +313,25 @@ func (s *ClientService) GetClient(dtoClient *transfert.Client) (*entities.Client
 
 	return client, nil
 }
+
+// DeleteClient Delete a client from the repository
+// This function deletes a client entity from the repository, using the provided client DTO.
+//
+// Parameters:
+// - dtoClient: *transfert.Client The client DTO containing the ID of the client to delete.
+//
+// Returns:
+// - error: error An error object if an error occurs, nil otherwise.
+func (s *ClientService) DeleteClient(dtoClient *transfert.Client) error {
+	// Vérifier si le DTO est valide
+	if dtoClient == nil || dtoClient.ID == nil {
+		return fmt.Errorf(errors.ErrNoDto)
+	}
+
+	// Supprimer le client du repository
+	if err := s.repo.DeleteClient(dtoClient); err != nil {
+		return err
+	}
+
+	return nil
+}
