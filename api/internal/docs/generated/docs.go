@@ -144,7 +144,7 @@ const docTemplate = `{
                     "Client"
                 ],
                 "summary": "Get a client by ID.",
-                "operationId": "client.GetClientByID",
+                "operationId": "client.GetClient",
                 "parameters": [
                     {
                         "type": "string",
@@ -161,6 +161,40 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/transfert.Client"
                         }
+                    },
+                    "400": {
+                        "description": "Invalid client ID"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Client"
+                ],
+                "summary": "Delete a client by ID.",
+                "operationId": "client.DeleteClient",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Client deleted"
                     },
                     "400": {
                         "description": "Invalid client ID"

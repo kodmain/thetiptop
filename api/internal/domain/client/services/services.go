@@ -18,5 +18,6 @@ type ClientServiceInterface interface {
 
 	// Client
 	GetClient(dtoClient *transfert.Client) (*entities.Client, error)
+	DeleteClient(dtoClient *transfert.Client) error
 	UpdateClient(client *transfert.Client) error
 }

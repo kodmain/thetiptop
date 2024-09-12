@@ -16,10 +16,33 @@ info:
   version: dev
 paths:
   /client/{id}:
+    delete:
+      operationId: client.DeleteClient
+      parameters:
+      - description: Client ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Client deleted
+        "400":
+          description: Invalid client ID
+        "404":
+          description: Client not found
+        "500":
+          description: Internal server error
+      summary: Delete a client by ID.
+      tags:
+      - Client
     get:
       consumes:
       - multipart/form-data
-      operationId: client.GetClientByID
+      operationId: client.GetClient
       parameters:
       - description: Client ID
         format: uuid
