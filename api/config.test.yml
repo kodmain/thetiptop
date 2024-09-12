@@ -13,9 +13,14 @@ providers:
       from: whoami@localhost
 
   databases:
+    file:
+      protocol: sqlite
+      dbname: ${PWD}/db.sqlite #uncomment this line to use a file 
+      logger: true
     default:
       protocol: sqlite
       dbname: ':memory:' # we need memory for test
+      logger: true
 
 security:
   validation:

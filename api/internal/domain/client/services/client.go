@@ -10,7 +10,6 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/repositories"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail/template"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
@@ -30,7 +29,6 @@ func (s *ClientService) UserRegister(dtoCredential *transfert.Credential, dtoCli
 		return nil, fmt.Errorf(errors.ErrNoDto)
 	}
 
-	logger.Info("UserRegister", "dtoCredential", dtoCredential, "dtoClient", dtoClient)
 	_, err := s.repo.ReadCredential(dtoCredential)
 	if err == nil {
 		return nil, fmt.Errorf(errors.ErrClientAlreadyExists)
