@@ -360,3 +360,82 @@ func TestUpdateClient(t *testing.T) {
 	})
 
 }
+
+func TestGetClient(t *testing.T) {
+	t.Run("validation error", func(t *testing.T) {
+		mockService := new(DomainClientService)
+		// Simuler une entrée incorrecte avec un ID manquant
+		dtoClient := &transfert.Client{
+			ID: nil, // Manque l'ID
+		}
+
+		// Appel de la méthode
+		statusCode, response := services.GetClient(mockService, dtoClient)
+
+		// Vérifications
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.Equal(t, "value id is required", response)
+	})
+
+	t.Run("client not found", func(t *testing.T) {
+		mockService := new(DomainClientService)
+		// Simuler une entrée valide
+		dtoClient := &transfert.Client{
+			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
+		}
+
+		// Simuler la réponse du service qui ne trouve pas le client
+		mockService.On("GetClient", dtoClient).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+
+		// Appel de la méthode
+		statusCode, response := services.GetClient(mockService, dtoClient)
+
+		// Vérifications
+		assert.Equal(t, fiber.StatusNotFound, statusCode)
+		assert.Equal(t, errors.ErrClientNotFound, response)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("internal server error", func(t *testing.T) {
+		mockService := new(DomainClientService)
+		// Simuler une entrée valide
+		dtoClient := &transfert.Client{
+			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
+		}
+
+		// Simuler une erreur interne inattendue
+		mockService.On("GetClient", dtoClient).Return(nil, fmt.Errorf("internal error"))
+
+		// Appel de la méthode
+		statusCode, response := services.GetClient(mockService, dtoClient)
+
+		// Vérifications
+		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
+		assert.Equal(t, "internal error", response)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("successful client retrieval", func(t *testing.T) {
+		mockService := new(DomainClientService)
+		// Simuler une entrée valide
+		dtoClient := &transfert.Client{
+			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
+		}
+
+		// Simuler la réponse du service avec un client valide
+		expectedClient := &entities.Client{
+			ID:  "42debee6-2063-4566-baf1-37a7bdd139ff",
+			CGU: aws.Bool(true),
+		}
+
+		mockService.On("GetClient", dtoClient).Return(expectedClient, nil)
+
+		// Appel de la méthode
+		statusCode, response := services.GetClient(mockService, dtoClient)
+
+		// Vérifications
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.Equal(t, expectedClient, response)
+		mockService.AssertExpectations(t)
+	})
+}
