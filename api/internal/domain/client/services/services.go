@@ -6,12 +6,17 @@ import (
 )
 
 type ClientServiceInterface interface {
+	// User
 	UserRegister(dtoCredential *transfert.Credential, dtoClient *transfert.Client) (*entities.Client, error)
 	UserAuth(dtoCredential *transfert.Credential) (*entities.Client, error)
 	PasswordUpdate(dtoCredential *transfert.Credential) error
-	ValidationRecover(dtoValidation *transfert.Validation, obj *transfert.Credential) error
-	SignValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) (*entities.Validation, error)
-	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) (*entities.Validation, error)
+	ValidationRecover(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) error
 
+	// Validation
+	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) (*entities.Validation, error)
+	MailValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) (*entities.Validation, error)
+
+	// Client
+	GetClient(dtoClient *transfert.Client) (*entities.Client, error)
 	UpdateClient(client *transfert.Client) error
 }

@@ -19,9 +19,10 @@ func init() {
 // API represents a collection of HTTP endpoints grouped by namespace and version.
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
-		"client.PasswordUpdate":    client.PasswordUpdate,
+		"client.CredentialUpdate":  client.CredentialUpdate,
+		"client.GetClientByID":     client.GetClientByID,
+		"client.MailValidation":    client.MailValidation,
 		"client.Register":          client.Register,
-		"client.SignValidation":    client.SignValidation,
 		"client.UpdateClient":      client.UpdateClient,
 		"client.UserAuth":          client.UserAuth,
 		"client.UserAuthRenew":     client.UserAuthRenew,

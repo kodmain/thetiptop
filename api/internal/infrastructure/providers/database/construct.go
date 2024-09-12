@@ -66,10 +66,16 @@ func New(databases map[string]*Config) error {
 			dial = postgres.Open(dsn)
 		}
 
-		db, err := gorm.Open(dial, &gorm.Config{
+		gcfg := &gorm.Config{
 			PrepareStmt: true,
 			Logger:      glogger.Discard,
-		})
+		}
+
+		if cfg.Logger {
+			gcfg.Logger = glogger.Default
+		}
+
+		db, err := gorm.Open(dial, gcfg)
 
 		if err != nil {
 			errs = append(errs, err)

@@ -878,7 +878,7 @@ func TestPasswordValidation(t *testing.T) {
 		}
 		mockRepo.On("ReadValidation", mock.AnythingOfType("*transfert.Validation")).Return(mockValidation, nil)
 		// Appel de la méthode PasswordValidation
-		result, err := service.PasswordValidation(&transfert.Validation{}, &transfert.Credential{
+		result, err := service.MailValidation(&transfert.Validation{}, &transfert.Credential{
 			Email:    aws.String("test@example.com"),
 			Password: aws.String("newpassword123"),
 		})
@@ -923,5 +923,66 @@ func TestPasswordValidation(t *testing.T) {
 		// Vérifier que toutes les attentes du mock sont respectées
 		mockRepo.AssertExpectations(t)
 		mockMailer.AssertExpectations(t)
+	})
+}
+
+func TestGetClient(t *testing.T) {
+	t.Run("successful_get", func(t *testing.T) {
+		service, mockRepo, _ := setup()
+		// Simuler un client DTO valide
+		dummyClientDTO := &transfert.Client{
+			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
+		}
+		expectedClient := &entities.Client{
+			ID:  "42debee6-2063-4566-baf1-37a7bdd139ff",
+			CGU: aws.Bool(true),
+		}
+
+		// Simuler la réponse du repository
+		mockRepo.On("ReadClient", dummyClientDTO).Return(expectedClient, nil)
+
+		// Appeler la méthode du service
+		client, err := service.GetClient(dummyClientDTO)
+
+		// Assertions
+		require.NoError(t, err)
+		require.NotNil(t, client)
+		assert.Equal(t, expectedClient.ID, client.ID)
+
+		// Vérifier les attentes sur le mock
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("error_nil_dto", func(t *testing.T) {
+		service, _, _ := setup()
+		// Appeler la méthode du service avec un DTO nil
+		client, err := service.GetClient(nil)
+
+		// Vérifier que l'erreur est retournée
+		require.Error(t, err)
+		require.Nil(t, client)
+		assert.EqualError(t, err, errors.ErrNoDto)
+	})
+
+	t.Run("client_not_found", func(t *testing.T) {
+		service, mockRepo, _ := setup()
+		// Simuler un client DTO valide
+		dummyClientDTO := &transfert.Client{
+			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
+		}
+
+		// Simuler la réponse du repository qui ne trouve pas le client
+		mockRepo.On("ReadClient", dummyClientDTO).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+
+		// Appeler la méthode du service
+		client, err := service.GetClient(dummyClientDTO)
+
+		// Vérifier que l'erreur est retournée
+		require.Error(t, err)
+		require.Nil(t, client)
+		assert.EqualError(t, err, errors.ErrClientNotFound)
+
+		// Vérifier les attentes sur le mock
+		mockRepo.AssertExpectations(t)
 	})
 }

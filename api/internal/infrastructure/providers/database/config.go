@@ -15,6 +15,7 @@ const (
 )
 
 type Config struct {
+	Logger   bool   `yaml:"logger"`   // Active le journalisation des requêtes
 	Protocol string `yaml:"protocol"` // 'mysql', 'postgres', 'sqlite'
 	Host     string `yaml:"host"`     // 'localhost', '127.0.0.1', ou vide pour SQLite
 	Port     string `yaml:"port"`     // '3306', '5432', ou vide pour SQLite
