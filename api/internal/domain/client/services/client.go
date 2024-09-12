@@ -10,7 +10,6 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/client/repositories"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail/template"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
@@ -30,7 +29,6 @@ func (s *ClientService) UserRegister(dtoCredential *transfert.Credential, dtoCli
 		return nil, fmt.Errorf(errors.ErrNoDto)
 	}
 
-	logger.Info("UserRegister", "dtoCredential", dtoCredential, "dtoClient", dtoClient)
 	_, err := s.repo.ReadCredential(dtoCredential)
 	if err == nil {
 		return nil, fmt.Errorf(errors.ErrClientAlreadyExists)
@@ -289,7 +287,7 @@ func (s *ClientService) PasswordValidation(dtoValidation *transfert.Validation, 
 	return s.validateClientAndValidation(dtoValidation, dtoCredential)
 }
 
-// SignValidation Validate sign-up
+// MailValidation Validate sign-up
 // This function validates a sign-up request.
 //
 // Parameters:
@@ -299,6 +297,19 @@ func (s *ClientService) PasswordValidation(dtoValidation *transfert.Validation, 
 // Returns:
 // - validation: *entities.Validation The validated validation entity.
 // - error: error An error object if an error occurs, nil otherwise.
-func (s *ClientService) SignValidation(dtoValidation *transfert.Validation, dtoCredential *transfert.Credential) (*entities.Validation, error) {
+func (s *ClientService) MailValidation(dtoValidation *transfert.Validation, dtoCredential *transfert.Credential) (*entities.Validation, error) {
 	return s.validateClientAndValidation(dtoValidation, dtoCredential)
+}
+
+func (s *ClientService) GetClient(dtoClient *transfert.Client) (*entities.Client, error) {
+	if dtoClient == nil {
+		return nil, fmt.Errorf(errors.ErrNoDto)
+	}
+
+	client, err := s.repo.ReadClient(dtoClient)
+	if err != nil {
+		return nil, fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	return client, nil
 }

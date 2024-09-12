@@ -1,3 +1,13 @@
+definitions:
+  transfert.Client:
+    properties:
+      cgu:
+        type: boolean
+      id:
+        type: string
+      newsletter:
+        type: boolean
+    type: object
 host: localhost
 info:
   contact: {}
@@ -5,6 +15,115 @@ info:
   title: TheTipTop
   version: dev
 paths:
+  /client/{id}:
+    get:
+      consumes:
+      - multipart/form-data
+      operationId: client.GetClientByID
+      parameters:
+      - description: Client ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Client details
+          schema:
+            $ref: '#/definitions/transfert.Client'
+        "400":
+          description: Invalid client ID
+        "404":
+          description: Client not found
+        "500":
+          description: Internal server error
+      summary: Get a client by ID.
+      tags:
+      - Client
+  /client/register:
+    post:
+      consumes:
+      - multipart/form-data
+      operationId: client.Register
+      parameters:
+      - default: user-thetiptop@yopmail.com
+        description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - default: Aa1@azetyuiop
+        description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - default: true
+        description: CGU
+        in: formData
+        name: cgu
+        required: true
+        type: boolean
+      - default: false
+        description: Newsletter
+        in: formData
+        name: newsletter
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Client created
+        "400":
+          description: Invalid email or password
+        "409":
+          description: Client already exists
+        "500":
+          description: Internal server error
+      summary: Register a client.
+      tags:
+      - Client
+  /client/update:
+    put:
+      consumes:
+      - multipart/form-data
+      operationId: client.UpdateClient
+      parameters:
+      - description: Client ID
+        format: uuid
+        in: formData
+        name: id
+        required: true
+        type: string
+      - default: false
+        description: Newsletter
+        in: formData
+        name: newsletter
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Password updated
+        "400":
+          description: Invalid email, password or token
+        "404":
+          description: Client not found
+        "409":
+          description: Client already validated
+        "410":
+          description: Token expired
+        "500":
+          description: Internal server error
+      summary: Update a client.
+      tags:
+      - Client
   /status/healthcheck:
     get:
       consumes:
@@ -61,8 +180,9 @@ paths:
           description: Invalid email or password
         "500":
           description: Internal server error
+      summary: Authenticate a client/employees.
       tags:
-      - Client
+      - User
   /user/auth/renew:
     get:
       consumes:
@@ -86,13 +206,14 @@ paths:
           description: Token expired
         "500":
           description: Internal server error
+      summary: Renew JWT for a client/employees.
       tags:
-      - Client
+      - User
   /user/password:
     put:
       consumes:
       - multipart/form-data
-      operationId: client.PasswordUpdate
+      operationId: client.CredentialUpdate
       parameters:
       - default: user-thetiptop@yopmail.com
         description: Email address
@@ -127,57 +248,14 @@ paths:
           description: Token expired
         "500":
           description: Internal server error
+      summary: Update a client/employees password.
       tags:
-      - Client
-  /user/register:
-    post:
-      consumes:
-      - multipart/form-data
-      operationId: client.Register
-      parameters:
-      - default: user-thetiptop@yopmail.com
-        description: Email address
-        format: email
-        in: formData
-        name: email
-        required: true
-        type: string
-      - default: Aa1@azetyuiop
-        description: Password
-        in: formData
-        name: password
-        required: true
-        type: string
-      - default: true
-        description: CGU
-        in: formData
-        name: cgu
-        required: true
-        type: boolean
-      - default: false
-        description: Newsletter
-        in: formData
-        name: newsletter
-        required: true
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Client created
-        "400":
-          description: Invalid email or password
-        "409":
-          description: Client already exists
-        "500":
-          description: Internal server error
-      tags:
-      - Client
+      - User
   /user/register/validation:
     put:
       consumes:
       - multipart/form-data
-      operationId: client.SignValidation
+      operationId: client.MailValidation
       parameters:
       - description: Token
         in: formData
@@ -206,44 +284,10 @@ paths:
           description: Token expired
         "500":
           description: Internal server error
+      summary: Validate a client/employees email.
       tags:
-      - Client
-  /user/update:
-    put:
-      consumes:
-      - multipart/form-data
-      operationId: client.UpdateClient
-      parameters:
-      - description: Client ID
-        format: uuid
-        in: formData
-        name: id
-        required: true
-        type: string
-      - default: false
-        description: Newsletter
-        in: formData
-        name: newsletter
-        required: true
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: Password updated
-        "400":
-          description: Invalid email, password or token
-        "404":
-          description: Client not found
-        "409":
-          description: Client already validated
-        "410":
-          description: Token expired
-        "500":
-          description: Internal server error
-      tags:
-      - Client
-  /validation/renew:
+      - User
+  /user/validation/renew:
     post:
       consumes:
       - multipart/form-data
@@ -268,6 +312,7 @@ paths:
       produces:
       - application/json
       responses: {}
+      summary: Recover a client/employees validation type.
       tags:
-      - Client
+      - User
 swagger: "2.0"

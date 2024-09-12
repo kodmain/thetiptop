@@ -21,14 +21,17 @@ providers:
       password: toor # Mot de passe de la base de données
       dbname: thetiptop # Nom de la base de données (ou chemin pour SQLite)
       # Paramètres spécifiques pour la connexion à la base de données (en fonction du SGBD utilisé)
+      logger: false # Active ou désactive les logs de la base de données false par défaut
       options:
         charset: utf8mb4 # Option spécifique à MySQL
     file:
       protocol: sqlite
-      dbname: ${PWD}/db.sqlite #uncomment this line to use a file 
+      dbname: ${PWD}/db.sqlite #uncomment this line to use a file
+      logger: false # Active ou désactive les logs de la base de données false par défaut
     default:
       protocol: sqlite
       dbname: ':memory:' # we need memory for test
+      logger: false # Active ou désactive les logs de la base de données false par défaut
 
 security:
   validation:

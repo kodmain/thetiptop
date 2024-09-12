@@ -308,21 +308,24 @@ func extractToken(html string) string {
 	return ""
 }
 
+const (
+	DOMAIN = "http://localhost:8888"
+
+	// Client
+	CLIENT_REGISTER = DOMAIN + "/client/register"
+	USER_GET_BY_ID  = DOMAIN + "/client/%s"
+
+	// User
+	USER_AUTH                = DOMAIN + "/user/auth"
+	USER_AUTH_RENEW          = DOMAIN + "/user/auth/renew"
+	USER_PASSWORD            = DOMAIN + "/user/password"
+	USER_REGISTER_VALIDATION = DOMAIN + "/user/register/validation"
+	USER_VALIDATION_RENEW    = DOMAIN + "/user/validation/renew"
+)
+
 func TestClient(t *testing.T) {
 	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}
 	assert.Nil(t, start(8888, 8444))
-
-	const (
-		DOMAIN = "http://localhost:8888"
-
-		USER_REGISTER            = DOMAIN + "/user/register"
-		USER_REGISTER_VALIDATION = DOMAIN + "/user/register/validation"
-		USER_AUTH                = DOMAIN + "/user/auth"
-		USER_AUTH_RENEW          = DOMAIN + "/user/auth/renew"
-		USER_PASSWORD            = DOMAIN + "/user/password"
-		RECOVER_VALIDATION       = DOMAIN + "/validation/renew"
-	)
-
 	for _, encoding := range encodingTypes {
 
 		var encodingName string = "FormURLEncoded"
@@ -355,11 +358,23 @@ func TestClient(t *testing.T) {
 					"cgu":        {true},
 				}
 
-				RegisteredClient, status, err := request("POST", USER_REGISTER, "", encoding, values)
+				RegisteredClient, status, err := request("POST", CLIENT_REGISTER, "", encoding, values)
+
+				c := entities.Client{}
+				json.Unmarshal(RegisteredClient, &c)
+
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSU, status)
 
 				if status == http.StatusCreated {
+					url := fmt.Sprintf(USER_GET_BY_ID, c.ID)
+					t.Run("GetByID/"+encodingName, func(t *testing.T) {
+						_, status, err := request("GET", url, "", encoding, nil)
+						logger.Info(url)
+						assert.Nil(t, err)
+						assert.Equal(t, http.StatusOK, status)
+					})
+
 					t.Run("Validation/"+encodingName, func(t *testing.T) {
 						var client entities.Client
 						err = json.Unmarshal(RegisteredClient, &client)
@@ -372,7 +387,7 @@ func TestClient(t *testing.T) {
 					})
 
 					t.Run("Validation/recover/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", RECOVER_VALIDATION, "", encoding, map[string][]any{
+						_, status, err := request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
 							"email": {user.email},
 							"type":  {entities.MailValidation.String()},
 						})
@@ -420,7 +435,7 @@ func TestClient(t *testing.T) {
 					})
 
 					t.Run("Password/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", RECOVER_VALIDATION, "", encoding, map[string][]any{
+						_, status, err := request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
 							"email": {user.email + "wrong"},
 							"type":  {entities.PasswordRecover.String()},
 						})
@@ -428,7 +443,7 @@ func TestClient(t *testing.T) {
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusNotFound, status)
 
-						_, status, err = request("POST", RECOVER_VALIDATION, "", encoding, map[string][]any{
+						_, status, err = request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
 							"email": {user.email},
 							"type":  {entities.PasswordRecover.String()},
 						})

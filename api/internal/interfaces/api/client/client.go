@@ -15,6 +15,42 @@ import (
 
 // @Tags		Client
 // @Accept		multipart/form-data
+// @Summary		Register a client.
+// @Produce		application/json
+// @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
+// @Param		password	formData	string	true	"Password" default(Aa1@azetyuiop)
+// @Param 		cgu			formData	bool	true	"CGU" default(true)
+// @Param 		newsletter	formData	bool	true	"Newsletter" default(false)
+// @Success		201	{object}	nil "Client created"
+// @Failure		400	{object}	nil "Invalid email or password"
+// @Failure		409	{object}	nil "Client already exists"
+// @Failure		500	{object}	nil "Internal server error"
+// @Router		/client/register [post]
+// @Id			client.Register
+func Register(c *fiber.Ctx) error {
+	dtoCredential := &transfert.Credential{}
+	if err := c.BodyParser(dtoCredential); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	dtoClient := &transfert.Client{}
+	if err := c.BodyParser(dtoClient); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	status, response := services.UserRegister(
+		domain.Client(
+			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+			mail.Get(),
+		), dtoCredential, dtoClient,
+	)
+
+	return c.Status(status).JSON(response)
+}
+
+// @Tags		Client
+// @Accept		multipart/form-data
+// @Summary		Update a client.
 // @Produce		application/json
 // @Param		id			formData	string	true	"Client ID" format(uuid)
 // @Param		newsletter	formData	bool	true	"Newsletter" default(false)
@@ -24,7 +60,7 @@ import (
 // @Failure		409	{object}	nil "Client already validated"
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
-// @Router		/user/update [put]
+// @Router		/client/update [put]
 // @Id			client.UpdateClient
 func UpdateClient(c *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}
@@ -33,6 +69,38 @@ func UpdateClient(c *fiber.Ctx) error {
 	}
 
 	status, response := services.UpdateClient(
+		domain.Client(
+			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+			mail.Get(),
+		), dtoClient,
+	)
+
+	return c.Status(status).JSON(response)
+}
+
+// @Tags		Client
+// @Accept		multipart/form-data
+// @Summary		Get a client by ID.
+// @Produce		application/json
+// @Param		id			path		string	true	"Client ID" format(uuid)
+// @Success		200	{object}	transfert.Client "Client details"
+// @Failure		400	{object}	nil "Invalid client ID"
+// @Failure		404	{object}	nil "Client not found"
+// @Failure		500	{object}	nil "Internal server error"
+// @Router		/client/{id} [get]
+// @Id			client.GetClientByID
+func GetClientByID(c *fiber.Ctx) error {
+	clientID := c.Params("id")
+
+	if clientID == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "Client ID is required")
+	}
+
+	dtoClient := &transfert.Client{
+		ID: &clientID,
+	}
+
+	status, response := services.GetClient(
 		domain.Client(
 			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
 			mail.Get(),
