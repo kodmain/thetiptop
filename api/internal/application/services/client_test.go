@@ -93,6 +93,11 @@ func (dcs *DomainClientService) UpdateClient(client *transfert.Client) error {
 	return args.Error(0)
 }
 
+func (dcs *DomainClientService) DeleteClient(client *transfert.Client) error {
+	args := dcs.Called(client)
+	return args.Error(0)
+}
+
 func (dcs *DomainClientService) PasswordUpdate(credential *transfert.Credential) error {
 	args := dcs.Called(credential)
 	return args.Error(0)
@@ -436,6 +441,82 @@ func TestGetClient(t *testing.T) {
 		// Vérifications
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.Equal(t, expectedClient, response)
+		mockService.AssertExpectations(t)
+	})
+}
+
+func TestDeleteClient(t *testing.T) {
+	t.Run("should return 400 if validation fails", func(t *testing.T) {
+		// Créer un mock pour le service client
+		mockService := new(DomainClientService)
+
+		// Cas où l'ID du client est manquant
+		dtoClient := &transfert.Client{ID: nil}
+
+		// Appel de la fonction DeleteClient
+		statusCode, response := services.DeleteClient(mockService, dtoClient)
+
+		// Vérifier le résultat
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.Equal(t, "value id is required", response)
+	})
+
+	t.Run("should return 404 if client not found", func(t *testing.T) {
+		// Créer un mock pour le service client
+		mockService := new(DomainClientService)
+
+		// Cas où le client n'est pas trouvé
+		clientID := "123e4567-e89b-12d3-a456-426614174000"
+		dtoClient := &transfert.Client{ID: &clientID}
+
+		// Configurer le mock pour renvoyer une erreur client non trouvé
+		mockService.On("DeleteClient", dtoClient).Return(fmt.Errorf(errors.ErrClientNotFound))
+
+		// Appel de la fonction DeleteClient
+		statusCode, response := services.DeleteClient(mockService, dtoClient)
+
+		// Vérifier le résultat
+		assert.Equal(t, fiber.StatusNotFound, statusCode)
+		assert.Equal(t, errors.ErrClientNotFound, response)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("should return 500 if internal server error occurs", func(t *testing.T) {
+
+		// Créer un mock pour le service client
+		mockService := new(DomainClientService)
+		// Cas où une erreur interne survient lors de la suppression
+		clientID := "123e4567-e89b-12d3-a456-426614174000"
+		dtoClient := &transfert.Client{ID: &clientID}
+
+		// Configurer le mock pour renvoyer une erreur interne
+		mockService.On("DeleteClient", dtoClient).Return(fmt.Errorf("internal error"))
+
+		// Appel de la fonction DeleteClient
+		statusCode, response := services.DeleteClient(mockService, dtoClient)
+
+		// Vérifier le résultat
+		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
+		assert.Equal(t, "internal error", response)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("should return 204 if client is deleted successfully", func(t *testing.T) {
+		// Créer un mock pour le service client
+		mockService := new(DomainClientService)
+		// Cas de suppression réussie
+		clientID := "123e4567-e89b-12d3-a456-426614174000"
+		dtoClient := &transfert.Client{ID: &clientID}
+
+		// Configurer le mock pour ne pas renvoyer d'erreur
+		mockService.On("DeleteClient", dtoClient).Return(nil)
+
+		// Appel de la fonction DeleteClient
+		statusCode, response := services.DeleteClient(mockService, dtoClient)
+
+		// Vérifier le résultat
+		assert.Equal(t, fiber.StatusNoContent, statusCode)
+		assert.Nil(t, response)
 		mockService.AssertExpectations(t)
 	})
 }

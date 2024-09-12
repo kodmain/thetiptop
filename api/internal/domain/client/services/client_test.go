@@ -986,3 +986,60 @@ func TestGetClient(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
+
+func TestDeleteClient(t *testing.T) {
+
+	t.Run("should return error if dtoClient is nil", func(t *testing.T) {
+		mockRepo := new(ClientRepositoryMock)
+		service := services.Client(mockRepo, nil)
+
+		err := service.DeleteClient(nil)
+		assert.EqualError(t, err, errors.ErrNoDto)
+	})
+
+	t.Run("should return error if client ID is nil", func(t *testing.T) {
+		mockRepo := new(ClientRepositoryMock)
+		service := services.Client(mockRepo, nil)
+
+		dtoClient := &transfert.Client{ID: nil}
+		err := service.DeleteClient(dtoClient)
+		assert.EqualError(t, err, errors.ErrNoDto)
+	})
+
+	t.Run("should delete client successfully", func(t *testing.T) {
+		mockRepo := new(ClientRepositoryMock)
+		service := services.Client(mockRepo, nil)
+		// Client DTO avec un ID valide
+		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")
+		dtoClient := &transfert.Client{ID: clientID}
+
+		// Simuler la suppression réussie du client
+		mockRepo.On("DeleteClient", dtoClient).Return(nil)
+
+		// Appel du service pour supprimer le client
+		err := service.DeleteClient(dtoClient)
+
+		// Vérifier qu'il n'y a pas d'erreur
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return error if repository delete fails", func(t *testing.T) {
+		mockRepo := new(ClientRepositoryMock)
+		service := services.Client(mockRepo, nil)
+
+		// Client DTO avec un ID valide
+		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")
+		dtoClient := &transfert.Client{ID: clientID}
+
+		// Simuler une erreur lors de la suppression du client
+		mockRepo.On("DeleteClient", dtoClient).Return(fmt.Errorf("delete failed"))
+
+		// Appel du service pour supprimer le client
+		err := service.DeleteClient(dtoClient)
+
+		// Vérifier que l'erreur est bien celle attendue
+		assert.EqualError(t, err, "delete failed")
+		mockRepo.AssertExpectations(t)
+	})
+}

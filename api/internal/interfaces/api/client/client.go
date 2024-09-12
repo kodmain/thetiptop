@@ -88,8 +88,8 @@ func UpdateClient(c *fiber.Ctx) error {
 // @Failure		404	{object}	nil "Client not found"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/{id} [get]
-// @Id			client.GetClientByID
-func GetClientByID(c *fiber.Ctx) error {
+// @Id			client.GetClient
+func GetClient(c *fiber.Ctx) error {
 	clientID := c.Params("id")
 
 	if clientID == "" {
@@ -101,6 +101,37 @@ func GetClientByID(c *fiber.Ctx) error {
 	}
 
 	status, response := services.GetClient(
+		domain.Client(
+			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+			mail.Get(),
+		), dtoClient,
+	)
+
+	return c.Status(status).JSON(response)
+}
+
+// @Tags		Client
+// @Summary		Delete a client by ID.
+// @Produce		application/json
+// @Param		id			path		string	true	"Client ID" format(uuid)
+// @Success		204	{object}	nil "Client deleted"
+// @Failure		400	{object}	nil "Invalid client ID"
+// @Failure		404	{object}	nil "Client not found"
+// @Failure		500	{object}	nil "Internal server error"
+// @Router		/client/{id} [delete]
+// @Id			client.DeleteClient
+func DeleteClient(c *fiber.Ctx) error {
+	clientID := c.Params("id")
+
+	if clientID == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "Client ID is required")
+	}
+
+	dtoClient := &transfert.Client{
+		ID: &clientID,
+	}
+
+	status, response := services.DeleteClient(
 		domain.Client(
 			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
 			mail.Get(),
