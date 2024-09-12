@@ -312,8 +312,9 @@ const (
 	DOMAIN = "http://localhost:8888"
 
 	// Client
-	CLIENT_REGISTER = DOMAIN + "/client/register"
-	USER_GET_BY_ID  = DOMAIN + "/client/%s"
+	CLIENT_REGISTER     = DOMAIN + "/client/register"
+	CLIENT_GET_BY_ID    = DOMAIN + "/client/%s"
+	CLIENT_DELETE_BY_ID = DOMAIN + "/client/%s"
 
 	// User
 	USER_AUTH                = DOMAIN + "/user/auth"
@@ -337,15 +338,16 @@ func TestClient(t *testing.T) {
 		time.Sleep(1 * time.Second)
 
 		users := []struct {
-			email    string
-			password string
-			statusSU int
-			statusSI int
+			email     string
+			password  string
+			statusSU  int
+			statusSI  int
+			statusDel int
 		}{
 			// mail, pass, status-signup, status-signin
-			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK},
-			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest},
-			{fmt.Sprintf("%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest},
+			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK, http.StatusNoContent},
+			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest, http.StatusNotFound},
+			{fmt.Sprintf("%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest, http.StatusNotFound},
 		}
 
 		t.Run("SignUp/"+encodingName, func(t *testing.T) {
@@ -367,7 +369,7 @@ func TestClient(t *testing.T) {
 				assert.Equal(t, user.statusSU, status)
 
 				if status == http.StatusCreated {
-					url := fmt.Sprintf(USER_GET_BY_ID, c.ID)
+					url := fmt.Sprintf(CLIENT_GET_BY_ID, c.ID)
 					t.Run("GetByID/"+encodingName, func(t *testing.T) {
 						_, status, err := request("GET", url, "", encoding, nil)
 						logger.Info(url)
@@ -478,6 +480,11 @@ func TestClient(t *testing.T) {
 					})
 				}
 
+				url := fmt.Sprintf(CLIENT_DELETE_BY_ID, c.ID)
+				DeletedClient, status, err := request("DELETE", url, "", encoding, nil)
+				assert.Nil(t, err)
+				assert.Equal(t, user.statusDel, status)
+				logger.Info(string(DeletedClient))
 			}
 		})
 	}

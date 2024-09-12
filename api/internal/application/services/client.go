@@ -9,6 +9,43 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
+// DeleteClient deletes a client by ID
+// This function checks the client's ID, validates it, and proceeds to delete the client from the system
+//
+// Parameters:
+// - service: services.ClientServiceInterface The service responsible for client management
+// - dtoClient: *transfert.Client The DTO that contains the client's data to be deleted
+//
+// Returns:
+// - int: The HTTP status code indicating success or failure of the operation
+// - any: The response object, which can be an error message in case of failure, or nil for successful deletion
+func DeleteClient(service services.ClientServiceInterface, dtoClient *transfert.Client) (int, any) {
+	// Validation of the client ID
+	err := dtoClient.Check(data.Validator{
+		"id": {validator.Required, validator.ID},
+	})
+
+	// Return 400 if validation fails
+	if err != nil {
+		return fiber.StatusBadRequest, err.Error()
+	}
+
+	// Attempt to delete the client using the service
+	err = service.DeleteClient(dtoClient)
+	if err != nil {
+		// Handle specific error cases like client not found
+		if err.Error() == errors.ErrClientNotFound {
+			return fiber.StatusNotFound, err.Error()
+		}
+
+		// Return 500 for any internal server errors
+		return fiber.StatusInternalServerError, err.Error()
+	}
+
+	// Return 204 if the deletion is successful with no content
+	return fiber.StatusNoContent, nil
+}
+
 func GetClient(service services.ClientServiceInterface, dtoClient *transfert.Client) (int, any) {
 	err := dtoClient.Check(data.Validator{
 		"id": {validator.Required, validator.ID},
