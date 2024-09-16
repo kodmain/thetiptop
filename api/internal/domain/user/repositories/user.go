@@ -19,6 +19,9 @@ type UserRepository struct {
 }
 
 type UserRepositoryInterface interface {
+	// user
+	ReadUser(obj *transfert.User) (*entities.Client, *entities.Employee, error)
+
 	// client
 	CreateClient(obj *transfert.Client) (*entities.Client, error)
 	ReadClient(obj *transfert.Client) (*entities.Client, error)
@@ -47,11 +50,38 @@ type UserRepositoryInterface interface {
 func NewUserRepository(store *database.Database) *UserRepository {
 	user.Do(func() {
 		store.Engine.AutoMigrate(entities.Client{})
+		store.Engine.AutoMigrate(entities.Employee{})
 		store.Engine.AutoMigrate(entities.Validation{})
 		store.Engine.AutoMigrate(entities.Credential{})
 	})
 
 	return &UserRepository{store}
+}
+
+func (r *UserRepository) ReadUser(obj *transfert.User) (*entities.Client, *entities.Employee, error) {
+	var client entities.Client
+	var employee entities.Employee
+
+	// Chercher dans la table des clients
+	resultClient := r.store.Engine.Where(obj.ToClient()).First(&client)
+	if resultClient.Error == nil {
+		// Si un client est trouvé, le retourner sans chercher d'employé
+		return &client, nil, nil
+	}
+
+	// Si aucun client trouvé, chercher dans la table des employés
+	resultEmployee := r.store.Engine.Where(obj.ToClient()).First(&employee)
+	if resultEmployee.Error == nil {
+		// Si un employé est trouvé, le retourner
+		return nil, &employee, nil
+	}
+
+	// Si aucune des deux entités n'est trouvée, retourner une erreur
+	if resultClient.Error != nil && resultEmployee.Error != nil {
+		return nil, nil, fmt.Errorf("user not found: neither client nor employee matches the provided ID or credential")
+	}
+
+	return nil, nil, fmt.Errorf("unknown error occurred")
 }
 
 func (r *UserRepository) CreateCredential(obj *transfert.Credential) (*entities.Credential, error) {

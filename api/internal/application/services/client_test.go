@@ -273,7 +273,7 @@ func TestValidationRecover(t *testing.T) {
 	t.Run("client not found", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Mock pour simuler un client non trouvé
-		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(fmt.Errorf(errors.ErrClientNotFound))
+		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(fmt.Errorf(errors.ErrUserNotFound))
 
 		statusCode, response := services.ValidationRecover(mockClient, &transfert.Credential{
 			Email: aws.String(email),
@@ -283,7 +283,7 @@ func TestValidationRecover(t *testing.T) {
 
 		// Correction des attentes pour vérifier le bon statut et message
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
-		assert.Equal(t, errors.ErrClientNotFound, response)
+		assert.Equal(t, errors.ErrUserNotFound, response)
 		mockClient.AssertExpectations(t)
 	})
 

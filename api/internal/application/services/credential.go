@@ -160,7 +160,7 @@ func ValidationRecover(service services.UserServiceInterface, dtoCredential *tra
 	}
 
 	if err = service.ValidationRecover(dtoValidation, dtoCredential); err != nil {
-		if err.Error() == errors.ErrClientNotFound {
+		if err.Error() == errors.ErrUserNotFound {
 			return fiber.StatusNotFound, err.Error()
 		}
 

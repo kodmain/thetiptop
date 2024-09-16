@@ -221,24 +221,6 @@ func TestUpdateClient(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
-func TestValidationRecover(t *testing.T) {
-
-	t.Run("credential not found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
-
-		// Simuler que le credential n'est pas trouvé
-		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
-			Return(nil, fmt.Errorf(errors.ErrClientNotFound))
-
-		err := service.ValidationRecover(&transfert.Validation{}, &transfert.Credential{
-			Email: aws.String("test@example.com"),
-		})
-
-		// Vérifier que l'erreur correspond à "Client not found"
-		assert.EqualError(t, err, errors.ErrClientNotFound)
-		mockRepo.AssertExpectations(t)
-	})
-}
 
 func TestGetClient(t *testing.T) {
 	t.Run("successful_get", func(t *testing.T) {

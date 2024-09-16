@@ -14,6 +14,18 @@ type UserRepositoryMock struct {
 	mock.Mock
 }
 
+func (m *UserRepositoryMock) ReadUser(user *transfert.User) (*entities.Client, *entities.Employee, error) {
+	args := m.Called(user)
+	if args.Get(0) == nil && args.Get(1) != nil && args.Get(2) == nil {
+		return nil, args.Get(1).(*entities.Employee), nil
+	}
+
+	if args.Get(0) != nil && args.Get(1) == nil && args.Get(2) == nil {
+		return args.Get(0).(*entities.Client), nil, nil
+	}
+	return nil, nil, args.Error(2)
+}
+
 func (m *UserRepositoryMock) CreateClient(client *transfert.Client) (*entities.Client, error) {
 	args := m.Called(client)
 	if args.Get(0) == nil {
