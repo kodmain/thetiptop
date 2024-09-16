@@ -23,7 +23,7 @@ func TestUserAuth(t *testing.T) {
 	config.Load(aws.String("../../../config.test.yml"))
 
 	t.Run("invalid syntax password", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Mocker correctement la méthode UserAuth
 		mockClient.On("UserAuth", mock.Anything).Return(&entities.Client{}, nil)
 
@@ -36,7 +36,7 @@ func TestUserAuth(t *testing.T) {
 	})
 
 	t.Run("invalid syntax email", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Mocker correctement la méthode UserAuth
 		mockClient.On("UserAuth", mock.Anything).Return(&entities.Client{}, nil)
 
@@ -49,7 +49,7 @@ func TestUserAuth(t *testing.T) {
 	})
 
 	t.Run("not found", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Simuler le cas où le client n'est pas trouvé
 		mockClient.On("UserAuth", mock.Anything).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
 
@@ -64,7 +64,7 @@ func TestUserAuth(t *testing.T) {
 	t.Run("valid email, password", func(t *testing.T) {
 		id, err := uuid.NewRandom()
 		assert.NoError(t, err)
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Simuler un cas réussi avec une Credential valide et un ClientID valide
 		mockClient.On("UserAuth", mock.Anything).Return(&entities.Client{
 			ID: id.String(),
@@ -138,7 +138,7 @@ func TestCredentialUpdate(t *testing.T) {
 	luhn := token.Generate(6)
 
 	t.Run("invalid token syntax", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Cas où le token est invalide
 		validationDTO := &transfert.Validation{
 			Token: aws.String("invalidToken"),
@@ -155,7 +155,7 @@ func TestCredentialUpdate(t *testing.T) {
 	})
 
 	t.Run("invalid email format", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Cas où l'email est invalide
 		validationDTO := &transfert.Validation{
 			Token: luhn.PointerString(),
@@ -172,7 +172,7 @@ func TestCredentialUpdate(t *testing.T) {
 	})
 
 	t.Run("password validation error", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Simuler une erreur lors de la validation du mot de passe
 		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationNotFound))
 
@@ -191,7 +191,7 @@ func TestCredentialUpdate(t *testing.T) {
 	})
 
 	t.Run("validation already validated", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Simuler le cas où la validation a déjà été effectuée
 		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationAlreadyValidated))
 
@@ -210,7 +210,7 @@ func TestCredentialUpdate(t *testing.T) {
 	})
 
 	t.Run("validation expired", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Simuler le cas où la validation a expiré
 		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationExpired))
 
@@ -229,7 +229,7 @@ func TestCredentialUpdate(t *testing.T) {
 	})
 
 	t.Run("successful password update", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Simuler une mise à jour réussie du mot de passe
 		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(&entities.Validation{}, nil)
 		mockClient.On("PasswordUpdate", mock.Anything).Return(nil)
@@ -249,7 +249,7 @@ func TestCredentialUpdate(t *testing.T) {
 	})
 
 	t.Run("error during password update", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Simuler une erreur lors de la mise à jour du mot de passe
 		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(&entities.Validation{}, nil)
 		mockClient.On("PasswordUpdate", mock.Anything).Return(fmt.Errorf("update error"))

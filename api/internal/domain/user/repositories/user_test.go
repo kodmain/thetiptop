@@ -63,132 +63,6 @@ func setup() (*repositories.UserRepository, sqlmock.Sqlmock, *sql.DB) {
 	return repo, mock, db
 }
 
-func TestCreateClient(t *testing.T) {
-	repo, mock, db := setup()
-	defer db.Close()
-
-	// Données de transfert pour créer un client
-	dto := &transfert.Client{
-		CGU: aws.Bool(true),
-	}
-
-	// Cas de création réussie
-	t.Run("successful creation", func(t *testing.T) {
-		// Démarrage de la transaction
-		mock.ExpectBegin()
-
-		// Insertion dans la table clients avec la colonne credential_id ajoutée
-		mock.ExpectExec(`INSERT INTO "clients" \("id","created_at","updated_at","deleted_at","credential_id","cgu","newsletter"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7\)`).
-			WithArgs(
-				sqlmock.AnyArg(), // ID
-				sqlmock.AnyArg(), // CreatedAt
-				sqlmock.AnyArg(), // UpdatedAt
-				nil,              // DeletedAt
-				nil,              // CredentialID
-				true,             // CGU
-				false,            // Newsletter
-			).WillReturnResult(sqlmock.NewResult(1, 1))
-
-		// Validation de la transaction
-		mock.ExpectCommit()
-
-		// Appeler la fonction CreateClient à tester
-		entity, err := repo.CreateClient(dto)
-
-		// Vérification des résultats
-		assert.Nil(t, err)
-		assert.NotNil(t, entity)
-
-		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
-	})
-
-	// Cas d'autres erreurs lors de la création
-	t.Run("other error during creation", func(t *testing.T) {
-		mock.ExpectBegin()
-
-		// Corriger l'expression régulière pour inclure credential_id
-		mock.ExpectExec(`INSERT INTO "clients" \("id","created_at","updated_at","deleted_at","credential_id","cgu","newsletter"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7\)`).
-			WithArgs(
-				sqlmock.AnyArg(), // ID (UUID)
-				sqlmock.AnyArg(), // CreatedAt
-				sqlmock.AnyArg(), // UpdatedAt
-				nil,              // DeletedAt
-				nil,              // CredentialID
-				true,             // CGU
-				false,            // Newsletter
-			).WillReturnError(fmt.Errorf("some other error"))
-
-		mock.ExpectRollback()
-
-		// Appel à la méthode testée
-		entity, err := repo.CreateClient(dto)
-
-		// Assertions pour vérifier le comportement attendu
-		assert.NotNil(t, err)
-		assert.Nil(t, entity)
-		assert.Equal(t, "some other error", err.Error())
-
-		// Vérification des expectations SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
-	})
-}
-
-// TestReadClient test de la lecture d'un client basé sur les attributs Client
-func TestReadClient(t *testing.T) {
-	// Initialisation du repository, du mock et de la base de données
-	repo, mock, db := setup()
-	defer db.Close()
-
-	// Données de transfert pour lire un client
-	dto := &transfert.Client{
-		ID: aws.String(uuid),
-	}
-
-	// Cas de lecture réussie
-	t.Run("successful read", func(t *testing.T) {
-		// Mock de la requête pour lire un client par ID
-		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL ORDER BY "clients"\."id" LIMIT \$2`).
-			WithArgs(dto.ID, 1).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "cgu", "newsletter"}).AddRow(uuid, true, false))
-
-		// Appel de la méthode ReadClient du repository
-		entity, err := repo.ReadClient(dto)
-
-		// Vérification des résultats
-		assert.Nil(t, err)
-		assert.NotNil(t, entity)
-		assert.Equal(t, *dto.ID, entity.ID)
-
-		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
-	})
-
-	// Cas où le client n'existe pas
-	t.Run("client not found", func(t *testing.T) {
-		dto := &transfert.Client{
-			ID: aws.String(uuid),
-		}
-
-		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL ORDER BY "clients"\."id" LIMIT \$2`).
-			WithArgs(dto.ID, 1).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "cgu", "newsletter"}))
-
-		entity, err := repo.ReadClient(dto)
-
-		assert.NotNil(t, err)
-		assert.Nil(t, entity)
-		assert.Equal(t, gorm.ErrRecordNotFound, err)
-
-		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
-	})
-}
-
 func TestCreateCredential(t *testing.T) {
 	repo, mock, db := setup()
 	defer db.Close()
@@ -271,120 +145,6 @@ func TestCreateCredential(t *testing.T) {
 		assert.Nil(t, entity)
 		assert.Equal(t, "random-error", err.Error())
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
-	})
-}
-
-// TestUpdateClient teste la mise à jour des clients
-func TestUpdateClient(t *testing.T) {
-	repo, mock, db := setup()
-	defer db.Close()
-
-	entity := &entities.Client{
-		ID:         "b0d583fb-7d32-436f-9328-29620e8ca87b",
-		Newsletter: aws.Bool(true),
-		CGU:        aws.Bool(true),
-	}
-
-	t.Run("successful update", func(t *testing.T) {
-		mock.ExpectBegin()
-
-		// Correction : ajout de la colonne `credential_id` dans l'instruction SQL
-		mock.ExpectExec(`UPDATE "clients" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"credential_id"=\$4,"cgu"=\$5,"newsletter"=\$6 WHERE "clients"\."deleted_at" IS NULL AND "id" = \$7`).
-			WithArgs(
-				sqlmock.AnyArg(),  // created_at
-				sqlmock.AnyArg(),  // updated_at
-				nil,               // deleted_at
-				nil,               // credential_id
-				entity.CGU,        // mise à jour de CGU
-				entity.Newsletter, // mise à jour de la newsletter
-				entity.ID,         // ID du client
-			).
-			WillReturnResult(sqlmock.NewResult(1, 1)) // Succès (1 ligne affectée)
-
-		mock.ExpectCommit()
-
-		err := repo.UpdateClient(entity)
-		assert.Nil(t, err)
-
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
-	})
-
-	t.Run("update failure", func(t *testing.T) {
-		mock.ExpectBegin()
-
-		// Correction : ajout de la colonne `credential_id`
-		mock.ExpectExec(`UPDATE "clients" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"credential_id"=\$4,"cgu"=\$5,"newsletter"=\$6 WHERE "clients"\."deleted_at" IS NULL AND "id" = \$7`).
-			WithArgs(
-				sqlmock.AnyArg(),  // created_at
-				sqlmock.AnyArg(),  // updated_at
-				nil,               // deleted_at
-				nil,               // credential_id
-				entity.CGU,        // mise à jour de CGU
-				entity.Newsletter, // mise à jour de la newsletter
-				entity.ID,         // ID du client
-			).WillReturnError(fmt.Errorf("some update error"))
-
-		mock.ExpectRollback()
-
-		err := repo.UpdateClient(entity)
-		assert.NotNil(t, err)
-		assert.Equal(t, "some update error", err.Error())
-
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
-	})
-}
-
-// TestDeleteClient teste la suppression logique des clients (soft delete)
-func TestDeleteClient(t *testing.T) {
-	// Initialisation du repository, du mock et de la base de données
-	repo, mock, db := setup()
-	defer db.Close()
-
-	// Données de transfert pour supprimer un client
-	dto := &transfert.Client{
-		ID: aws.String("client-uuid"),
-	}
-
-	// Cas de suppression réussie (soft delete)
-	t.Run("successful deletion", func(t *testing.T) {
-		// Mock de la requête pour supprimer un client (soft delete)
-		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "clients" SET "deleted_at"=\$1 WHERE "clients"\."id" = \$2 AND "clients"\."deleted_at" IS NULL`).
-			WithArgs(sqlmock.AnyArg(), dto.ID).       // La date actuelle sera utilisée pour "deleted_at"
-			WillReturnResult(sqlmock.NewResult(1, 1)) // 1 ligne affectée par la suppression
-		mock.ExpectCommit()
-
-		// Appel de la méthode DeleteClient du repository
-		err := repo.DeleteClient(dto)
-
-		// Vérification des résultats
-		assert.Nil(t, err)
-
-		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
-	})
-
-	// Cas où la suppression échoue
-	t.Run("deletion failure", func(t *testing.T) {
-		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "clients" SET "deleted_at"=\$1 WHERE "clients"\."id" = \$2 AND "clients"\."deleted_at" IS NULL`).
-			WithArgs(sqlmock.AnyArg(), dto.ID).
-			WillReturnError(fmt.Errorf("some delete error"))
-		mock.ExpectRollback()
-
-		// Appel de la méthode DeleteClient du repository
-		err := repo.DeleteClient(dto)
-
-		// Vérification que l'erreur est bien renvoyée
-		assert.NotNil(t, err)
-		assert.Equal(t, "some delete error", err.Error())
-
-		// Vérification des attentes
 		err = mock.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
@@ -554,7 +314,6 @@ func TestDeleteCredential(t *testing.T) {
 	})
 }
 
-// TestCreateValidation teste la création d'une validation
 // TestCreateValidation teste la création d'une validation
 func TestCreateValidation(t *testing.T) {
 	// Initialisation du repository, du mock et de la base de données
@@ -839,6 +598,446 @@ func TestDeleteValidationRepository(t *testing.T) {
 		assert.EqualError(t, err, "some error")
 
 		// Vérification des attentes SQL
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+}
+
+func TestCreateClient(t *testing.T) {
+	repo, mock, db := setup()
+	defer db.Close()
+
+	// Données de transfert pour créer un client
+	dto := &transfert.Client{
+		CGU: aws.Bool(true),
+	}
+
+	// Cas de création réussie
+	t.Run("successful creation", func(t *testing.T) {
+		// Démarrage de la transaction
+		mock.ExpectBegin()
+
+		// Insertion dans la table clients avec la colonne credential_id ajoutée
+		mock.ExpectExec(`INSERT INTO "clients" \("id","created_at","updated_at","deleted_at","credential_id","cgu","newsletter"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7\)`).
+			WithArgs(
+				sqlmock.AnyArg(), // ID
+				sqlmock.AnyArg(), // CreatedAt
+				sqlmock.AnyArg(), // UpdatedAt
+				nil,              // DeletedAt
+				nil,              // CredentialID
+				true,             // CGU
+				false,            // Newsletter
+			).WillReturnResult(sqlmock.NewResult(1, 1))
+
+		// Validation de la transaction
+		mock.ExpectCommit()
+
+		// Appeler la fonction CreateClient à tester
+		entity, err := repo.CreateClient(dto)
+
+		// Vérification des résultats
+		assert.Nil(t, err)
+		assert.NotNil(t, entity)
+
+		// Vérification des attentes
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	// Cas d'autres erreurs lors de la création
+	t.Run("other error during creation", func(t *testing.T) {
+		mock.ExpectBegin()
+
+		// Corriger l'expression régulière pour inclure credential_id
+		mock.ExpectExec(`INSERT INTO "clients" \("id","created_at","updated_at","deleted_at","credential_id","cgu","newsletter"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7\)`).
+			WithArgs(
+				sqlmock.AnyArg(), // ID (UUID)
+				sqlmock.AnyArg(), // CreatedAt
+				sqlmock.AnyArg(), // UpdatedAt
+				nil,              // DeletedAt
+				nil,              // CredentialID
+				true,             // CGU
+				false,            // Newsletter
+			).WillReturnError(fmt.Errorf("some other error"))
+
+		mock.ExpectRollback()
+
+		// Appel à la méthode testée
+		entity, err := repo.CreateClient(dto)
+
+		// Assertions pour vérifier le comportement attendu
+		assert.NotNil(t, err)
+		assert.Nil(t, entity)
+		assert.Equal(t, "some other error", err.Error())
+
+		// Vérification des expectations SQL
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+}
+
+// TestReadClient test de la lecture d'un client basé sur les attributs Client
+func TestReadClient(t *testing.T) {
+	// Initialisation du repository, du mock et de la base de données
+	repo, mock, db := setup()
+	defer db.Close()
+
+	// Données de transfert pour lire un client
+	dto := &transfert.Client{
+		ID: aws.String(uuid),
+	}
+
+	// Cas de lecture réussie
+	t.Run("successful read", func(t *testing.T) {
+		// Mock de la requête pour lire un client par ID
+		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL ORDER BY "clients"\."id" LIMIT \$2`).
+			WithArgs(dto.ID, 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "cgu", "newsletter"}).AddRow(uuid, true, false))
+
+		// Appel de la méthode ReadClient du repository
+		entity, err := repo.ReadClient(dto)
+
+		// Vérification des résultats
+		assert.Nil(t, err)
+		assert.NotNil(t, entity)
+		assert.Equal(t, *dto.ID, entity.ID)
+
+		// Vérification des attentes
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	// Cas où le client n'existe pas
+	t.Run("client not found", func(t *testing.T) {
+		dto := &transfert.Client{
+			ID: aws.String(uuid),
+		}
+
+		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL ORDER BY "clients"\."id" LIMIT \$2`).
+			WithArgs(dto.ID, 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "cgu", "newsletter"}))
+
+		entity, err := repo.ReadClient(dto)
+
+		assert.NotNil(t, err)
+		assert.Nil(t, entity)
+		assert.Equal(t, gorm.ErrRecordNotFound, err)
+
+		// Vérification des attentes
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+}
+
+// TestUpdateClient teste la mise à jour des clients
+func TestUpdateClient(t *testing.T) {
+	repo, mock, db := setup()
+	defer db.Close()
+
+	entity := &entities.Client{
+		ID:         "b0d583fb-7d32-436f-9328-29620e8ca87b",
+		Newsletter: aws.Bool(true),
+		CGU:        aws.Bool(true),
+	}
+
+	t.Run("successful update", func(t *testing.T) {
+		mock.ExpectBegin()
+
+		// Correction : ajout de la colonne `credential_id` dans l'instruction SQL
+		mock.ExpectExec(`UPDATE "clients" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"credential_id"=\$4,"cgu"=\$5,"newsletter"=\$6 WHERE "clients"\."deleted_at" IS NULL AND "id" = \$7`).
+			WithArgs(
+				sqlmock.AnyArg(),  // created_at
+				sqlmock.AnyArg(),  // updated_at
+				nil,               // deleted_at
+				nil,               // credential_id
+				entity.CGU,        // mise à jour de CGU
+				entity.Newsletter, // mise à jour de la newsletter
+				entity.ID,         // ID du client
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1)) // Succès (1 ligne affectée)
+
+		mock.ExpectCommit()
+
+		err := repo.UpdateClient(entity)
+		assert.Nil(t, err)
+
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("update failure", func(t *testing.T) {
+		mock.ExpectBegin()
+
+		// Correction : ajout de la colonne `credential_id`
+		mock.ExpectExec(`UPDATE "clients" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"credential_id"=\$4,"cgu"=\$5,"newsletter"=\$6 WHERE "clients"\."deleted_at" IS NULL AND "id" = \$7`).
+			WithArgs(
+				sqlmock.AnyArg(),  // created_at
+				sqlmock.AnyArg(),  // updated_at
+				nil,               // deleted_at
+				nil,               // credential_id
+				entity.CGU,        // mise à jour de CGU
+				entity.Newsletter, // mise à jour de la newsletter
+				entity.ID,         // ID du client
+			).WillReturnError(fmt.Errorf("some update error"))
+
+		mock.ExpectRollback()
+
+		err := repo.UpdateClient(entity)
+		assert.NotNil(t, err)
+		assert.Equal(t, "some update error", err.Error())
+
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+}
+
+// TestDeleteClient teste la suppression logique des clients (soft delete)
+func TestDeleteClient(t *testing.T) {
+	// Initialisation du repository, du mock et de la base de données
+	repo, mock, db := setup()
+	defer db.Close()
+
+	// Données de transfert pour supprimer un client
+	dto := &transfert.Client{
+		ID: aws.String("client-uuid"),
+	}
+
+	// Cas de suppression réussie (soft delete)
+	t.Run("successful deletion", func(t *testing.T) {
+		// Mock de la requête pour supprimer un client (soft delete)
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE "clients" SET "deleted_at"=\$1 WHERE "clients"\."id" = \$2 AND "clients"\."deleted_at" IS NULL`).
+			WithArgs(sqlmock.AnyArg(), dto.ID).       // La date actuelle sera utilisée pour "deleted_at"
+			WillReturnResult(sqlmock.NewResult(1, 1)) // 1 ligne affectée par la suppression
+		mock.ExpectCommit()
+
+		// Appel de la méthode DeleteClient du repository
+		err := repo.DeleteClient(dto)
+
+		// Vérification des résultats
+		assert.Nil(t, err)
+
+		// Vérification des attentes
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	// Cas où la suppression échoue
+	t.Run("deletion failure", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE "clients" SET "deleted_at"=\$1 WHERE "clients"\."id" = \$2 AND "clients"\."deleted_at" IS NULL`).
+			WithArgs(sqlmock.AnyArg(), dto.ID).
+			WillReturnError(fmt.Errorf("some delete error"))
+		mock.ExpectRollback()
+
+		// Appel de la méthode DeleteClient du repository
+		err := repo.DeleteClient(dto)
+
+		// Vérification que l'erreur est bien renvoyée
+		assert.NotNil(t, err)
+		assert.Equal(t, "some delete error", err.Error())
+
+		// Vérification des attentes
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+}
+
+func TestCreateEmployee(t *testing.T) {
+	repo, mock, db := setup()
+	defer db.Close()
+
+	// Données de transfert pour créer un employé
+	dto := &transfert.Employee{
+		CredentialID: aws.String("credential-uuid"),
+	}
+
+	t.Run("successful creation", func(t *testing.T) {
+		mock.ExpectBegin()
+
+		// Insertion dans la table employees avec la colonne credential_id
+		mock.ExpectExec(`INSERT INTO "employees" \("id","created_at","updated_at","deleted_at","credential_id"\) VALUES \(\$1,\$2,\$3,\$4,\$5\)`).
+			WithArgs(
+				sqlmock.AnyArg(), // ID (UUID)
+				sqlmock.AnyArg(), // CreatedAt
+				sqlmock.AnyArg(), // UpdatedAt
+				nil,              // DeletedAt
+				nil,              // CredentialID
+			).WillReturnResult(sqlmock.NewResult(1, 1))
+
+		mock.ExpectCommit()
+
+		// Appel de la fonction CreateEmployee à tester
+		entity, err := repo.CreateEmployee(dto)
+
+		// Vérification des résultats
+		assert.Nil(t, err)
+		assert.NotNil(t, entity)
+
+		// Vérification des attentes
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("error during creation", func(t *testing.T) {
+		mock.ExpectBegin()
+
+		mock.ExpectExec(`INSERT INTO "employees" \("id","created_at","updated_at","deleted_at","credential_id"\) VALUES \(\$1,\$2,\$3,\$4,\$5\)`).
+			WithArgs(
+				sqlmock.AnyArg(), // ID (UUID)
+				sqlmock.AnyArg(), // CreatedAt
+				sqlmock.AnyArg(), // UpdatedAt
+				nil,              // DeletedAt
+				nil,              // CredentialID
+			).WillReturnError(fmt.Errorf("creation error"))
+
+		mock.ExpectRollback()
+
+		entity, err := repo.CreateEmployee(dto)
+
+		assert.NotNil(t, err)
+		assert.Nil(t, entity)
+		assert.Equal(t, "creation error", err.Error())
+
+		// Vérification des attentes
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+}
+func TestReadEmployee(t *testing.T) {
+	repo, mock, db := setup()
+	defer db.Close()
+
+	dto := &transfert.Employee{
+		ID: aws.String(uuid),
+	}
+
+	t.Run("successful read", func(t *testing.T) {
+		// Ajustement de l'expression régulière pour matcher la requête SQL exacte
+		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL ORDER BY "employees"\."id" LIMIT \$2`).
+			WithArgs(dto.ID, 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "credential_id"}).AddRow(uuid, "credential-uuid"))
+
+		entity, err := repo.ReadEmployee(dto)
+
+		// Vérification que la requête n'a pas retourné d'erreur
+		assert.Nil(t, err)
+
+		// Vérification que l'entité n'est pas nulle avant de faire des assertions supplémentaires
+		if assert.NotNil(t, entity) {
+			assert.Equal(t, *dto.ID, entity.ID)
+			assert.Equal(t, "credential-uuid", *entity.CredentialID)
+		}
+
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("employee not found", func(t *testing.T) {
+		// Même ajustement pour la requête "not found"
+		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL ORDER BY "employees"\."id" LIMIT \$2`).
+			WithArgs(dto.ID, 1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "credential_id"}))
+
+		entity, err := repo.ReadEmployee(dto)
+
+		// Si l'employé n'est pas trouvé, une erreur doit être renvoyée
+		assert.NotNil(t, err)
+		assert.Nil(t, entity)
+		assert.Equal(t, gorm.ErrRecordNotFound, err)
+
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+}
+
+func TestUpdateEmployee(t *testing.T) {
+	repo, mock, db := setup()
+	defer db.Close()
+
+	entity := &entities.Employee{
+		ID:           "b0d583fb-7d32-436f-9328-29620e8ca87b",
+		CredentialID: aws.String("credential-uuid"),
+	}
+
+	t.Run("successful update", func(t *testing.T) {
+		mock.ExpectBegin()
+
+		mock.ExpectExec(`UPDATE "employees" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"credential_id"=\$4 WHERE "employees"\."deleted_at" IS NULL AND "id" = \$5`).
+			WithArgs(
+				sqlmock.AnyArg(),  // created_at
+				sqlmock.AnyArg(),  // updated_at
+				nil,               // deleted_at
+				"credential-uuid", // CredentialID
+				entity.ID,         // ID de l'employé
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+
+		mock.ExpectCommit()
+
+		err := repo.UpdateEmployee(entity)
+		assert.Nil(t, err)
+
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("update failure", func(t *testing.T) {
+		mock.ExpectBegin()
+
+		mock.ExpectExec(`UPDATE "employees" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"credential_id"=\$4 WHERE "employees"\."deleted_at" IS NULL AND "id" = \$5`).
+			WithArgs(
+				sqlmock.AnyArg(),  // created_at
+				sqlmock.AnyArg(),  // updated_at
+				nil,               // deleted_at
+				"credential-uuid", // CredentialID
+				entity.ID,         // ID de l'employé
+			).WillReturnError(fmt.Errorf("update error"))
+
+		mock.ExpectRollback()
+
+		err := repo.UpdateEmployee(entity)
+		assert.NotNil(t, err)
+		assert.Equal(t, "update error", err.Error())
+
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+}
+
+func TestDeleteEmployee(t *testing.T) {
+	repo, mock, db := setup()
+	defer db.Close()
+
+	dto := &transfert.Employee{
+		ID: aws.String("employee-uuid"),
+	}
+
+	t.Run("successful deletion", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE "employees" SET "deleted_at"=\$1 WHERE "employees"\."id" = \$2 AND "employees"\."deleted_at" IS NULL`).
+			WithArgs(sqlmock.AnyArg(), dto.ID).       // La date actuelle sera utilisée pour "deleted_at"
+			WillReturnResult(sqlmock.NewResult(1, 1)) // 1 ligne affectée par la suppression
+		mock.ExpectCommit()
+
+		err := repo.DeleteEmployee(dto)
+		assert.Nil(t, err)
+
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("deletion failure", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(`UPDATE "employees" SET "deleted_at"=\$1 WHERE "employees"\."id" = \$2 AND "employees"\."deleted_at" IS NULL`).
+			WithArgs(sqlmock.AnyArg(), dto.ID).
+			WillReturnError(fmt.Errorf("delete error"))
+		mock.ExpectRollback()
+
+		err := repo.DeleteEmployee(dto)
+		assert.NotNil(t, err)
+		assert.Equal(t, "delete error", err.Error())
+
 		err = mock.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
