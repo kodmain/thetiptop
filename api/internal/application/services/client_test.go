@@ -8,10 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -46,14 +47,6 @@ func (dcs *DomainClientService) GetClient(client *transfert.Client) (*entities.C
 func (dcs *DomainClientService) PasswordRecover(obj *transfert.Credential) error {
 	args := dcs.Called(obj)
 	return args.Error(0)
-}
-
-func (dcs *DomainClientService) UserRegister(credential *transfert.Credential, client *transfert.Client) (*entities.Client, error) {
-	args := dcs.Called(credential, client)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*entities.Client), args.Error(1)
 }
 
 func (dcs *DomainClientService) UserAuth(obj *transfert.Credential) (*entities.Client, error) {
@@ -101,6 +94,139 @@ func (dcs *DomainClientService) DeleteClient(client *transfert.Client) error {
 func (dcs *DomainClientService) PasswordUpdate(credential *transfert.Credential) error {
 	args := dcs.Called(credential)
 	return args.Error(0)
+}
+
+func (dcs *DomainClientService) RegisterClient(credential *transfert.Credential, client *transfert.Client) (*entities.Client, error) {
+	args := dcs.Called(credential, client)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entities.Client), args.Error(1)
+}
+
+func (dcs *DomainClientService) RegisterEmployee(credential *transfert.Credential, employee *transfert.Employee) (*entities.Employee, error) {
+	args := dcs.Called(credential, employee)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entities.Employee), args.Error(1)
+}
+
+func (dcs *DomainClientService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+	args := dcs.Called(dtoEmployee)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entities.Employee), args.Error(1)
+}
+
+func (dcs *DomainClientService) DeleteEmployee(dtoEmployee *transfert.Employee) error {
+	args := dcs.Called(dtoEmployee)
+	return args.Error(0)
+}
+
+func (dcs *DomainClientService) UpdateEmployee(Employee *transfert.Employee) error {
+	args := dcs.Called(Employee)
+	return args.Error(0)
+}
+
+func TestRegisterClient(t *testing.T) {
+	config.Load(aws.String("../../../config.test.yml"))
+
+	t.Run("invalid password", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		// Mock de la méthode RegisterClient
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(&entities.Client{}, nil)
+
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &passwordSyntaxFail,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        trueValue,
+		})
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("missing newsletter", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		// Pas besoin de mocker RegisterClient car l'erreur survient avant l'appel
+
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: nil, // Newsletter manquant
+			CGU:        trueValue,
+		})
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.Equal(t, "value newsletter is required", response)
+	})
+
+	t.Run("invalid cgu", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		// Pas besoin de mocker RegisterClient car l'erreur survient avant l'appel
+
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        falseValue, // CGU doit être à true
+		})
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.Equal(t, "cgu sould be true", response)
+	})
+
+	t.Run("valid password and fields", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		// Mock pour simuler un cas de succès
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(&entities.Client{}, nil)
+
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        trueValue,
+		})
+
+		assert.Equal(t, fiber.StatusCreated, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("client already exists", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		// Simuler le cas où le client existe déjà
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrCredentialAlreadyExists))
+
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        trueValue,
+		})
+		assert.Equal(t, fiber.StatusConflict, statusCode)
+		assert.NotNil(t, response)
+	})
+
+	t.Run("server error during registration", func(t *testing.T) {
+		mockClient := new(DomainClientService)
+		// Simuler une erreur serveur lors de la tentative d'enregistrement
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf("server error"))
+
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        trueValue,
+		})
+		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
+		assert.Equal(t, "server error", response)
+	})
 }
 
 func TestMailValidation(t *testing.T) {

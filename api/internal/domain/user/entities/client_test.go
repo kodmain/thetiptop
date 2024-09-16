@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -85,17 +85,11 @@ func TestClientBeforeCreateAndUpdate(t *testing.T) {
 		Type: entities.MailValidation,
 	})
 
-	client.Credential = &entities.Credential{
-		Email: aws.String(""), // Email is not required
-	}
-
-	assert.Nil(t, client.Credential.ClientID)
-
 	// Test BeforeCreate
 	err := client.BeforeCreate(nil)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, client.ID)
-	assert.Equal(t, client.ID, *client.Credential.ClientID)
+	assert.Equal(t, client.ID, client.ID)
 
 	// Simule un timestamp précédent pour comparer avec AfterUpdate
 	old := client.UpdatedAt

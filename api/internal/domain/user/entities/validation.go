@@ -21,8 +21,10 @@ type Validation struct {
 	Token     *token.Luhn    `gorm:"type:varchar(6);index" json:"token"`
 	Type      ValidationType `gorm:"type:varchar(10)" json:"type"`
 	Validated bool           `gorm:"type:boolean;default:false" json:"validated"`
-	ClientID  *string        `gorm:"type:varchar(36)" json:"-"`
-	ExpiresAt time.Time      `json:"-"`
+
+	ClientID   *string   `gorm:"type:varchar(36)" json:"-"`
+	EmployeeID *string   `gorm:"type:varchar(36)" json:"-"`
+	ExpiresAt  time.Time `json:"-"`
 }
 
 func (v *Validation) HasExpired() bool {

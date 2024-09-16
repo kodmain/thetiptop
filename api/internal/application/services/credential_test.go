@@ -11,112 +11,13 @@ import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
-
-func TestUserRegister(t *testing.T) {
-	config.Load(aws.String("../../../config.test.yml"))
-
-	t.Run("invalid password", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		// Mock de la méthode UserRegister
-		mockClient.On("UserRegister", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(&entities.Client{}, nil)
-
-		statusCode, response := services.UserRegister(mockClient, &transfert.Credential{
-			Email:    &email,
-			Password: &passwordSyntaxFail,
-		}, &transfert.Client{
-			Newsletter: trueValue,
-			CGU:        trueValue,
-		})
-		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.NotNil(t, response)
-	})
-
-	t.Run("missing newsletter", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		// Pas besoin de mocker UserRegister car l'erreur survient avant l'appel
-
-		statusCode, response := services.UserRegister(mockClient, &transfert.Credential{
-			Email:    &email,
-			Password: &password,
-		}, &transfert.Client{
-			Newsletter: nil, // Newsletter manquant
-			CGU:        trueValue,
-		})
-		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value newsletter is required", response)
-	})
-
-	t.Run("invalid cgu", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		// Pas besoin de mocker UserRegister car l'erreur survient avant l'appel
-
-		statusCode, response := services.UserRegister(mockClient, &transfert.Credential{
-			Email:    &email,
-			Password: &password,
-		}, &transfert.Client{
-			Newsletter: trueValue,
-			CGU:        falseValue, // CGU doit être à true
-		})
-		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "cgu sould be true", response)
-	})
-
-	t.Run("valid password and fields", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		// Mock pour simuler un cas de succès
-		mockClient.On("UserRegister", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(&entities.Client{}, nil)
-
-		statusCode, response := services.UserRegister(mockClient, &transfert.Credential{
-			Email:    &email,
-			Password: &password,
-		}, &transfert.Client{
-			Newsletter: trueValue,
-			CGU:        trueValue,
-		})
-
-		assert.Equal(t, fiber.StatusCreated, statusCode)
-		assert.NotNil(t, response)
-	})
-
-	t.Run("client already exists", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		// Simuler le cas où le client existe déjà
-		mockClient.On("UserRegister", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrCredentialAlreadyExists))
-
-		statusCode, response := services.UserRegister(mockClient, &transfert.Credential{
-			Email:    &email,
-			Password: &password,
-		}, &transfert.Client{
-			Newsletter: trueValue,
-			CGU:        trueValue,
-		})
-		assert.Equal(t, fiber.StatusConflict, statusCode)
-		assert.NotNil(t, response)
-	})
-
-	t.Run("server error during registration", func(t *testing.T) {
-		mockClient := new(DomainClientService)
-		// Simuler une erreur serveur lors de la tentative d'enregistrement
-		mockClient.On("UserRegister", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf("server error"))
-
-		statusCode, response := services.UserRegister(mockClient, &transfert.Credential{
-			Email:    &email,
-			Password: &password,
-		}, &transfert.Client{
-			Newsletter: trueValue,
-			CGU:        trueValue,
-		})
-		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Equal(t, "server error", response)
-	})
-}
 
 func TestUserAuth(t *testing.T) {
 	config.Load(aws.String("../../../config.test.yml"))
@@ -167,9 +68,6 @@ func TestUserAuth(t *testing.T) {
 		// Simuler un cas réussi avec une Credential valide et un ClientID valide
 		mockClient.On("UserAuth", mock.Anything).Return(&entities.Client{
 			ID: id.String(),
-			Credential: &entities.Credential{
-				ClientID: aws.String(id.String()), // Assurez-vous que ClientID est initialisé
-			},
 		}, nil)
 
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{

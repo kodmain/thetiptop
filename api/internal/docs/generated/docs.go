@@ -27,7 +27,7 @@ const docTemplate = `{
                     "Client"
                 ],
                 "summary": "Register a client.",
-                "operationId": "client.Register",
+                "operationId": "user.RegisterClient",
                 "parameters": [
                     {
                         "type": "string",
@@ -91,7 +91,7 @@ const docTemplate = `{
                     "Client"
                 ],
                 "summary": "Update a client.",
-                "operationId": "client.UpdateClient",
+                "operationId": "user.UpdateClient",
                 "parameters": [
                     {
                         "type": "string",
@@ -144,7 +144,7 @@ const docTemplate = `{
                     "Client"
                 ],
                 "summary": "Get a client by ID.",
-                "operationId": "client.GetClient",
+                "operationId": "user.GetClient",
                 "parameters": [
                     {
                         "type": "string",
@@ -157,10 +157,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Client details",
-                        "schema": {
-                            "$ref": "#/definitions/transfert.Client"
-                        }
+                        "description": "Client details"
                     },
                     "400": {
                         "description": "Invalid client ID"
@@ -181,7 +178,7 @@ const docTemplate = `{
                     "Client"
                 ],
                 "summary": "Delete a client by ID.",
-                "operationId": "client.DeleteClient",
+                "operationId": "user.DeleteClient",
                 "parameters": [
                     {
                         "type": "string",
@@ -201,6 +198,196 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/employee/register": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee"
+                ],
+                "summary": "Register a employee.",
+                "operationId": "user.RegisterEmployee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Aa1@azetyuiop",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "CGU",
+                        "name": "cgu",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Newsletter",
+                        "name": "newsletter",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Employee created"
+                    },
+                    "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "409": {
+                        "description": "Employee already exists"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/employee/update": {
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee"
+                ],
+                "summary": "Update a employee.",
+                "operationId": "user.UpdateEmployee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Newsletter",
+                        "name": "newsletter",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Password updated"
+                    },
+                    "400": {
+                        "description": "Invalid email, password or token"
+                    },
+                    "404": {
+                        "description": "Employee not found"
+                    },
+                    "409": {
+                        "description": "Employee already validated"
+                    },
+                    "410": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/employee/{id}": {
+            "get": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee"
+                ],
+                "summary": "Get a employee by ID.",
+                "operationId": "user.GetEmployee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Employee details"
+                    },
+                    "400": {
+                        "description": "Invalid employee ID"
+                    },
+                    "404": {
+                        "description": "Employee not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee"
+                ],
+                "summary": "Delete a client by ID.",
+                "operationId": "user.DeleteEmployee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Employee deleted"
+                    },
+                    "400": {
+                        "description": "Invalid employee ID"
+                    },
+                    "404": {
+                        "description": "Employee not found"
                     },
                     "500": {
                         "description": "Internal server error"
@@ -262,7 +449,7 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "Authenticate a client/employees.",
-                "operationId": "client.UserAuth",
+                "operationId": "user.UserAuth",
                 "parameters": [
                     {
                         "type": "string",
@@ -308,7 +495,7 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "Renew JWT for a client/employees.",
-                "operationId": "client.UserAuthRenew",
+                "operationId": "user.UserAuthRenew",
                 "parameters": [
                     {
                         "type": "string",
@@ -346,7 +533,7 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "Update a client/employees password.",
-                "operationId": "client.CredentialUpdate",
+                "operationId": "user.CredentialUpdate",
                 "parameters": [
                     {
                         "type": "string",
@@ -407,7 +594,7 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "Validate a client/employees email.",
-                "operationId": "client.MailValidation",
+                "operationId": "user.MailValidation",
                 "parameters": [
                     {
                         "type": "string",
@@ -460,7 +647,7 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "Recover a client/employees validation type.",
-                "operationId": "client.ValidationRecover",
+                "operationId": "user.ValidationRecover",
                 "parameters": [
                     {
                         "type": "string",
@@ -485,22 +672,6 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
-            }
-        }
-    },
-    "definitions": {
-        "transfert.Client": {
-            "type": "object",
-            "properties": {
-                "cgu": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "newsletter": {
-                    "type": "boolean"
-                }
             }
         }
     }

@@ -6,24 +6,30 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 )
 
-var client sync.Once
+var user sync.Once
 
-type ClientRepository struct {
+type UserRepository struct {
 	store *database.Database
 }
 
-type ClientRepositoryInterface interface {
+type UserRepositoryInterface interface {
 	// client
 	CreateClient(obj *transfert.Client) (*entities.Client, error)
 	ReadClient(obj *transfert.Client) (*entities.Client, error)
 	UpdateClient(entity *entities.Client) error
 	DeleteClient(obj *transfert.Client) error
+
+	// employee
+	CreateEmployee(obj *transfert.Employee) (*entities.Employee, error)
+	ReadEmployee(obj *transfert.Employee) (*entities.Employee, error)
+	UpdateEmployee(entity *entities.Employee) error
+	DeleteEmployee(obj *transfert.Employee) error
 
 	// validation
 	CreateValidation(obj *transfert.Validation) (*entities.Validation, error)
@@ -38,17 +44,17 @@ type ClientRepositoryInterface interface {
 	DeleteCredential(obj *transfert.Credential) error
 }
 
-func NewClientRepository(store *database.Database) *ClientRepository {
-	client.Do(func() {
+func NewUserRepository(store *database.Database) *UserRepository {
+	user.Do(func() {
 		store.Engine.AutoMigrate(entities.Client{})
 		store.Engine.AutoMigrate(entities.Validation{})
 		store.Engine.AutoMigrate(entities.Credential{})
 	})
 
-	return &ClientRepository{store}
+	return &UserRepository{store}
 }
 
-func (r *ClientRepository) CreateCredential(obj *transfert.Credential) (*entities.Credential, error) {
+func (r *UserRepository) CreateCredential(obj *transfert.Credential) (*entities.Credential, error) {
 	credential := entities.CreateCredential(obj)
 
 	password, err := hash.Hash(aws.String(*obj.Email+":"+*obj.Password), hash.BCRYPT)
@@ -70,7 +76,7 @@ func (r *ClientRepository) CreateCredential(obj *transfert.Credential) (*entitie
 	return credential, nil
 }
 
-func (r *ClientRepository) ReadCredential(obj *transfert.Credential) (*entities.Credential, error) {
+func (r *UserRepository) ReadCredential(obj *transfert.Credential) (*entities.Credential, error) {
 	credential := entities.CreateCredential(obj)
 	result := r.store.Engine.Where(obj).First(credential)
 
@@ -81,11 +87,11 @@ func (r *ClientRepository) ReadCredential(obj *transfert.Credential) (*entities.
 	return credential, nil
 }
 
-func (r *ClientRepository) UpdateCredential(entity *entities.Credential) error {
+func (r *UserRepository) UpdateCredential(entity *entities.Credential) error {
 	return r.store.Engine.Save(entity).Error
 }
 
-func (r *ClientRepository) DeleteCredential(obj *transfert.Credential) error {
+func (r *UserRepository) DeleteCredential(obj *transfert.Credential) error {
 	credential := entities.CreateCredential(obj)
 	result := r.store.Engine.Where(obj).Delete(credential)
 
@@ -96,7 +102,7 @@ func (r *ClientRepository) DeleteCredential(obj *transfert.Credential) error {
 	return nil
 }
 
-func (r *ClientRepository) CreateClient(obj *transfert.Client) (*entities.Client, error) {
+func (r *UserRepository) CreateClient(obj *transfert.Client) (*entities.Client, error) {
 	client := entities.CreateClient(obj)
 
 	result := r.store.Engine.Create(client)
@@ -107,7 +113,7 @@ func (r *ClientRepository) CreateClient(obj *transfert.Client) (*entities.Client
 	return client, nil
 }
 
-func (r *ClientRepository) ReadClient(obj *transfert.Client) (*entities.Client, error) {
+func (r *UserRepository) ReadClient(obj *transfert.Client) (*entities.Client, error) {
 	client := entities.CreateClient(obj)
 	result := r.store.Engine.Where(obj).First(client)
 
@@ -118,11 +124,11 @@ func (r *ClientRepository) ReadClient(obj *transfert.Client) (*entities.Client, 
 	return client, nil
 }
 
-func (r *ClientRepository) UpdateClient(entity *entities.Client) error {
+func (r *UserRepository) UpdateClient(entity *entities.Client) error {
 	return r.store.Engine.Save(entity).Error
 }
 
-func (r *ClientRepository) DeleteClient(obj *transfert.Client) error {
+func (r *UserRepository) DeleteClient(obj *transfert.Client) error {
 	client := entities.CreateClient(obj)
 	result := r.store.Engine.Where(obj).Delete(client)
 
@@ -133,7 +139,7 @@ func (r *ClientRepository) DeleteClient(obj *transfert.Client) error {
 	return nil
 }
 
-func (r *ClientRepository) CreateValidation(obj *transfert.Validation) (*entities.Validation, error) {
+func (r *UserRepository) CreateValidation(obj *transfert.Validation) (*entities.Validation, error) {
 	validation := entities.CreateValidation(obj)
 	result := r.store.Engine.Create(validation)
 
@@ -144,7 +150,7 @@ func (r *ClientRepository) CreateValidation(obj *transfert.Validation) (*entitie
 	return validation, nil
 }
 
-func (r *ClientRepository) ReadValidation(obj *transfert.Validation) (*entities.Validation, error) {
+func (r *UserRepository) ReadValidation(obj *transfert.Validation) (*entities.Validation, error) {
 	validation := entities.CreateValidation(obj)
 	result := r.store.Engine.Where(obj).First(validation)
 
@@ -155,13 +161,50 @@ func (r *ClientRepository) ReadValidation(obj *transfert.Validation) (*entities.
 	return validation, nil
 }
 
-func (r *ClientRepository) UpdateValidation(entity *entities.Validation) error {
+func (r *UserRepository) UpdateValidation(entity *entities.Validation) error {
 	return r.store.Engine.Save(entity).Error
 }
 
-func (r *ClientRepository) DeleteValidation(obj *transfert.Validation) error {
+func (r *UserRepository) DeleteValidation(obj *transfert.Validation) error {
 	validation := entities.CreateValidation(obj)
 	result := r.store.Engine.Where(obj).Delete(validation)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (r *UserRepository) CreateEmployee(obj *transfert.Employee) (*entities.Employee, error) {
+	employee := entities.CreateEmployee(obj)
+
+	result := r.store.Engine.Create(employee)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return employee, nil
+}
+
+func (r *UserRepository) ReadEmployee(obj *transfert.Employee) (*entities.Employee, error) {
+	employee := entities.CreateEmployee(obj)
+	result := r.store.Engine.Where(obj).First(employee)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return employee, nil
+}
+
+func (r *UserRepository) UpdateEmployee(entity *entities.Employee) error {
+	return r.store.Engine.Save(entity).Error
+}
+
+func (r *UserRepository) DeleteEmployee(obj *transfert.Employee) error {
+	employee := entities.CreateEmployee(obj)
+	result := r.store.Engine.Where(obj).Delete(employee)
 
 	if result.Error != nil {
 		return result.Error

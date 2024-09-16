@@ -6,44 +6,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/services"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
-func UserRegister(service services.ClientServiceInterface, credentialDTO *transfert.Credential, clientDTO *transfert.Client) (int, any) {
-	err := credentialDTO.Check(data.Validator{
-		"email":    {validator.Required, validator.Email},
-		"password": {validator.Required, validator.Password},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
-	}
-
-	err = clientDTO.Check(data.Validator{
-		"newsletter": {validator.Required, validator.IsBool},
-		"cgu":        {validator.Required, validator.IsBool, validator.IsTrue},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
-	}
-
-	credential, err := service.UserRegister(credentialDTO, clientDTO)
-	if err != nil {
-		if err.Error() == errors.ErrCredentialAlreadyExists {
-			return fiber.StatusConflict, err.Error()
-		}
-
-		return fiber.StatusInternalServerError, err.Error()
-	}
-
-	return fiber.StatusCreated, credential
-}
-
-func UserAuth(service services.ClientServiceInterface, credentialDTO *transfert.Credential) (int, any) {
+func UserAuth(service services.UserServiceInterface, credentialDTO *transfert.Credential) (int, any) {
 	err := credentialDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
@@ -58,7 +27,7 @@ func UserAuth(service services.ClientServiceInterface, credentialDTO *transfert.
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	accessToken, refreshToken, err := serializer.FromID(*client.Credential.ClientID)
+	accessToken, refreshToken, err := serializer.FromID(client.ID)
 	if err != nil {
 		return fiber.StatusInternalServerError, err.Error()
 	}
@@ -93,7 +62,7 @@ func UserAuthRenew(refresh *serializer.Token) (int, any) {
 	}
 }
 
-func CredentialUpdate(service services.ClientServiceInterface, validationDTO *transfert.Validation, credentialDTO *transfert.Credential) (int, any) {
+func CredentialUpdate(service services.UserServiceInterface, validationDTO *transfert.Validation, credentialDTO *transfert.Credential) (int, any) {
 	err := validationDTO.Check(data.Validator{
 		"token": {validator.Required, validator.Luhn},
 	})
