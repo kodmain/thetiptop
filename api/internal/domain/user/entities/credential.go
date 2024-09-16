@@ -19,7 +19,10 @@ type Credential struct {
 	Email    *string `gorm:"type:varchar(320);uniqueIndex" json:"email"`
 	Password *string `gorm:"type:varchar(255)" json:"-"` // private field
 
-	ClientID *string `gorm:"type:varchar(36);index;" json:"client_id"` // Foreign key to Client
+	//ClientID   *string `gorm:"type:varchar(36);index;" json:"client_id"`   // Foreign key to Client
+	//Client *Client `gorm:"foreignKey:ClientID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
+	//EmployeeID *string `gorm:"type:varchar(36);index;" json:"employee_id"` // Foreign key to Employee
+	//Employee *Employee `gorm:"foreignKey:EmployeeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
 }
 
 func (cred *Credential) CompareHash(password string) bool {
@@ -45,6 +48,5 @@ func CreateCredential(obj *transfert.Credential) *Credential {
 	return &Credential{
 		Email:    obj.Email,
 		Password: obj.Password,
-		ClientID: obj.ID,
 	}
 }

@@ -16,8 +16,9 @@ type Client struct {
 	DeletedAt *gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
-	Credential  *Credential `gorm:"foreignKey:ClientID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
-	Validations Validations `gorm:"foreignKey:ClientID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
+	//Credential  *Credential `gorm:"foreignKey:ClientID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
+	CredentialID *string     `gorm:"type:varchar(36);index;" json:"-"` // Foreign key to Credential
+	Validations  Validations `gorm:"foreignKey:ClientID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
 
 	// Additional fields
 	CGU        *bool `gorm:"type:boolean;default:false" json:"cgu"`
@@ -52,7 +53,7 @@ func (client *Client) BeforeUpdate(tx *gorm.DB) error {
 
 func (client *Client) AfterFind(tx *gorm.DB) error {
 	tx.Find(&client.Validations, "client_id = ?", client.ID)
-	tx.Find(&client.Credential, "client_id = ?", client.ID)
+	//tx.Find(&client.Credential, "client_id = ?", client.ID)
 	return nil
 }
 
@@ -64,9 +65,11 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 
 	client.ID = id.String()
 
-	if client.Credential != nil {
-		client.Credential.ClientID = &client.ID
-	}
+	/*
+		if client.Credential != nil {
+			client.Credential.ClientID = &client.ID
+		}
+	*/
 
 	for _, validation := range client.Validations {
 		validation.ClientID = &client.ID

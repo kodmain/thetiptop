@@ -1,13 +1,3 @@
-definitions:
-  transfert.Client:
-    properties:
-      cgu:
-        type: boolean
-      id:
-        type: string
-      newsletter:
-        type: boolean
-    type: object
 host: localhost
 info:
   contact: {}
@@ -17,7 +7,7 @@ info:
 paths:
   /client/{id}:
     delete:
-      operationId: client.DeleteClient
+      operationId: user.DeleteClient
       parameters:
       - description: Client ID
         format: uuid
@@ -42,7 +32,7 @@ paths:
     get:
       consumes:
       - multipart/form-data
-      operationId: client.GetClient
+      operationId: user.GetClient
       parameters:
       - description: Client ID
         format: uuid
@@ -55,8 +45,6 @@ paths:
       responses:
         "200":
           description: Client details
-          schema:
-            $ref: '#/definitions/transfert.Client'
         "400":
           description: Invalid client ID
         "404":
@@ -70,7 +58,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      operationId: client.Register
+      operationId: user.RegisterClient
       parameters:
       - default: user-thetiptop@yopmail.com
         description: Email address
@@ -115,7 +103,7 @@ paths:
     put:
       consumes:
       - multipart/form-data
-      operationId: client.UpdateClient
+      operationId: user.UpdateClient
       parameters:
       - description: Client ID
         format: uuid
@@ -147,6 +135,136 @@ paths:
       summary: Update a client.
       tags:
       - Client
+  /employee/{id}:
+    delete:
+      operationId: user.DeleteEmployee
+      parameters:
+      - description: Employee ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Employee deleted
+        "400":
+          description: Invalid employee ID
+        "404":
+          description: Employee not found
+        "500":
+          description: Internal server error
+      summary: Delete a client by ID.
+      tags:
+      - Employee
+    get:
+      consumes:
+      - multipart/form-data
+      operationId: user.GetEmployee
+      parameters:
+      - description: Employee ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Employee details
+        "400":
+          description: Invalid employee ID
+        "404":
+          description: Employee not found
+        "500":
+          description: Internal server error
+      summary: Get a employee by ID.
+      tags:
+      - Employee
+  /employee/register:
+    post:
+      consumes:
+      - multipart/form-data
+      operationId: user.RegisterEmployee
+      parameters:
+      - default: user-thetiptop@yopmail.com
+        description: Email address
+        format: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - default: Aa1@azetyuiop
+        description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - default: true
+        description: CGU
+        in: formData
+        name: cgu
+        required: true
+        type: boolean
+      - default: false
+        description: Newsletter
+        in: formData
+        name: newsletter
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Employee created
+        "400":
+          description: Invalid email or password
+        "409":
+          description: Employee already exists
+        "500":
+          description: Internal server error
+      summary: Register a employee.
+      tags:
+      - Employee
+  /employee/update:
+    put:
+      consumes:
+      - multipart/form-data
+      operationId: user.UpdateEmployee
+      parameters:
+      - description: Employee ID
+        format: uuid
+        in: formData
+        name: id
+        required: true
+        type: string
+      - default: false
+        description: Newsletter
+        in: formData
+        name: newsletter
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Password updated
+        "400":
+          description: Invalid email, password or token
+        "404":
+          description: Employee not found
+        "409":
+          description: Employee already validated
+        "410":
+          description: Token expired
+        "500":
+          description: Internal server error
+      summary: Update a employee.
+      tags:
+      - Employee
   /status/healthcheck:
     get:
       consumes:
@@ -179,7 +297,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      operationId: client.UserAuth
+      operationId: user.UserAuth
       parameters:
       - default: user-thetiptop@yopmail.com
         description: Email address
@@ -211,7 +329,7 @@ paths:
       consumes:
       - '*/*'
       - multipart/form-data
-      operationId: client.UserAuthRenew
+      operationId: user.UserAuthRenew
       parameters:
       - description: With the bearer started
         in: header
@@ -236,7 +354,7 @@ paths:
     put:
       consumes:
       - multipart/form-data
-      operationId: client.CredentialUpdate
+      operationId: user.CredentialUpdate
       parameters:
       - default: user-thetiptop@yopmail.com
         description: Email address
@@ -278,7 +396,7 @@ paths:
     put:
       consumes:
       - multipart/form-data
-      operationId: client.MailValidation
+      operationId: user.MailValidation
       parameters:
       - description: Token
         in: formData
@@ -314,7 +432,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      operationId: client.ValidationRecover
+      operationId: user.ValidationRecover
       parameters:
       - default: user-thetiptop@yopmail.com
         description: Email address

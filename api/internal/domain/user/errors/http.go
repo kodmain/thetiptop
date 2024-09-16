@@ -11,6 +11,12 @@ const (
 	ErrClientNotValidate      = "client not validate %s"
 	ErrClientAlreadyValidated = "client already validated"
 
+	// employee errors
+	ErrEmployeeAlreadyExists    = "employee already exists"
+	ErrEmployeeNotFound         = "employee not found"
+	ErrEmployeeNotValidate      = "employee not validate %s"
+	ErrEmployeeAlreadyValidated = "employee already validated"
+
 	// credential errors
 	ErrCredentialNotFound      = "credential not found"
 	ErrCredentialInvalid       = "credential invalid"
