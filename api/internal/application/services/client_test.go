@@ -333,15 +333,17 @@ func TestUpdateClient(t *testing.T) {
 	t.Run("successful client update", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Mock pour simuler un cas de mise à jour réussie
-		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(nil)
+		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(&entities.Client{
+			ID: "123e4567-e89b-12d3-a456-426614174000",
+		}, nil)
 
 		// Fournir un UUID valide ici
 		statusCode, response := services.UpdateClient(mockClient, &transfert.Client{
 			ID:         aws.String("123e4567-e89b-12d3-a456-426614174000"), // UUID valide
 			Newsletter: aws.Bool(true),
 		})
-		assert.Equal(t, fiber.StatusNoContent, statusCode)
-		assert.Nil(t, response)
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.NotNil(t, response)
 		mockClient.AssertExpectations(t)
 	})
 
@@ -364,7 +366,7 @@ func TestUpdateClient(t *testing.T) {
 	t.Run("client update error", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler une erreur lors de la mise à jour du client
-		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(fmt.Errorf("update error"))
+		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf("update error"))
 
 		// Fournir un UUID valide mais avec un champ Newsletter manquant (incomplet)
 		statusCode, response := services.UpdateClient(mockClient, &transfert.Client{

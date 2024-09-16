@@ -28,11 +28,11 @@ type UserServiceInterface interface {
 	RegisterClient(dtoCredential *transfert.Credential, dtoClient *transfert.Client) (*entities.Client, error)
 	GetClient(dtoClient *transfert.Client) (*entities.Client, error)
 	DeleteClient(dtoClient *transfert.Client) error
-	UpdateClient(client *transfert.Client) error
+	UpdateClient(client *transfert.Client) (*entities.Client, error)
 
 	// Employee
 	RegisterEmployee(dtoCredential *transfert.Credential, dtoEmployee *transfert.Employee) (*entities.Employee, error)
 	GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error)
 	DeleteEmployee(dtoEmployee *transfert.Employee) error
-	UpdateEmployee(Employee *transfert.Employee) error
+	UpdateEmployee(Employee *transfert.Employee) (*entities.Employee, error)
 }

@@ -48,17 +48,24 @@ func (s *UserService) RegisterClient(dtoCredential *transfert.Credential, dtoCli
 	return client, nil
 }
 
-func (s *UserService) UpdateClient(dtoClient *transfert.Client) error {
-	client, err := s.repo.ReadClient(dtoClient)
+func (s *UserService) UpdateClient(dtoClient *transfert.Client) (*entities.Client, error) {
+	client, err := s.repo.ReadClient(&transfert.Client{
+		ID: dtoClient.ID,
+	})
+
 	if err != nil {
-		return fmt.Errorf(errors.ErrClientNotFound)
+		return nil, fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	if err := client.UpdateWith(dtoClient); err != nil {
+		return nil, err
 	}
 
 	if err := s.repo.UpdateClient(client); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return client, nil
 }
 
 // DeleteClient Delete a client from the repository

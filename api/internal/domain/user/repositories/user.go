@@ -144,7 +144,7 @@ func (r *UserRepository) CreateClient(obj *transfert.Client) (*entities.Client, 
 }
 
 func (r *UserRepository) ReadClient(obj *transfert.Client) (*entities.Client, error) {
-	client := entities.CreateClient(obj)
+	client := &entities.Client{}
 	result := r.store.Engine.Where(obj).First(client)
 
 	if result.Error != nil {
@@ -160,7 +160,7 @@ func (r *UserRepository) UpdateClient(entity *entities.Client) error {
 
 func (r *UserRepository) DeleteClient(obj *transfert.Client) error {
 	client := entities.CreateClient(obj)
-	result := r.store.Engine.Where(obj).Delete(client)
+	result := r.store.Engine.Delete(client)
 
 	if result.Error != nil {
 		return result.Error

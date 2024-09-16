@@ -77,17 +77,22 @@ func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) error {
 	return nil
 }
 
-func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) error {
-	// Lire l'employé depuis le repository pour vérifier s'il existe
-	employee, err := s.repo.ReadEmployee(dtoEmployee)
+func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+	employee, err := s.repo.ReadEmployee(&transfert.Employee{
+		ID: dtoEmployee.ID,
+	})
+
 	if err != nil {
-		return fmt.Errorf(errors.ErrEmployeeNotFound)
+		return nil, fmt.Errorf(errors.ErrEmployeeNotFound)
 	}
 
-	// Mettre à jour l'employé dans le repository
+	if err := employee.UpdateWith(dtoEmployee); err != nil {
+		return nil, err
+	}
+
 	if err := s.repo.UpdateEmployee(employee); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return employee, nil
 }

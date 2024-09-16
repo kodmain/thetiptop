@@ -71,9 +71,13 @@ func (dcs *DomainUserService) PasswordValidation(validation *transfert.Validatio
 	return args.Get(0).(*entities.Validation), args.Error(1)
 }
 
-func (dcs *DomainUserService) UpdateClient(client *transfert.Client) error {
+func (dcs *DomainUserService) UpdateClient(client *transfert.Client) (*entities.Client, error) {
 	args := dcs.Called(client)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(*entities.Client), args.Error(1)
 }
 
 func (dcs *DomainUserService) DeleteClient(client *transfert.Client) error {
@@ -115,7 +119,10 @@ func (dcs *DomainUserService) DeleteEmployee(dtoEmployee *transfert.Employee) er
 	return args.Error(0)
 }
 
-func (dcs *DomainUserService) UpdateEmployee(Employee *transfert.Employee) error {
-	args := dcs.Called(Employee)
-	return args.Error(0)
+func (dcs *DomainUserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+	args := dcs.Called(dtoEmployee)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entities.Employee), args.Error(1)
 }
