@@ -312,16 +312,18 @@ const (
 	DOMAIN = "http://localhost:8888"
 
 	// Client
-	CLIENT_REGISTER     = DOMAIN + "/client/register"
-	CLIENT_GET_BY_ID    = DOMAIN + "/client/%s"
-	CLIENT_DELETE_BY_ID = DOMAIN + "/client/%s"
+	CLIENT              = DOMAIN + "/client"
+	CLIENT_REGISTER     = CLIENT + "/register"
+	CLIENT_GET_BY_ID    = CLIENT + "/%s"
+	CLIENT_DELETE_BY_ID = CLIENT + "/%s"
 
 	// User
-	USER_AUTH                = DOMAIN + "/user/auth"
-	USER_AUTH_RENEW          = DOMAIN + "/user/auth/renew"
-	USER_PASSWORD            = DOMAIN + "/user/password"
-	USER_REGISTER_VALIDATION = DOMAIN + "/user/register/validation"
-	USER_VALIDATION_RENEW    = DOMAIN + "/user/validation/renew"
+	USER                     = DOMAIN + "/user"
+	USER_AUTH                = USER + "/auth"
+	USER_AUTH_RENEW          = USER + "/auth/renew"
+	USER_PASSWORD            = USER + "/password"
+	USER_REGISTER_VALIDATION = USER + "/register/validation"
+	USER_VALIDATION_RENEW    = USER + "/validation/renew"
 )
 
 func TestClient(t *testing.T) {
@@ -479,6 +481,18 @@ func TestClient(t *testing.T) {
 						assert.Equal(t, user.statusSI, status)
 					})
 				}
+
+				/*
+					values = map[string][]any{
+						"id":         {c.ID},
+						"newsletter": {true},
+					}
+
+					UpdateClient, status, err := request("PUT", CLIENT, "", encoding, values)
+					assert.Nil(t, err)
+					assert.Equal(t, http.StatusNoContent, status)
+					logger.Info(string(UpdateClient))
+				*/
 
 				url := fmt.Sprintf(CLIENT_DELETE_BY_ID, c.ID)
 				DeletedClient, status, err := request("DELETE", url, "", encoding, nil)

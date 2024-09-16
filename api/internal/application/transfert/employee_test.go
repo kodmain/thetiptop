@@ -3,31 +3,19 @@ package transfert_test
 import (
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/application/validator"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewEmployee(t *testing.T) {
 	tests := []struct {
-		name       string
-		newsletter *bool
-		cgu        *bool
-		wantErr    bool
+		name    string
+		wantErr bool
 	}{
 		{
-			name:       "Valid employee",
-			newsletter: aws.Bool(false),
-			cgu:        aws.Bool(true),
-			wantErr:    false,
-		},
-		{
-			name:       "Invalid employee",
-			newsletter: aws.Bool(true),
-			cgu:        aws.Bool(false),
-			wantErr:    true,
+			name:    "Valid employee",
+			wantErr: false,
 		},
 	}
 
@@ -44,15 +32,8 @@ func TestNewEmployee(t *testing.T) {
 	// Iterate through test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			obj := data.Object{
-				"newsletter": tt.newsletter,
-				"cgu":        tt.cgu,
-			}
-
-			employee, err := transfert.NewEmployee(obj, data.Validator{
-				"newsletter": {validator.IsFalse},
-				"cgu":        {validator.IsTrue},
-			})
+			obj := data.Object{}
+			employee, err := transfert.NewEmployee(obj, data.Validator{})
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -60,12 +41,7 @@ func TestNewEmployee(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, employee)
-
-				// Validate employee with the same validators
-				err := employee.Check(data.Validator{
-					"newsletter": {validator.IsFalse},
-					"cgu":        {validator.IsTrue},
-				})
+				err := employee.Check(data.Validator{})
 				assert.NoError(t, err)
 			}
 		})

@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
@@ -126,15 +125,8 @@ func TestEmployee_AfterFind(t *testing.T) {
 }
 
 func TestCreateEmployee(t *testing.T) {
-	// Cas de test avec des valeurs valides pour CGU et Newsletter
-	cgu := aws.Bool(true)
-	newsletter := aws.Bool(false)
-
 	// Crée un objet de type transfert.Employee avec les champs nécessaires
-	input := &transfert.Employee{
-		CGU:        cgu,
-		Newsletter: newsletter,
-	}
+	input := &transfert.Employee{}
 
 	// Appelle la fonction CreateEmployee
 	employee := entities.CreateEmployee(input)
@@ -149,10 +141,7 @@ func TestCreateEmployee(t *testing.T) {
 
 func TestCreateEmployeeWithNilFields(t *testing.T) {
 	// Cas de test où CGU et Newsletter sont nil
-	input := &transfert.Employee{
-		CGU:        nil,
-		Newsletter: nil,
-	}
+	input := &transfert.Employee{}
 
 	// Appelle la fonction CreateEmployee
 	employee := entities.CreateEmployee(input)

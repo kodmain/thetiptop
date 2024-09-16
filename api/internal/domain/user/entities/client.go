@@ -1,10 +1,13 @@
 package entities
 
 import (
+	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"gorm.io/gorm"
 )
 
@@ -23,6 +26,42 @@ type Client struct {
 	// Additional fields
 	CGU        *bool `gorm:"type:boolean;default:false" json:"cgu"`
 	Newsletter *bool `gorm:"type:boolean;default:false" json:"newsletter"`
+}
+
+func (client *Client) UpdateWith(dto *transfert.Client) error {
+	// Vérifie que le DTO n'est pas nul
+	if dto == nil {
+		return fmt.Errorf(errors.ErrNoDto)
+	}
+
+	// Récupère les valeurs des structs Client et DTO
+	clientVal := reflect.ValueOf(client).Elem()
+	dtoVal := reflect.ValueOf(dto).Elem()
+
+	// Parcourt les champs du DTO pour mettre à jour les champs correspondants dans le client
+	for i := 0; i < dtoVal.NumField(); i++ {
+		dtoField := dtoVal.Field(i)
+		clientField := clientVal.FieldByName(dtoVal.Type().Field(i).Name)
+
+		// Vérifie que le champ du client existe et est assignable
+		if clientField.IsValid() && clientField.CanSet() {
+			// Si le champ du DTO est un pointeur et non nil
+			if dtoField.Kind() == reflect.Ptr && !dtoField.IsNil() {
+				// Si le champ correspondant dans le client est aussi un pointeur, on assigne la valeur
+				if clientField.Kind() == reflect.Ptr {
+					clientField.Set(dtoField) // Assigner directement le pointeur
+				} else {
+					clientField.Set(dtoField.Elem()) // Assigner la valeur pointée
+				}
+			} else if dtoField.Kind() != reflect.Ptr { // Si ce n'est pas un pointeur, on compare les valeurs directement
+				if !reflect.DeepEqual(clientField.Interface(), dtoField.Interface()) {
+					clientField.Set(dtoField) // Assigner la valeur si elle est différente
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func (client *Client) HasSuccessValidation(validationType ValidationType) *Validation {
@@ -79,9 +118,15 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 }
 
 func CreateClient(obj *transfert.Client) *Client {
-	return &Client{
+	c := &Client{
 		Validations: make(Validations, 0),
 		CGU:         obj.CGU,
 		Newsletter:  obj.Newsletter,
 	}
+
+	if obj.ID != nil {
+		c.ID = *obj.ID
+	}
+
+	return c
 }

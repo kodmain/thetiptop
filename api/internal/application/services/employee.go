@@ -69,20 +69,19 @@ func GetEmployee(service services.UserServiceInterface, dtoEmployee *transfert.E
 
 func UpdateEmployee(service services.UserServiceInterface, employeeDTO *transfert.Employee) (int, any) {
 	err := employeeDTO.Check(data.Validator{
-		"id":         {validator.Required, validator.ID},
-		"newsletter": {validator.IsBool},
+		"id": {validator.Required, validator.ID},
 	})
 
 	if err != nil {
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	err = service.UpdateEmployee(employeeDTO)
+	employee, err := service.UpdateEmployee(employeeDTO)
 	if err != nil {
 		return fiber.StatusInternalServerError, err.Error()
 	}
 
-	return fiber.StatusNoContent, nil
+	return fiber.StatusNoContent, employee
 }
 
 func RegisterEmployee(service services.UserServiceInterface, credentialDTO *transfert.Credential, employeeDTO *transfert.Employee) (int, any) {
@@ -95,10 +94,7 @@ func RegisterEmployee(service services.UserServiceInterface, credentialDTO *tran
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	err = employeeDTO.Check(data.Validator{
-		"newsletter": {validator.Required, validator.IsBool},
-		"cgu":        {validator.Required, validator.IsBool, validator.IsTrue},
-	})
+	err = employeeDTO.Check(data.Validator{})
 
 	if err != nil {
 		return fiber.StatusBadRequest, err.Error()

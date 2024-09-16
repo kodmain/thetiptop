@@ -691,7 +691,7 @@ func TestReadClient(t *testing.T) {
 	t.Run("successful read", func(t *testing.T) {
 		// Mock de la requête pour lire un client par ID
 		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL ORDER BY "clients"\."id" LIMIT \$2`).
-			WithArgs(dto.ID, 1).
+			WithArgs(dto.ID, 1). // Assurez-vous que les arguments correspondent à ceux utilisés dans votre méthode
 			WillReturnRows(sqlmock.NewRows([]string{"id", "cgu", "newsletter"}).AddRow(uuid, true, false))
 
 		// Appel de la méthode ReadClient du repository
@@ -713,12 +713,14 @@ func TestReadClient(t *testing.T) {
 			ID: aws.String(uuid),
 		}
 
+		// Mise à jour du mock SQL pour inclure la clause ORDER BY
 		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL ORDER BY "clients"\."id" LIMIT \$2`).
 			WithArgs(dto.ID, 1).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "cgu", "newsletter"}))
+			WillReturnRows(sqlmock.NewRows([]string{})) // Pas de résultat retourné
 
 		entity, err := repo.ReadClient(dto)
 
+		// Vérification de l'erreur : le client n'existe pas, donc gorm.ErrRecordNotFound est attendu
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
 		assert.Equal(t, gorm.ErrRecordNotFound, err)
@@ -727,6 +729,7 @@ func TestReadClient(t *testing.T) {
 		err = mock.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
+
 }
 
 // TestUpdateClient teste la mise à jour des clients
@@ -807,8 +810,10 @@ func TestDeleteClient(t *testing.T) {
 		// Mock de la requête pour supprimer un client (soft delete)
 		mock.ExpectBegin()
 		mock.ExpectExec(`UPDATE "clients" SET "deleted_at"=\$1 WHERE "clients"\."id" = \$2 AND "clients"\."deleted_at" IS NULL`).
-			WithArgs(sqlmock.AnyArg(), dto.ID).       // La date actuelle sera utilisée pour "deleted_at"
-			WillReturnResult(sqlmock.NewResult(1, 1)) // 1 ligne affectée par la suppression
+			WithArgs(
+				sqlmock.AnyArg(),
+				dto.ID,
+			).WillReturnResult(sqlmock.NewResult(1, 1)) // 1 ligne affectée par la suppression
 		mock.ExpectCommit()
 
 		// Appel de la méthode DeleteClient du repository

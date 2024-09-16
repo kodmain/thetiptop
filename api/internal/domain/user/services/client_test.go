@@ -164,10 +164,11 @@ func TestUpdateClient(t *testing.T) {
 			Return(nil, fmt.Errorf(errors.ErrClientNotFound))
 
 		// Appel du service avec un client introuvable
-		err := service.UpdateClient(&transfert.Client{ID: aws.String("invalid-id")})
+		client, err := service.UpdateClient(&transfert.Client{ID: aws.String("invalid-id")})
 
 		// Vérifier que l'erreur est bien une erreur "Client not found"
 		assert.EqualError(t, err, errors.ErrClientNotFound)
+		assert.Nil(t, client)
 
 		// Vérifier que les attentes du mock sont respectées
 		mockRepo.AssertExpectations(t)
@@ -188,10 +189,11 @@ func TestUpdateClient(t *testing.T) {
 		mockRepo.On("UpdateClient", mockClient).Return(nil)
 
 		// Appel du service avec un client valide
-		err := service.UpdateClient(&transfert.Client{ID: aws.String("valid-id")})
+		client, err := service.UpdateClient(&transfert.Client{ID: aws.String("valid-id")})
 
 		// Vérifier que l'erreur est nulle, ce qui signifie que la mise à jour a réussi
 		assert.NoError(t, err)
+		assert.NotNil(t, client)
 
 		// Vérifier que les attentes du mock sont respectées
 		mockRepo.AssertExpectations(t)
@@ -212,10 +214,11 @@ func TestUpdateClient(t *testing.T) {
 		mockRepo.On("UpdateClient", mockClient).Return(fmt.Errorf("update error"))
 
 		// Appel du service avec un client valide mais une mise à jour échouée
-		err := service.UpdateClient(&transfert.Client{ID: aws.String("valid-id")})
+		client, err := service.UpdateClient(&transfert.Client{ID: aws.String("valid-id")})
 
 		// Vérifier que l'erreur est bien celle retournée par le mock lors de la mise à jour
 		assert.EqualError(t, err, "update error")
+		assert.Nil(t, client)
 
 		// Vérifier que les attentes du mock sont respectées
 		mockRepo.AssertExpectations(t)

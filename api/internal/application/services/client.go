@@ -77,12 +77,16 @@ func UpdateClient(service services.UserServiceInterface, clientDTO *transfert.Cl
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	err = service.UpdateClient(clientDTO)
+	client, err := service.UpdateClient(clientDTO)
 	if err != nil {
+		if err.Error() == errors.ErrClientNotFound {
+			return fiber.StatusNotFound, err.Error()
+		}
+
 		return fiber.StatusInternalServerError, err.Error()
 	}
 
-	return fiber.StatusNoContent, nil
+	return fiber.StatusOK, client
 }
 
 func RegisterClient(service services.UserServiceInterface, credentialDTO *transfert.Credential, clientDTO *transfert.Client) (int, any) {

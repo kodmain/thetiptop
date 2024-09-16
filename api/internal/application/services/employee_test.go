@@ -22,40 +22,9 @@ func TestRegisterEmployee(t *testing.T) {
 		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
 			Email:    &email,
 			Password: &passwordSyntaxFail,
-		}, &transfert.Employee{
-			Newsletter: trueValue,
-			CGU:        trueValue,
-		})
+		}, &transfert.Employee{})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
-	})
-
-	t.Run("missing newsletter", func(t *testing.T) {
-		mockService := new(DomainUserService)
-
-		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
-			Email:    &email,
-			Password: &password,
-		}, &transfert.Employee{
-			Newsletter: nil, // Newsletter manquant
-			CGU:        trueValue,
-		})
-		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value newsletter is required", response)
-	})
-
-	t.Run("invalid cgu", func(t *testing.T) {
-		mockService := new(DomainUserService)
-
-		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
-			Email:    &email,
-			Password: &password,
-		}, &transfert.Employee{
-			Newsletter: trueValue,
-			CGU:        falseValue, // CGU doit être à true
-		})
-		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "cgu sould be true", response)
 	})
 
 	t.Run("valid password and fields", func(t *testing.T) {
@@ -65,10 +34,7 @@ func TestRegisterEmployee(t *testing.T) {
 		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
 			Email:    &email,
 			Password: &password,
-		}, &transfert.Employee{
-			Newsletter: trueValue,
-			CGU:        trueValue,
-		})
+		}, &transfert.Employee{})
 
 		assert.Equal(t, fiber.StatusCreated, statusCode)
 		assert.NotNil(t, response)
@@ -81,10 +47,7 @@ func TestRegisterEmployee(t *testing.T) {
 		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
 			Email:    &email,
 			Password: &password,
-		}, &transfert.Employee{
-			Newsletter: trueValue,
-			CGU:        trueValue,
-		})
+		}, &transfert.Employee{})
 		assert.Equal(t, fiber.StatusConflict, statusCode)
 		assert.NotNil(t, response)
 	})
@@ -96,10 +59,7 @@ func TestRegisterEmployee(t *testing.T) {
 		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
 			Email:    &email,
 			Password: &password,
-		}, &transfert.Employee{
-			Newsletter: trueValue,
-			CGU:        trueValue,
-		})
+		}, &transfert.Employee{})
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
 		assert.Equal(t, "server error", response)
 	})
@@ -163,8 +123,7 @@ func TestUpdateEmployee(t *testing.T) {
 	t.Run("invalid employee data", func(t *testing.T) {
 		mockService := new(DomainUserService)
 		statusCode, response := services.UpdateEmployee(mockService, &transfert.Employee{
-			ID:         nil, // ID manquant
-			Newsletter: aws.Bool(true),
+			ID: nil, // ID manquant
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.Equal(t, "value id is required", response)
@@ -172,12 +131,12 @@ func TestUpdateEmployee(t *testing.T) {
 
 	t.Run("successful employee update", func(t *testing.T) {
 		mockService := new(DomainUserService)
-		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil)
+		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, nil)
 
 		statusCode, response := services.UpdateEmployee(mockService, &transfert.Employee{
-			ID:         aws.String("123e4567-e89b-12d3-a456-426614174000"), // UUID valide
-			Newsletter: aws.Bool(true),
+			ID: aws.String("123e4567-e89b-12d3-a456-426614174000"),
 		})
+
 		assert.Equal(t, fiber.StatusNoContent, statusCode)
 		assert.Nil(t, response)
 		mockService.AssertExpectations(t)
@@ -185,11 +144,10 @@ func TestUpdateEmployee(t *testing.T) {
 
 	t.Run("employee update error", func(t *testing.T) {
 		mockService := new(DomainUserService)
-		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(fmt.Errorf("update error"))
+		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, fmt.Errorf("update error"))
 
 		statusCode, response := services.UpdateEmployee(mockService, &transfert.Employee{
-			ID:         aws.String("123e4567-e89b-12d3-a456-426614174000"),
-			Newsletter: aws.Bool(true),
+			ID: aws.String("123e4567-e89b-12d3-a456-426614174000"),
 		})
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
 		assert.Equal(t, "update error", response)
