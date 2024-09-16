@@ -5,6 +5,9 @@ const (
 	ErrNoDto  = "no data transfer object provided"
 	ErrNoData = "no data provided"
 
+	// user errors
+	ErrUserNotFound = "user not found"
+
 	// client errors
 	ErrClientAlreadyExists    = "client already exists"
 	ErrClientNotFound         = "client not found"

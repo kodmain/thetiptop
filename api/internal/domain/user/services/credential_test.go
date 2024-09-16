@@ -10,6 +10,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -429,5 +430,114 @@ func TestPasswordValidation(t *testing.T) {
 		// Vérifier que toutes les attentes du mock sont respectées
 		mockRepo.AssertExpectations(t)
 		mockMailer.AssertExpectations(t)
+	})
+}
+
+func TestValidationRecover(t *testing.T) {
+
+	t.Run("credential fail", func(t *testing.T) {
+		service, mockRepo, _ := setup()
+
+		err := service.ValidationRecover(nil, &transfert.Credential{
+			Email: aws.String("test@example.com"),
+		})
+
+		// Vérifier que l'erreur correspond à "Client not found"
+		assert.EqualError(t, err, errors.ErrNoDto)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("credential not found", func(t *testing.T) {
+		service, mockRepo, _ := setup()
+
+		// Simuler que le credential n'est pas trouvé
+		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
+			Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+
+		err := service.ValidationRecover(&transfert.Validation{}, &transfert.Credential{
+			Email: aws.String("test@example.com"),
+		})
+
+		// Vérifier que l'erreur correspond à "Client not found"
+		assert.EqualError(t, err, errors.ErrUserNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("success client", func(t *testing.T) {
+		service, mockRepo, mockMailer := setup()
+
+		luhn := token.Generate(6)
+
+		// Simuler que le credential n'est pas trouvé
+		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
+			Return(&entities.Credential{
+				Email: aws.String("test@example.com"), // L'email est vide, car on cherche à simuler un credential non trouvé
+			}, nil)
+
+		mockRepo.On("ReadUser", mock.AnythingOfType("*transfert.User")).
+			Return(&entities.Client{}, nil, nil)
+
+		mockRepo.On("CreateValidation", mock.AnythingOfType("*transfert.Validation")).
+			Return(&entities.Validation{
+				Token: &luhn,
+			}, nil)
+
+		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
+
+		err := service.ValidationRecover(&transfert.Validation{}, &transfert.Credential{
+			Email: aws.String("test@example.com"),
+		})
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("success employee", func(t *testing.T) {
+		service, mockRepo, mockMailer := setup()
+
+		luhn := token.Generate(6)
+
+		// Simuler que le credential n'est pas trouvé
+		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
+			Return(&entities.Credential{
+				Email: aws.String("test@example.com"), // L'email est vide, car on cherche à simuler un credential non trouvé
+			}, nil)
+
+		mockRepo.On("ReadUser", mock.AnythingOfType("*transfert.User")).
+			Return(nil, &entities.Employee{}, nil)
+
+		mockRepo.On("CreateValidation", mock.AnythingOfType("*transfert.Validation")).
+			Return(&entities.Validation{
+				Token: &luhn,
+			}, nil)
+
+		mockMailer.On("Send", mock.AnythingOfType("*mail.Mail")).Return(nil)
+
+		err := service.ValidationRecover(&transfert.Validation{}, &transfert.Credential{
+			Email: aws.String("test@example.com"),
+		})
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("fail no client or employee", func(t *testing.T) {
+		service, mockRepo, _ := setup()
+
+		// Simuler que le credential n'est pas trouvé
+		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
+			Return(&entities.Credential{
+				Email: aws.String("test@example.com"), // L'email est vide, car on cherche à simuler un credential non trouvé
+			}, nil)
+
+		mockRepo.On("ReadUser", mock.AnythingOfType("*transfert.User")).
+			Return(nil, nil, fmt.Errorf(errors.ErrUserNotFound))
+
+		err := service.ValidationRecover(&transfert.Validation{}, &transfert.Credential{
+			Email: aws.String("test@example.com"),
+		})
+
+		assert.Error(t, err)
+		mockRepo.AssertExpectations(t)
 	})
 }

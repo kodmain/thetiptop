@@ -82,18 +82,25 @@ func (s *UserService) ValidationRecover(dtoValidation *transfert.Validation, dto
 	})
 
 	if err != nil {
-		return fmt.Errorf(errors.ErrClientNotFound)
+		return fmt.Errorf(errors.ErrUserNotFound)
 	}
 
-	client, err := s.repo.ReadClient(&transfert.Client{
+	client, employee, err := s.repo.ReadUser(&transfert.User{
 		CredentialID: &credential.ID,
 	})
 
 	if err != nil {
-		return fmt.Errorf(errors.ErrClientNotFound)
+		return fmt.Errorf(errors.ErrUserNotFound)
 	}
 
-	dtoValidation.ClientID = &client.ID
+	if client != nil {
+		dtoValidation.ClientID = &client.ID
+	}
+
+	if employee != nil {
+		dtoValidation.EmployeeID = &employee.ID
+	}
+
 	validation, err := s.repo.CreateValidation(dtoValidation)
 	if err != nil {
 		return err
@@ -159,11 +166,6 @@ func (s *UserService) sendMail(credential *entities.Credential, validation *enti
 // Returns:
 // - error: error An error object if an error occurs, nil otherwise.
 func (s *UserService) sendValidationMail(credential *entities.Credential, token *entities.Validation) error {
-	if credential == nil || credential.Email == nil || token == nil {
-		// Évitez d'envoyer un e-mail si les données sont manquantes
-		return fmt.Errorf("missing data")
-	}
-
 	return s.sendMail(credential, token, "token")
 }
 
