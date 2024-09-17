@@ -186,8 +186,15 @@ func createRequest(method, uri, token string, form map[string][]any, encoding En
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 	case http.MethodGet, http.MethodDelete:
-		formValues := createFormValues(form)
-		uri = fmt.Sprintf("%s?%s", uri, formValues.Encode())
+		if len(form) > 0 {
+			formValues := createFormValues(form)
+			uri = fmt.Sprintf("%s?%s", uri, formValues.Encode())
+		}
+
+		if method == http.MethodDelete {
+			logger.Warn("DELETE", uri)
+		}
+
 		req, err = http.NewRequest(method, uri, nil)
 		if err != nil {
 			return nil, err
@@ -313,7 +320,6 @@ const (
 
 	// Client
 	CLIENT          = DOMAIN + "/client"
-	CLIENT_UPDATE   = CLIENT + "/update"
 	CLIENT_REGISTER = CLIENT + "/register"
 	CLIENT_WITH_ID  = CLIENT + "/%s"
 
@@ -349,8 +355,8 @@ func TestClient(t *testing.T) {
 		}{
 			// mail, pass, status-signup, status-signin
 			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK, http.StatusNoContent, http.StatusOK},
-			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest, http.StatusNotFound, http.StatusBadRequest},
-			{fmt.Sprintf("%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest, http.StatusNotFound, http.StatusBadRequest},
+			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest, http.StatusMethodNotAllowed, http.StatusBadRequest},
+			{fmt.Sprintf("%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest, http.StatusMethodNotAllowed, http.StatusBadRequest},
 		}
 
 		t.Run("SignUp/"+encodingName, func(t *testing.T) {
@@ -482,11 +488,11 @@ func TestClient(t *testing.T) {
 					})
 				}
 
-				UpdateClient, status, err := request("PUT", CLIENT_UPDATE, "", encoding, map[string][]any{
+				UpdateClient, status, err := request("PUT", CLIENT, "", encoding, map[string][]any{
 					"id":         {c.ID},
 					"newsletter": {true},
 				})
-
+				logger.Info("out:=====>", c.ID)
 				logger.Info(string(UpdateClient))
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusUP, status)
