@@ -1047,3 +1047,132 @@ func TestDeleteEmployee(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestReadUser(t *testing.T) {
+
+	t.Run("user is a client", func(t *testing.T) {
+		repo, mock, db := setup()
+		defer db.Close()
+
+		// Données de transfert pour lire un utilisateur
+		dto := &transfert.User{
+			ID: aws.String("user-uuid"),
+		}
+
+		// Ajuster la requête pour matcher le comportement actuel
+		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL ORDER BY "clients"\."id" LIMIT \$2`).
+			WithArgs(dto.ToClient().ID, 1). // Le deuxième argument est la limite
+			WillReturnRows(sqlmock.NewRows([]string{"id", "credential_id"}).AddRow("client-uuid", "credential-uuid"))
+
+		client, employee, err := repo.ReadUser(dto)
+
+		// Vérification des résultats
+		assert.Nil(t, err)
+		assert.NotNil(t, client)
+		assert.Nil(t, employee)
+		assert.Equal(t, "client-uuid", client.ID)
+
+		// Vérification des attentes SQL
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("user is an employee", func(t *testing.T) {
+		repo, mock, db := setup()
+		defer db.Close()
+
+		// Données de transfert pour lire un utilisateur
+		dto := &transfert.User{
+			ID: aws.String("user-uuid"),
+		}
+
+		// Mock pour simuler qu'aucun client n'est trouvé
+		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL ORDER BY "clients"\."id" LIMIT \$2`).
+			WithArgs(dto.ToClient().ID, 1).             // Le deuxième argument est la limite
+			WillReturnRows(sqlmock.NewRows([]string{})) // Aucun client trouvé
+
+		// Mock pour simuler qu'un employé est trouvé
+		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL ORDER BY "employees"\."id" LIMIT \$2`).
+			WithArgs(dto.ToEmployee().ID, 1). // Le deuxième argument est la limite
+			WillReturnRows(sqlmock.NewRows([]string{"id", "credential_id"}).AddRow("employee-uuid", "credential-uuid"))
+
+		// Mock de la requête pour chercher les validations associées à l'employé
+		mock.ExpectQuery(`SELECT \* FROM "validations" WHERE employee_id = \$1 AND "validations"\."deleted_at" IS NULL`).
+			WithArgs("employee-uuid").
+			WillReturnRows(sqlmock.NewRows([]string{})) // Simuler aucune validation trouvée
+
+		// Appel de la méthode ReadUser
+		client, employee, err := repo.ReadUser(dto)
+
+		// Vérification des résultats
+		assert.Nil(t, err)         // Aucune erreur attendue
+		assert.NotNil(t, employee) // Employee ne doit pas être nil
+		assert.Nil(t, client)      // Client doit être nil, car il s'agit d'un employé
+
+		// Vérification des champs de l'employé
+		assert.Equal(t, "employee-uuid", employee.ID)
+
+		// Vérification si CredentialID n'est pas nil avant d'accéder à la valeur
+		if employee.CredentialID != nil {
+			assert.Equal(t, "credential-uuid", *employee.CredentialID)
+		}
+
+		// Vérification des attentes SQL
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("user not found", func(t *testing.T) {
+		repo, mock, db := setup()
+		defer db.Close()
+
+		dto := &transfert.User{
+			ID: aws.String("user-uuid"),
+		}
+
+		// Mock pour simuler qu'aucun client n'est trouvé
+		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL LIMIT \$2`).
+			WithArgs(dto.ToClient().ID, 1).             // Le deuxième argument est la limite dynamique
+			WillReturnRows(sqlmock.NewRows([]string{})) // Pas de client trouvé
+
+		// Mock pour simuler qu'aucun employé n'est trouvé
+		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL LIMIT \$2`).
+			WithArgs(dto.ToEmployee().ID, 1).           // Le deuxième argument est la limite dynamique
+			WillReturnRows(sqlmock.NewRows([]string{})) // Pas d'employé trouvé
+
+		client, employee, err := repo.ReadUser(dto)
+
+		// Vérification des résultats
+		assert.NotNil(t, err)
+		assert.Nil(t, client)
+		assert.Nil(t, employee)
+		assert.EqualError(t, err, "user not found: neither client nor employee matches the provided ID or credential")
+	})
+
+	t.Run("error on reading client and employee", func(t *testing.T) {
+		repo, mock, db := setup()
+		defer db.Close()
+
+		dto := &transfert.User{
+			ID: aws.String("user-uuid"),
+		}
+
+		// Simuler une erreur lors de la lecture des clients
+		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL LIMIT 1`).
+			WithArgs(dto.ToClient().ID).
+			WillReturnError(errors.New("some client error"))
+
+		// Simuler une erreur lors de la lecture des employés
+		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL LIMIT 1`).
+			WithArgs(dto.ToClient().ID).
+			WillReturnError(errors.New("some employee error"))
+
+		client, employee, err := repo.ReadUser(dto)
+
+		// Vérification des résultats
+		assert.NotNil(t, err)
+		assert.Nil(t, client)
+		assert.Nil(t, employee)
+		assert.EqualError(t, err, "user not found: neither client nor employee matches the provided ID or credential")
+	})
+}

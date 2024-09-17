@@ -13,11 +13,17 @@ type User struct {
 }
 
 func (u *User) ToClient() *Client {
-	return &Client{}
+	return &Client{
+		ID:           u.ID,
+		CredentialID: u.CredentialID,
+	}
 }
 
 func (u *User) ToEmployee() *Employee {
-	return &Employee{}
+	return &Employee{
+		ID:           u.ID,
+		CredentialID: u.CredentialID,
+	}
 }
 
 func (c *User) Check(validator data.Validator) error {
