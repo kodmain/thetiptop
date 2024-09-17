@@ -312,10 +312,10 @@ const (
 	DOMAIN = "http://localhost:8888"
 
 	// Client
-	CLIENT              = DOMAIN + "/client"
-	CLIENT_REGISTER     = CLIENT + "/register"
-	CLIENT_GET_BY_ID    = CLIENT + "/%s"
-	CLIENT_DELETE_BY_ID = CLIENT + "/%s"
+	CLIENT          = DOMAIN + "/client"
+	CLIENT_UPDATE   = CLIENT + "/update"
+	CLIENT_REGISTER = CLIENT + "/register"
+	CLIENT_WITH_ID  = CLIENT + "/%s"
 
 	// User
 	USER                     = DOMAIN + "/user"
@@ -345,11 +345,12 @@ func TestClient(t *testing.T) {
 			statusSU  int
 			statusSI  int
 			statusDel int
+			statusUP  int
 		}{
 			// mail, pass, status-signup, status-signin
-			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK, http.StatusNoContent},
-			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest, http.StatusNotFound},
-			{fmt.Sprintf("%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest, http.StatusNotFound},
+			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK, http.StatusNoContent, http.StatusOK},
+			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest, http.StatusNotFound, http.StatusBadRequest},
+			{fmt.Sprintf("%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest, http.StatusNotFound, http.StatusBadRequest},
 		}
 
 		t.Run("SignUp/"+encodingName, func(t *testing.T) {
@@ -366,15 +367,14 @@ func TestClient(t *testing.T) {
 
 				c := entities.Client{}
 				json.Unmarshal(RegisteredClient, &c)
+				urlwithcid := fmt.Sprintf(CLIENT_WITH_ID, c.ID)
 
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSU, status)
 
 				if status == http.StatusCreated {
-					url := fmt.Sprintf(CLIENT_GET_BY_ID, c.ID)
 					t.Run("GetByID/"+encodingName, func(t *testing.T) {
-						_, status, err := request("GET", url, "", encoding, nil)
-						logger.Info(url)
+						_, status, err := request("GET", urlwithcid, "", encoding, nil)
 						assert.Nil(t, err)
 						assert.Equal(t, http.StatusOK, status)
 					})
@@ -482,23 +482,20 @@ func TestClient(t *testing.T) {
 					})
 				}
 
-				/*
-					values = map[string][]any{
-						"id":         {c.ID},
-						"newsletter": {true},
-					}
+				UpdateClient, status, err := request("PUT", CLIENT_UPDATE, "", encoding, map[string][]any{
+					"id":         {c.ID},
+					"newsletter": {true},
+				})
 
-					UpdateClient, status, err := request("PUT", CLIENT, "", encoding, values)
-					assert.Nil(t, err)
-					assert.Equal(t, http.StatusNoContent, status)
-					logger.Info(string(UpdateClient))
-				*/
-
-				url := fmt.Sprintf(CLIENT_DELETE_BY_ID, c.ID)
-				DeletedClient, status, err := request("DELETE", url, "", encoding, nil)
+				logger.Info(string(UpdateClient))
 				assert.Nil(t, err)
-				assert.Equal(t, user.statusDel, status)
-				logger.Info(string(DeletedClient))
+				assert.Equal(t, user.statusUP, status)
+
+				t.Run("Delete/"+encodingName, func(t *testing.T) {
+					_, status, err := request("DELETE", urlwithcid, "", encoding, nil)
+					assert.Nil(t, err)
+					assert.Equal(t, user.statusDel, status)
+				})
 			}
 		})
 	}
