@@ -60,7 +60,7 @@ func RegisterClient(c *fiber.Ctx) error {
 // @Failure		409	{object}	nil "Client already validated"
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
-// @Router		/client/update [put]
+// @Router		/client [put]
 // @Id			user.UpdateClient
 func UpdateClient(c *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}

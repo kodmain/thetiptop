@@ -5,6 +5,42 @@ info:
   title: TheTipTop
   version: dev
 paths:
+  /client:
+    put:
+      consumes:
+      - multipart/form-data
+      operationId: user.UpdateClient
+      parameters:
+      - description: Client ID
+        format: uuid
+        in: formData
+        name: id
+        required: true
+        type: string
+      - default: false
+        description: Newsletter
+        in: formData
+        name: newsletter
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Password updated
+        "400":
+          description: Invalid email, password or token
+        "404":
+          description: Client not found
+        "409":
+          description: Client already validated
+        "410":
+          description: Token expired
+        "500":
+          description: Internal server error
+      summary: Update a client.
+      tags:
+      - Client
   /client/{id}:
     delete:
       operationId: user.DeleteClient
@@ -97,42 +133,6 @@ paths:
         "500":
           description: Internal server error
       summary: Register a client.
-      tags:
-      - Client
-  /client/update:
-    put:
-      consumes:
-      - multipart/form-data
-      operationId: user.UpdateClient
-      parameters:
-      - description: Client ID
-        format: uuid
-        in: formData
-        name: id
-        required: true
-        type: string
-      - default: false
-        description: Newsletter
-        in: formData
-        name: newsletter
-        required: true
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: Password updated
-        "400":
-          description: Invalid email, password or token
-        "404":
-          description: Client not found
-        "409":
-          description: Client already validated
-        "410":
-          description: Token expired
-        "500":
-          description: Internal server error
-      summary: Update a client.
       tags:
       - Client
   /employee/{id}:
