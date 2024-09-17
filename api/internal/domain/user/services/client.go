@@ -6,6 +6,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
 func (s *UserService) RegisterClient(dtoCredential *transfert.Credential, dtoClient *transfert.Client) (*entities.Client, error) {
@@ -57,7 +58,7 @@ func (s *UserService) UpdateClient(dtoClient *transfert.Client) (*entities.Clien
 		return nil, fmt.Errorf(errors.ErrClientNotFound)
 	}
 
-	if err := client.UpdateWith(dtoClient); err != nil {
+	if err := data.UpdateEntityWithDto(client, dtoClient); err != nil {
 		return nil, err
 	}
 

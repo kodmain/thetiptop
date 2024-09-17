@@ -6,6 +6,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
 func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoEmployee *transfert.Employee) (*entities.Employee, error) {
@@ -86,7 +87,7 @@ func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities
 		return nil, fmt.Errorf(errors.ErrEmployeeNotFound)
 	}
 
-	if err := employee.UpdateWith(dtoEmployee); err != nil {
+	if err := data.UpdateEntityWithDto(employee, dtoEmployee); err != nil {
 		return nil, err
 	}
 
