@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	assert.Nil(t, config.Get("mail"))
+	assert.Nil(t, config.Get("mail", nil))
 	err := config.Load(aws.String(""))
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "path is required")
@@ -27,20 +27,20 @@ func TestLoad(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	config.Reset()
-	assert.Nil(t, config.Get("mail"))
+	assert.Nil(t, config.Get("mail", nil))
 	config.Load(aws.String("../config.test.yml"))
 
-	assert.Nil(t, config.Get("toto"))
+	assert.Nil(t, config.Get("toto", nil))
 
-	assert.NotNil(t, config.Get("security"))
-	assert.NotNil(t, config.Get("security.jwt"))
+	assert.NotNil(t, config.Get("security", nil))
+	assert.NotNil(t, config.Get("security.jwt", nil))
 
-	assert.NotNil(t, config.Get("services"))
-	assert.NotNil(t, config.Get("providers"))
+	assert.NotNil(t, config.Get("services", nil))
+	assert.NotNil(t, config.Get("providers", nil))
 
-	assert.NotNil(t, config.Get("providers.mails"))
-	assert.NotNil(t, config.Get("providers.databases"))
+	assert.NotNil(t, config.Get("providers.mails", nil))
+	assert.NotNil(t, config.Get("providers.databases", nil))
 
-	assert.NotNil(t, config.Get("providers.mails.default"))
-	assert.NotNil(t, config.Get("providers.databases.default"))
+	assert.NotNil(t, config.Get("providers.mails.default", nil))
+	assert.NotNil(t, config.Get("providers.databases.default", nil))
 }
