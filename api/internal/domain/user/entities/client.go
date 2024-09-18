@@ -65,12 +65,6 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 
 	client.ID = id.String()
 
-	/*
-		if client.Credential != nil {
-			client.Credential.ClientID = &client.ID
-		}
-	*/
-
 	for _, validation := range client.Validations {
 		validation.ClientID = &client.ID
 	}

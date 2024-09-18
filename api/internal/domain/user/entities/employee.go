@@ -17,7 +17,7 @@ type Employee struct {
 
 	// Relations
 	//Credential  *Credential `gorm:"foreignKey:EmployeeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
-	CredentialID *string     `gorm:"type:varchar(36);index;" json:"credential_id"` // Foreign key to Credential
+	CredentialID *string     `gorm:"type:varchar(36);index;" json:"credential_id" json:"-"` // Foreign key to Credential
 	Validations  Validations `gorm:"foreignKey:EmployeeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
 }
 
@@ -60,12 +60,6 @@ func (employee *Employee) BeforeCreate(tx *gorm.DB) error {
 	}
 
 	employee.ID = id.String()
-
-	/*
-		if employee.Credential != nil {
-			employee.Credential.EmployeeID = &employee.ID
-		}
-	*/
 
 	for _, validation := range employee.Validations {
 		validation.EmployeeID = &employee.ID

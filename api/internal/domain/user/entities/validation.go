@@ -50,12 +50,12 @@ func (validation *Validation) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 
-	if validation.ClientID == nil {
-		return fmt.Errorf("ClientID is required on Validation")
+	if validation.ClientID == nil && validation.EmployeeID == nil {
+		return fmt.Errorf("ClientID or EmployeeID is required on Validation")
 	}
 
 	validation.ID = id.String()
-	duration, err := time.ParseDuration(config.Get("security.validation.expire").(string))
+	duration, err := time.ParseDuration(config.Get("security.validation.expire", nil).(string))
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (validation *Validation) BeforeCreate(tx *gorm.DB) error {
 
 func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 	validation.UpdatedAt = time.Now()
-	if validation.ClientID == nil {
+	if validation.ClientID == nil || validation.EmployeeID == nil {
 		return fmt.Errorf("Client is required on Validation")
 	}
 

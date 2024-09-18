@@ -40,7 +40,7 @@ func RegisterClient(c *fiber.Ctx) error {
 
 	status, response := services.RegisterClient(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.client.database").(string))),
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoCredential, dtoClient,
 	)
@@ -70,7 +70,7 @@ func UpdateClient(c *fiber.Ctx) error {
 
 	status, response := services.UpdateClient(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.client.database").(string))),
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoClient,
 	)
@@ -102,7 +102,7 @@ func GetClient(c *fiber.Ctx) error {
 
 	status, response := services.GetClient(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.client.database").(string))),
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoClient,
 	)
@@ -133,7 +133,7 @@ func DeleteClient(c *fiber.Ctx) error {
 
 	status, response := services.DeleteClient(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.client.database").(string))),
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoClient,
 	)
