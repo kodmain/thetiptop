@@ -99,7 +99,7 @@ func TestEmployeeRegister(t *testing.T) {
 
 		Employee, err := service.RegisterEmployee(dtoCredential, dtoEmployee)
 		assert.Nil(t, Employee)
-		assert.EqualError(t, err, "error creating Employee")
+		assert.EqualError(t, err, "error creating employee")
 		mockRepo.AssertExpectations(t)
 	})
 

@@ -67,8 +67,8 @@ func (validation *Validation) BeforeCreate(tx *gorm.DB) error {
 
 func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 	validation.UpdatedAt = time.Now()
-	if validation.ClientID == nil || validation.EmployeeID == nil {
-		return fmt.Errorf("Client is required on Validation")
+	if validation.ClientID == nil && validation.EmployeeID == nil {
+		return fmt.Errorf("ClientID or EmployeeID is required on Validation")
 	}
 
 	return nil
