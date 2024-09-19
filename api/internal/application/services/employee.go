@@ -81,7 +81,7 @@ func UpdateEmployee(service services.UserServiceInterface, employeeDTO *transfer
 		return fiber.StatusInternalServerError, err.Error()
 	}
 
-	return fiber.StatusNoContent, employee
+	return fiber.StatusOK, employee
 }
 
 func RegisterEmployee(service services.UserServiceInterface, credentialDTO *transfert.Credential, employeeDTO *transfert.Employee) (int, any) {

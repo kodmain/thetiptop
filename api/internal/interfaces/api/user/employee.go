@@ -19,8 +19,6 @@ import (
 // @Produce		application/json
 // @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
 // @Param		password	formData	string	true	"Password" default(Aa1@azetyuiop)
-// @Param 		cgu			formData	bool	true	"CGU" default(true)
-// @Param 		newsletter	formData	bool	true	"Newsletter" default(false)
 // @Success		201	{object}	nil "Employee created"
 // @Failure		400	{object}	nil "Invalid email or password"
 // @Failure		409	{object}	nil "Employee already exists"
@@ -60,7 +58,7 @@ func RegisterEmployee(c *fiber.Ctx) error {
 // @Failure		409	{object}	nil "Employee already validated"
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
-// @Router		/employee/update [put]
+// @Router		/employee [put]
 // @Id			user.UpdateEmployee
 func UpdateEmployee(c *fiber.Ctx) error {
 	dtoEmployee := &transfert.Employee{}

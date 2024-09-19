@@ -1,6 +1,8 @@
 services:
   client:
     database: default
+  employee:
+    database: default
 
 providers:
   mails:

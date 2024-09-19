@@ -17,7 +17,7 @@ type Employee struct {
 
 	// Relations
 	//Credential  *Credential `gorm:"foreignKey:EmployeeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
-	CredentialID *string     `gorm:"type:varchar(36);index;" json:"credential_id" json:"-"` // Foreign key to Credential
+	CredentialID *string     `gorm:"type:varchar(36);index;" json:"-"` // Foreign key to Credential
 	Validations  Validations `gorm:"foreignKey:EmployeeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
 }
 

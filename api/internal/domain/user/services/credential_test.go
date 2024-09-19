@@ -51,6 +51,16 @@ func TestUserAuth(t *testing.T) {
 		},
 	}
 
+	expectedEmployee := &entities.Employee{
+		ID: clientID,
+		Validations: []*entities.Validation{
+			{
+				Type:      entities.MailValidation,
+				Validated: true,
+			},
+		},
+	}
+
 	t.Run("credential not found", func(t *testing.T) {
 		service, mockRepo, _ := setup()
 
@@ -132,7 +142,7 @@ func TestUserAuth(t *testing.T) {
 		})).Return(expectedCredential, nil)
 
 		// Simuler que le client n'est pas trouvé
-		mockRepo.On("ReadClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		mockRepo.On("ReadUser", mock.AnythingOfType("*transfert.User")).Return(nil, nil, fmt.Errorf(errors.ErrUserNotFound))
 
 		// Appel du service avec un credential valide
 		result, err := service.UserAuth(inputCredential)
@@ -140,7 +150,7 @@ func TestUserAuth(t *testing.T) {
 		// Vérification des résultats
 		require.Error(t, err)
 		require.Nil(t, result)
-		require.Equal(t, errors.ErrClientNotFound, err.Error())
+		require.Equal(t, errors.ErrUserNotFound, err.Error())
 
 		// Vérifier que les attentes sur le mock sont satisfaites
 		mockRepo.AssertExpectations(t)
@@ -154,8 +164,8 @@ func TestUserAuth(t *testing.T) {
 			Return(expectedCredential, nil)
 
 		// Simuler un client valide
-		mockRepo.On("ReadClient", mock.AnythingOfType("*transfert.Client")).
-			Return(expectedClient, nil)
+		mockRepo.On("ReadUser", mock.AnythingOfType("*transfert.User")).
+			Return(expectedClient, nil, nil)
 
 		// Appel du service avec un credential valide
 		result, err := service.UserAuth(inputCredential)
@@ -168,6 +178,27 @@ func TestUserAuth(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("employee found", func(t *testing.T) {
+		service, mockRepo, _ := setup()
+
+		// Simuler un appel `ReadCredential` qui retourne le credential attendu
+		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
+			Return(expectedCredential, nil)
+
+		// Simuler un client valide
+		mockRepo.On("ReadUser", mock.AnythingOfType("*transfert.User")).
+			Return(nil, expectedEmployee, nil)
+
+		// Appel du service avec un credential valide
+		result, err := service.UserAuth(inputCredential)
+
+		// Vérification des résultats
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Vérifier que les attentes sur le mock sont satisfaites
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestPasswordUpdate(t *testing.T) {

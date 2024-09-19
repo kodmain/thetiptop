@@ -22,12 +22,12 @@ func UserAuth(service services.UserServiceInterface, credentialDTO *transfert.Cr
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	client, err := service.UserAuth(credentialDTO)
+	userID, err := service.UserAuth(credentialDTO)
 	if err != nil {
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	accessToken, refreshToken, err := serializer.FromID(client.ID)
+	accessToken, refreshToken, err := serializer.FromID(*userID)
 	if err != nil {
 		return fiber.StatusInternalServerError, err.Error()
 	}

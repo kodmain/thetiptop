@@ -39,12 +39,13 @@ func (dcs *DomainUserService) PasswordRecover(obj *transfert.Credential) error {
 	return args.Error(0)
 }
 
-func (dcs *DomainUserService) UserAuth(obj *transfert.Credential) (*entities.Client, error) {
+func (dcs *DomainUserService) UserAuth(obj *transfert.Credential) (*string, error) {
 	args := dcs.Called(obj)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Error(1) // Retourne nil pour *string et l'erreur s'il y en a une
 	}
-	return args.Get(0).(*entities.Client), args.Error(1)
+
+	return args.Get(0).(*string), args.Error(1)
 }
 
 func (dcs *DomainUserService) MailValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, error) {

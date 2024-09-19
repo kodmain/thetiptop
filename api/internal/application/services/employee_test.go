@@ -137,7 +137,7 @@ func TestUpdateEmployee(t *testing.T) {
 			ID: aws.String("123e4567-e89b-12d3-a456-426614174000"),
 		})
 
-		assert.Equal(t, fiber.StatusNoContent, statusCode)
+		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.Nil(t, response)
 		mockService.AssertExpectations(t)
 	})

@@ -205,71 +205,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/employee/register": {
-            "post": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Employee"
-                ],
-                "summary": "Register a employee.",
-                "operationId": "user.RegisterEmployee",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "default": "user-thetiptop@yopmail.com",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "default": "Aa1@azetyuiop",
-                        "description": "Password",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "CGU",
-                        "name": "cgu",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Newsletter",
-                        "name": "newsletter",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Employee created"
-                    },
-                    "400": {
-                        "description": "Invalid email or password"
-                    },
-                    "409": {
-                        "description": "Employee already exists"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/employee/update": {
+        "/employee": {
             "put": {
                 "consumes": [
                     "multipart/form-data"
@@ -315,6 +251,54 @@ const docTemplate = `{
                     },
                     "410": {
                         "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/employee/register": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee"
+                ],
+                "summary": "Register a employee.",
+                "operationId": "user.RegisterEmployee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Aa1@azetyuiop",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Employee created"
+                    },
+                    "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "409": {
+                        "description": "Employee already exists"
                     },
                     "500": {
                         "description": "Internal server error"
