@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/stretchr/testify/assert"
 )
 

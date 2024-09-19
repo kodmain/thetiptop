@@ -9,19 +9,19 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
-// DeleteClient deletes a client by ID
-// This function checks the client's ID, validates it, and proceeds to delete the client from the system
+// DeleteEmployee deletes a employee by ID
+// This function checks the employee's ID, validates it, and proceeds to delete the employee from the system
 //
 // Parameters:
-// - service: services.UserServiceInterface The service responsible for client management
-// - dtoClient: *transfert.Client The DTO that contains the client's data to be deleted
+// - service: services.UserServiceInterface The service responsible for employee management
+// - dtoEmployee: *transfert.Employee The DTO that contains the employee's data to be deleted
 //
 // Returns:
 // - int: The HTTP status code indicating success or failure of the operation
 // - any: The response object, which can be an error message in case of failure, or nil for successful deletion
-func DeleteClient(service services.UserServiceInterface, dtoClient *transfert.Client) (int, any) {
-	// Validation of the client ID
-	err := dtoClient.Check(data.Validator{
+func DeleteEmployee(service services.UserServiceInterface, dtoEmployee *transfert.Employee) (int, any) {
+	// Validation of the employee ID
+	err := dtoEmployee.Check(data.Validator{
 		"id": {validator.Required, validator.ID},
 	})
 
@@ -30,11 +30,11 @@ func DeleteClient(service services.UserServiceInterface, dtoClient *transfert.Cl
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	// Attempt to delete the client using the service
-	err = service.DeleteClient(dtoClient)
+	// Attempt to delete the employee using the service
+	err = service.DeleteEmployee(dtoEmployee)
 	if err != nil {
-		// Handle specific error cases like client not found
-		if err.Error() == errors.ErrClientNotFound {
+		// Handle specific error cases like employee not found
+		if err.Error() == errors.ErrEmployeeNotFound {
 			return fiber.StatusNotFound, err.Error()
 		}
 
@@ -46,8 +46,8 @@ func DeleteClient(service services.UserServiceInterface, dtoClient *transfert.Cl
 	return fiber.StatusNoContent, nil
 }
 
-func GetClient(service services.UserServiceInterface, dtoClient *transfert.Client) (int, any) {
-	err := dtoClient.Check(data.Validator{
+func GetEmployee(service services.UserServiceInterface, dtoEmployee *transfert.Employee) (int, any) {
+	err := dtoEmployee.Check(data.Validator{
 		"id": {validator.Required, validator.ID},
 	})
 
@@ -55,41 +55,36 @@ func GetClient(service services.UserServiceInterface, dtoClient *transfert.Clien
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	client, err := service.GetClient(dtoClient)
+	employee, err := service.GetEmployee(dtoEmployee)
 	if err != nil {
-		if err.Error() == errors.ErrClientNotFound {
+		if err.Error() == errors.ErrEmployeeNotFound {
 			return fiber.StatusNotFound, err.Error()
 		}
 
 		return fiber.StatusInternalServerError, err.Error()
 	}
 
-	return fiber.StatusOK, client
+	return fiber.StatusOK, employee
 }
 
-func UpdateClient(service services.UserServiceInterface, clientDTO *transfert.Client) (int, any) {
-	err := clientDTO.Check(data.Validator{
-		"id":         {validator.Required, validator.ID},
-		"newsletter": {validator.IsBool},
+func UpdateEmployee(service services.UserServiceInterface, employeeDTO *transfert.Employee) (int, any) {
+	err := employeeDTO.Check(data.Validator{
+		"id": {validator.Required, validator.ID},
 	})
 
 	if err != nil {
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	client, err := service.UpdateClient(clientDTO)
+	employee, err := service.UpdateEmployee(employeeDTO)
 	if err != nil {
-		if err.Error() == errors.ErrClientNotFound {
-			return fiber.StatusNotFound, err.Error()
-		}
-
 		return fiber.StatusInternalServerError, err.Error()
 	}
 
-	return fiber.StatusOK, client
+	return fiber.StatusOK, employee
 }
 
-func RegisterClient(service services.UserServiceInterface, credentialDTO *transfert.Credential, clientDTO *transfert.Client) (int, any) {
+func RegisterEmployee(service services.UserServiceInterface, credentialDTO *transfert.Credential, employeeDTO *transfert.Employee) (int, any) {
 	err := credentialDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
@@ -99,16 +94,13 @@ func RegisterClient(service services.UserServiceInterface, credentialDTO *transf
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	err = clientDTO.Check(data.Validator{
-		"newsletter": {validator.Required, validator.IsBool},
-		"cgu":        {validator.Required, validator.IsBool, validator.IsTrue},
-	})
+	err = employeeDTO.Check(data.Validator{})
 
 	if err != nil {
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	credential, err := service.RegisterClient(credentialDTO, clientDTO)
+	credential, err := service.RegisterEmployee(credentialDTO, employeeDTO)
 	if err != nil {
 		if err.Error() == errors.ErrCredentialAlreadyExists {
 			return fiber.StatusConflict, err.Error()

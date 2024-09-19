@@ -1,26 +1,23 @@
-package client_test
+package user_test
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
-	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -31,6 +28,18 @@ const (
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
 )
+
+func generateRandomString(length int, symbol string) string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	randomString := make([]byte, length)
+	for i := range randomString {
+		randomString[i] = charset[rng.Intn(len(charset))]
+	}
+	return symbol + string(randomString)
+}
 
 type Email struct {
 	HTML    string `json:"html"`
@@ -186,8 +195,15 @@ func createRequest(method, uri, token string, form map[string][]any, encoding En
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 	case http.MethodGet, http.MethodDelete:
-		formValues := createFormValues(form)
-		uri = fmt.Sprintf("%s?%s", uri, formValues.Encode())
+		if len(form) > 0 {
+			formValues := createFormValues(form)
+			uri = fmt.Sprintf("%s?%s", uri, formValues.Encode())
+		}
+
+		if method == http.MethodDelete {
+			logger.Warn("DELETE", uri)
+		}
+
 		req, err = http.NewRequest(method, uri, nil)
 		if err != nil {
 			return nil, err
@@ -312,181 +328,20 @@ const (
 	DOMAIN = "http://localhost:8888"
 
 	// Client
-	CLIENT_REGISTER     = DOMAIN + "/client/register"
-	CLIENT_GET_BY_ID    = DOMAIN + "/client/%s"
-	CLIENT_DELETE_BY_ID = DOMAIN + "/client/%s"
+	CLIENT          = DOMAIN + "/client"
+	CLIENT_REGISTER = CLIENT + "/register"
+	CLIENT_WITH_ID  = CLIENT + "/%s"
+
+	// Employee
+	EMPLOYEE          = DOMAIN + "/employee"
+	EMPLOYEE_REGISTER = EMPLOYEE + "/register"
+	EMPLOYEE_WITH_ID  = EMPLOYEE + "/%s"
 
 	// User
-	USER_AUTH                = DOMAIN + "/user/auth"
-	USER_AUTH_RENEW          = DOMAIN + "/user/auth/renew"
-	USER_PASSWORD            = DOMAIN + "/user/password"
-	USER_REGISTER_VALIDATION = DOMAIN + "/user/register/validation"
-	USER_VALIDATION_RENEW    = DOMAIN + "/user/validation/renew"
+	USER                     = DOMAIN + "/user"
+	USER_AUTH                = USER + "/auth"
+	USER_AUTH_RENEW          = USER + "/auth/renew"
+	USER_PASSWORD            = USER + "/password"
+	USER_REGISTER_VALIDATION = USER + "/register/validation"
+	USER_VALIDATION_RENEW    = USER + "/validation/renew"
 )
-
-func TestClient(t *testing.T) {
-	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}
-	assert.Nil(t, start(8888, 8444))
-	for _, encoding := range encodingTypes {
-
-		var encodingName string = "FormURLEncoded"
-		if encoding == JSONEncoded {
-			encodingName = "JSONEncoded"
-		}
-
-		request("DELETE", "http://0.0.0.0:1080/email/all", "", encoding)
-		time.Sleep(1 * time.Second)
-
-		users := []struct {
-			email     string
-			password  string
-			statusSU  int
-			statusSI  int
-			statusDel int
-		}{
-			// mail, pass, status-signup, status-signin
-			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK, http.StatusNoContent},
-			{fmt.Sprintf("%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest, http.StatusNotFound},
-			{fmt.Sprintf("%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest, http.StatusNotFound},
-		}
-
-		t.Run("SignUp/"+encodingName, func(t *testing.T) {
-			for _, user := range users {
-
-				values := map[string][]any{
-					"email":      {user.email},
-					"password":   {user.password},
-					"newsletter": {false},
-					"cgu":        {true},
-				}
-
-				RegisteredClient, status, err := request("POST", CLIENT_REGISTER, "", encoding, values)
-
-				c := entities.Client{}
-				json.Unmarshal(RegisteredClient, &c)
-
-				assert.Nil(t, err)
-				assert.Equal(t, user.statusSU, status)
-
-				if status == http.StatusCreated {
-					url := fmt.Sprintf(CLIENT_GET_BY_ID, c.ID)
-					t.Run("GetByID/"+encodingName, func(t *testing.T) {
-						_, status, err := request("GET", url, "", encoding, nil)
-						logger.Info(url)
-						assert.Nil(t, err)
-						assert.Equal(t, http.StatusOK, status)
-					})
-
-					t.Run("Validation/"+encodingName, func(t *testing.T) {
-						var client entities.Client
-						err = json.Unmarshal(RegisteredClient, &client)
-						assert.NoError(t, err)
-						assert.NotNil(t, client)
-						time.Sleep(3 * time.Second)
-						email, err := getMailFor(user.email)
-						assert.Nil(t, err)
-						assert.Equal(t, user.email, email.To[0].Address)
-					})
-
-					t.Run("Validation/recover/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
-							"email": {user.email},
-							"type":  {entities.MailValidation.String()},
-						})
-						assert.Nil(t, err)
-						assert.Equal(t, http.StatusNoContent, status)
-						time.Sleep(3 * time.Second)
-						email, err := getMailFor(user.email)
-						assert.Nil(t, err)
-						assert.Equal(t, user.email, email.To[0].Address)
-						token := extractToken(email.HTML)
-						_, status, err = request("PUT", USER_REGISTER_VALIDATION, "", encoding, map[string][]any{
-							"token": {token},
-							"email": {user.email},
-						})
-						assert.Nil(t, err)
-						assert.Equal(t, http.StatusOK, status)
-					})
-				}
-
-				JWT, status, err := request("POST", USER_AUTH, "", encoding, values)
-				assert.Nil(t, err)
-				assert.Equal(t, user.statusSI, status)
-
-				if status == http.StatusOK {
-					t.Run("Renew/"+encodingName, func(t *testing.T) {
-						var tokenData fiber.Map
-						err = json.Unmarshal(JWT, &tokenData)
-						assert.Nil(t, err)
-						refresh_token_sting := tokenData["refresh_token"].(string)
-						users := []struct {
-							token  string
-							status int
-						}{
-							{"Bearer " + refresh_token_sting, http.StatusOK},
-							{"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y", http.StatusUnauthorized}, // Replace with actual expired JWT token
-							{"Bearer malformed.jwt.token.here", http.StatusUnauthorized},
-							{"", http.StatusBadRequest},
-						}
-
-						for _, user := range users {
-							_, status, err := request("GET", USER_AUTH_RENEW, user.token, encoding)
-							assert.Nil(t, err)
-							assert.Equal(t, user.status, status)
-						}
-					})
-
-					t.Run("Password/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
-							"email": {user.email + "wrong"},
-							"type":  {entities.PasswordRecover.String()},
-						})
-
-						assert.NoError(t, err)
-						assert.Equal(t, http.StatusNotFound, status)
-
-						_, status, err = request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
-							"email": {user.email},
-							"type":  {entities.PasswordRecover.String()},
-						})
-
-						assert.Nil(t, err)
-						assert.Equal(t, http.StatusNoContent, status)
-						time.Sleep(1 * time.Second)
-						email, err := getMailFor(user.email)
-						assert.Nil(t, err)
-						assert.Equal(t, user.email, email.To[0].Address)
-
-						token := extractToken(email.HTML)
-						assert.NotEmpty(t, token)
-
-						_, status, err = request("PUT", USER_PASSWORD, "", encoding, map[string][]any{
-							"token":    {token},
-							"email":    {user.email},
-							"password": {GOOD_PASS_UPDATED},
-						})
-
-						assert.Nil(t, err)
-						assert.Equal(t, http.StatusOK, status)
-
-						_, status, err = request("POST", USER_AUTH, "", encoding, values)
-						assert.NoError(t, err)
-						assert.Equal(t, http.StatusBadRequest, status)
-
-						values["password"] = []any{GOOD_PASS_UPDATED}
-						_, status, err = request("POST", USER_AUTH, "", encoding, values)
-						assert.NoError(t, err)
-						assert.Equal(t, user.statusSI, status)
-					})
-				}
-
-				url := fmt.Sprintf(CLIENT_DELETE_BY_ID, c.ID)
-				DeletedClient, status, err := request("DELETE", url, "", encoding, nil)
-				assert.Nil(t, err)
-				assert.Equal(t, user.statusDel, status)
-				logger.Info(string(DeletedClient))
-			}
-		})
-	}
-	assert.Nil(t, stop())
-}

@@ -5,11 +5,20 @@ const (
 	ErrNoDto  = "no data transfer object provided"
 	ErrNoData = "no data provided"
 
+	// user errors
+	ErrUserNotFound = "user not found"
+
 	// client errors
 	ErrClientAlreadyExists    = "client already exists"
 	ErrClientNotFound         = "client not found"
 	ErrClientNotValidate      = "client not validate %s"
 	ErrClientAlreadyValidated = "client already validated"
+
+	// employee errors
+	ErrEmployeeAlreadyExists    = "employee already exists"
+	ErrEmployeeNotFound         = "employee not found"
+	ErrEmployeeNotValidate      = "employee not validate %s"
+	ErrEmployeeAlreadyValidated = "employee already validated"
 
 	// credential errors
 	ErrCredentialNotFound      = "credential not found"

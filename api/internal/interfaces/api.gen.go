@@ -7,7 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/docs"
-	"github.com/kodmain/thetiptop/api/internal/interfaces/api/client"
+	"github.com/kodmain/thetiptop/api/internal/interfaces/api/user"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/status"
 	"github.com/swaggo/swag"
 )
@@ -19,17 +19,21 @@ func init() {
 // API represents a collection of HTTP endpoints grouped by namespace and version.
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
-		"client.CredentialUpdate":  client.CredentialUpdate,
-		"client.DeleteClient":      client.DeleteClient,
-		"client.GetClient":         client.GetClient,
-		"client.MailValidation":    client.MailValidation,
-		"client.Register":          client.Register,
-		"client.UpdateClient":      client.UpdateClient,
-		"client.UserAuth":          client.UserAuth,
-		"client.UserAuthRenew":     client.UserAuthRenew,
-		"client.ValidationRecover": client.ValidationRecover,
-		"status.HealthCheck":       status.HealthCheck,
-		"status.IP":                status.IP,
+		"status.HealthCheck":     status.HealthCheck,
+		"status.IP":              status.IP,
+		"user.CredentialUpdate":  user.CredentialUpdate,
+		"user.DeleteClient":      user.DeleteClient,
+		"user.DeleteEmployee":    user.DeleteEmployee,
+		"user.GetClient":         user.GetClient,
+		"user.GetEmployee":       user.GetEmployee,
+		"user.MailValidation":    user.MailValidation,
+		"user.RegisterClient":    user.RegisterClient,
+		"user.RegisterEmployee":  user.RegisterEmployee,
+		"user.UpdateClient":      user.UpdateClient,
+		"user.UpdateEmployee":    user.UpdateEmployee,
+		"user.UserAuth":          user.UserAuth,
+		"user.UserAuthRenew":     user.UserAuthRenew,
+		"user.ValidationRecover": user.ValidationRecover,
 	}
 	Mapping = &docs.Swagger{}
 	doc, _  = swag.ReadDoc()

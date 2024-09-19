@@ -1,12 +1,12 @@
-package client
+package user
 
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/repositories"
-	domain "github.com/kodmain/thetiptop/api/internal/domain/client/services"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
+	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
@@ -22,7 +22,7 @@ import (
 // @Failure		400	{object}	nil "Invalid email or password"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/user/auth [post]
-// @Id			client.UserAuth
+// @Id			user.UserAuth
 func UserAuth(c *fiber.Ctx) error {
 	dto := &transfert.Credential{}
 	if err := c.BodyParser(dto); err != nil {
@@ -30,8 +30,8 @@ func UserAuth(c *fiber.Ctx) error {
 	}
 
 	status, response := services.UserAuth(
-		domain.Client(
-			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+		domain.User(
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dto,
 	)
@@ -50,7 +50,7 @@ func UserAuth(c *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Param 		Authorization header string true "With the bearer started"
 // @Router		/user/auth/renew [get]
-// @Id			client.UserAuthRenew
+// @Id			user.UserAuthRenew
 func UserAuthRenew(c *fiber.Ctx) error {
 	token := c.Locals("token")
 	if token == nil {
@@ -78,7 +78,7 @@ func UserAuthRenew(c *fiber.Ctx) error {
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/user/password [put]
-// @Id			client.CredentialUpdate
+// @Id			user.CredentialUpdate
 func CredentialUpdate(c *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := c.BodyParser(dtoCredential); err != nil {
@@ -91,8 +91,8 @@ func CredentialUpdate(c *fiber.Ctx) error {
 	}
 
 	status, response := services.CredentialUpdate(
-		domain.Client(
-			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+		domain.User(
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoValidation, dtoCredential,
 	)
@@ -113,7 +113,7 @@ func CredentialUpdate(c *fiber.Ctx) error {
 // @Failure		410 {object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/user/register/validation [put]
-// @Id			client.MailValidation
+// @Id			user.MailValidation
 func MailValidation(c *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := c.BodyParser(dtoCredential); err != nil {
@@ -126,8 +126,8 @@ func MailValidation(c *fiber.Ctx) error {
 	}
 
 	status, response := services.MailValidation(
-		domain.Client(
-			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+		domain.User(
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoValidation, dtoCredential,
 	)
@@ -142,7 +142,7 @@ func MailValidation(c *fiber.Ctx) error {
 // @Param		email		formData	string	true	"Email address" format(email) default(user-thetiptop@yopmail.com)
 // @Param		type		formData	string	true	"Type of validation" enums(mail, password, phone)
 // @Router		/user/validation/renew [post]
-// @Id			client.ValidationRecover
+// @Id			user.ValidationRecover
 func ValidationRecover(c *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := c.BodyParser(dtoCredential); err != nil {
@@ -155,8 +155,8 @@ func ValidationRecover(c *fiber.Ctx) error {
 	}
 
 	status, response := services.ValidationRecover(
-		domain.Client(
-			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+		domain.User(
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoCredential, dtoValidation,
 	)

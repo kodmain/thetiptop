@@ -21,8 +21,10 @@ type Validation struct {
 	Token     *token.Luhn    `gorm:"type:varchar(6);index" json:"token"`
 	Type      ValidationType `gorm:"type:varchar(10)" json:"type"`
 	Validated bool           `gorm:"type:boolean;default:false" json:"validated"`
-	ClientID  *string        `gorm:"type:varchar(36)" json:"-"`
-	ExpiresAt time.Time      `json:"-"`
+
+	ClientID   *string   `gorm:"type:varchar(36)" json:"-"`
+	EmployeeID *string   `gorm:"type:varchar(36)" json:"-"`
+	ExpiresAt  time.Time `json:"-"`
 }
 
 func (v *Validation) HasExpired() bool {
@@ -48,12 +50,12 @@ func (validation *Validation) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 
-	if validation.ClientID == nil {
-		return fmt.Errorf("ClientID is required on Validation")
+	if validation.ClientID == nil && validation.EmployeeID == nil {
+		return fmt.Errorf("ClientID or EmployeeID is required on Validation")
 	}
 
 	validation.ID = id.String()
-	duration, err := time.ParseDuration(config.Get("security.validation.expire").(string))
+	duration, err := time.ParseDuration(config.Get("security.validation.expire", nil).(string))
 	if err != nil {
 		return err
 	}
@@ -65,8 +67,8 @@ func (validation *Validation) BeforeCreate(tx *gorm.DB) error {
 
 func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 	validation.UpdatedAt = time.Now()
-	if validation.ClientID == nil {
-		return fmt.Errorf("Client is required on Validation")
+	if validation.ClientID == nil && validation.EmployeeID == nil {
+		return fmt.Errorf("ClientID or EmployeeID is required on Validation")
 	}
 
 	return nil
@@ -74,7 +76,8 @@ func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 
 func CreateValidation(obj *transfert.Validation) *Validation {
 	v := &Validation{
-		ClientID: obj.ClientID,
+		ClientID:   obj.ClientID,
+		EmployeeID: obj.EmployeeID,
 	}
 
 	if obj.Type != nil {
