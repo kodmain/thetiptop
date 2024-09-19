@@ -14,7 +14,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 )
 
-func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*entities.Client, error) {
+func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, error) {
 	if dtoCredential == nil {
 		return nil, fmt.Errorf(errors.ErrNoDto)
 	}
@@ -33,16 +33,19 @@ func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*entities.C
 		return nil, fmt.Errorf(errors.ErrCredentialNotFound)
 	}
 
-	client, err := s.repo.ReadClient(&transfert.Client{
+	client, employee, err := s.repo.ReadUser(&transfert.User{
 		CredentialID: &credential.ID,
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf(errors.ErrClientNotFound)
+		return nil, fmt.Errorf(errors.ErrUserNotFound)
 	}
 
-	// Continuer le processus d'authentification
-	return client, nil
+	if client != nil {
+		return &client.ID, nil
+	}
+
+	return &employee.ID, nil
 }
 
 func (s *UserService) PasswordUpdate(dto *transfert.Credential) error {

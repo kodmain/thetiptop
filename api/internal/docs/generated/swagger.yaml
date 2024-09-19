@@ -135,6 +135,42 @@ paths:
       summary: Register a client.
       tags:
       - Client
+  /employee:
+    put:
+      consumes:
+      - multipart/form-data
+      operationId: user.UpdateEmployee
+      parameters:
+      - description: Employee ID
+        format: uuid
+        in: formData
+        name: id
+        required: true
+        type: string
+      - default: false
+        description: Newsletter
+        in: formData
+        name: newsletter
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Password updated
+        "400":
+          description: Invalid email, password or token
+        "404":
+          description: Employee not found
+        "409":
+          description: Employee already validated
+        "410":
+          description: Token expired
+        "500":
+          description: Internal server error
+      summary: Update a employee.
+      tags:
+      - Employee
   /employee/{id}:
     delete:
       operationId: user.DeleteEmployee
@@ -203,18 +239,6 @@ paths:
         name: password
         required: true
         type: string
-      - default: true
-        description: CGU
-        in: formData
-        name: cgu
-        required: true
-        type: boolean
-      - default: false
-        description: Newsletter
-        in: formData
-        name: newsletter
-        required: true
-        type: boolean
       produces:
       - application/json
       responses:
@@ -227,42 +251,6 @@ paths:
         "500":
           description: Internal server error
       summary: Register a employee.
-      tags:
-      - Employee
-  /employee/update:
-    put:
-      consumes:
-      - multipart/form-data
-      operationId: user.UpdateEmployee
-      parameters:
-      - description: Employee ID
-        format: uuid
-        in: formData
-        name: id
-        required: true
-        type: string
-      - default: false
-        description: Newsletter
-        in: formData
-        name: newsletter
-        required: true
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: Password updated
-        "400":
-          description: Invalid email, password or token
-        "404":
-          description: Employee not found
-        "409":
-          description: Employee already validated
-        "410":
-          description: Token expired
-        "500":
-          description: Internal server error
-      summary: Update a employee.
       tags:
       - Employee
   /status/healthcheck:

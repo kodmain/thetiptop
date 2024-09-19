@@ -18,7 +18,7 @@ func User(repo repositories.UserRepositoryInterface, mail mail.ServiceInterface)
 
 type UserServiceInterface interface {
 	// Credential
-	UserAuth(dtoCredential *transfert.Credential) (*entities.Client, error)
+	UserAuth(dtoCredential *transfert.Credential) (*string, error)
 	PasswordUpdate(dtoCredential *transfert.Credential) error
 	ValidationRecover(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) error
 	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) (*entities.Validation, error)

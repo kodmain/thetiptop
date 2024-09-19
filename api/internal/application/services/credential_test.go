@@ -63,12 +63,11 @@ func TestUserAuth(t *testing.T) {
 
 	t.Run("valid email, password", func(t *testing.T) {
 		id, err := uuid.NewRandom()
+		ids := id.String()
 		assert.NoError(t, err)
 		mockClient := new(DomainUserService)
 		// Simuler un cas réussi avec une Credential valide et un ClientID valide
-		mockClient.On("UserAuth", mock.Anything).Return(&entities.Client{
-			ID: id.String(),
-		}, nil)
+		mockClient.On("UserAuth", mock.Anything).Return(&ids, nil)
 
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &email,

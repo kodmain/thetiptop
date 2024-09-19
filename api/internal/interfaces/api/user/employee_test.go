@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestClient(t *testing.T) {
+func TestEmployee(t *testing.T) {
 	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}
 	assert.Nil(t, start(8888, 8444))
 	for _, encoding := range encodingTypes {
@@ -35,26 +35,26 @@ func TestClient(t *testing.T) {
 			statusUP  int
 		}{
 			// mail, pass, status-signup, status-signin
-			{fmt.Sprintf("client%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK, http.StatusNoContent, http.StatusOK},
-			{fmt.Sprintf("client%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest, http.StatusMethodNotAllowed, http.StatusBadRequest},
-			{fmt.Sprintf("client%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest, http.StatusMethodNotAllowed, http.StatusBadRequest},
+			{fmt.Sprintf("employee%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK, http.StatusNoContent, http.StatusOK},
+			{fmt.Sprintf("employee%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest, http.StatusMethodNotAllowed, http.StatusBadRequest},
+			{fmt.Sprintf("employee%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest, http.StatusMethodNotAllowed, http.StatusBadRequest},
 		}
 
 		t.Run("SignUp/"+encodingName, func(t *testing.T) {
 			for _, user := range users {
 
 				values := map[string][]any{
-					"email":      {user.email},
-					"password":   {user.password},
-					"newsletter": {false},
-					"cgu":        {true},
+					"email":    {user.email},
+					"password": {user.password},
 				}
 
-				RegisteredClient, status, err := request("POST", CLIENT_REGISTER, "", encoding, values)
+				RegisteredEmployee, status, err := request("POST", EMPLOYEE_REGISTER, "", encoding, values)
+				RegisteredEmployeeString := string(RegisteredEmployee)
+				logger.Info("RegisteredEmployeeString: ", RegisteredEmployeeString)
 
-				c := entities.Client{}
-				json.Unmarshal(RegisteredClient, &c)
-				urlwithcid := fmt.Sprintf(CLIENT_WITH_ID, c.ID)
+				c := entities.Employee{}
+				json.Unmarshal(RegisteredEmployee, &c)
+				urlwithcid := fmt.Sprintf(EMPLOYEE_WITH_ID, c.ID)
 
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSU, status)
@@ -67,10 +67,10 @@ func TestClient(t *testing.T) {
 					})
 
 					t.Run("Validation/"+encodingName, func(t *testing.T) {
-						var client entities.Client
-						err = json.Unmarshal(RegisteredClient, &client)
+						var employee entities.Employee
+						err = json.Unmarshal(RegisteredEmployee, &employee)
 						assert.NoError(t, err)
-						assert.NotNil(t, client)
+						assert.NotNil(t, employee)
 						time.Sleep(3 * time.Second)
 						email, err := getMailFor(user.email)
 						assert.Nil(t, err)
@@ -169,17 +169,18 @@ func TestClient(t *testing.T) {
 					})
 				}
 
-				UpdateClient, status, err := request("PUT", CLIENT, "", encoding, map[string][]any{
-					"id":         {c.ID},
-					"newsletter": {true},
+				UpdateEmployee, status, err := request("PUT", EMPLOYEE, "", encoding, map[string][]any{
+					"id": {c.ID},
 				})
-				logger.Info("out:=====>", c.ID)
-				logger.Info(string(UpdateClient))
+				UpdateEmployeeString := string(UpdateEmployee)
+				logger.Info(UpdateEmployeeString)
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusUP, status)
 
 				t.Run("Delete/"+encodingName, func(t *testing.T) {
-					_, status, err := request("DELETE", urlwithcid, "", encoding, nil)
+					DeletedEmployee, status, err := request("DELETE", urlwithcid, "", encoding, nil)
+					DeletedEmployeeString := string(DeletedEmployee)
+					logger.Info(DeletedEmployeeString)
 					assert.Nil(t, err)
 					assert.Equal(t, user.statusDel, status)
 				})

@@ -76,7 +76,8 @@ func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 
 func CreateValidation(obj *transfert.Validation) *Validation {
 	v := &Validation{
-		ClientID: obj.ClientID,
+		ClientID:   obj.ClientID,
+		EmployeeID: obj.EmployeeID,
 	}
 
 	if obj.Type != nil {
