@@ -1,4 +1,4 @@
-package client
+package user
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -7,8 +7,8 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 
-	"github.com/kodmain/thetiptop/api/internal/domain/client/repositories"
-	domain "github.com/kodmain/thetiptop/api/internal/domain/client/services"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
+	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 )
@@ -26,8 +26,8 @@ import (
 // @Failure		409	{object}	nil "Client already exists"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/register [post]
-// @Id			client.Register
-func Register(c *fiber.Ctx) error {
+// @Id			user.RegisterClient
+func RegisterClient(c *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := c.BodyParser(dtoCredential); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
@@ -38,9 +38,9 @@ func Register(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	status, response := services.UserRegister(
-		domain.Client(
-			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+	status, response := services.RegisterClient(
+		domain.User(
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoCredential, dtoClient,
 	)
@@ -60,8 +60,8 @@ func Register(c *fiber.Ctx) error {
 // @Failure		409	{object}	nil "Client already validated"
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
-// @Router		/client/update [put]
-// @Id			client.UpdateClient
+// @Router		/client [put]
+// @Id			user.UpdateClient
 func UpdateClient(c *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}
 	if err := c.BodyParser(dtoClient); err != nil {
@@ -69,8 +69,8 @@ func UpdateClient(c *fiber.Ctx) error {
 	}
 
 	status, response := services.UpdateClient(
-		domain.Client(
-			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+		domain.User(
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoClient,
 	)
@@ -83,12 +83,12 @@ func UpdateClient(c *fiber.Ctx) error {
 // @Summary		Get a client by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Client ID" format(uuid)
-// @Success		200	{object}	transfert.Client "Client details"
+// @Success		200	{object}	nil "Client details"
 // @Failure		400	{object}	nil "Invalid client ID"
 // @Failure		404	{object}	nil "Client not found"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/{id} [get]
-// @Id			client.GetClient
+// @Id			user.GetClient
 func GetClient(c *fiber.Ctx) error {
 	clientID := c.Params("id")
 
@@ -101,8 +101,8 @@ func GetClient(c *fiber.Ctx) error {
 	}
 
 	status, response := services.GetClient(
-		domain.Client(
-			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+		domain.User(
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoClient,
 	)
@@ -119,7 +119,7 @@ func GetClient(c *fiber.Ctx) error {
 // @Failure		404	{object}	nil "Client not found"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/{id} [delete]
-// @Id			client.DeleteClient
+// @Id			user.DeleteClient
 func DeleteClient(c *fiber.Ctx) error {
 	clientID := c.Params("id")
 
@@ -132,8 +132,8 @@ func DeleteClient(c *fiber.Ctx) error {
 	}
 
 	status, response := services.DeleteClient(
-		domain.Client(
-			repositories.NewClientRepository(database.Get(config.Get("services.client.database").(string))),
+		domain.User(
+			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
 			mail.Get(),
 		), dtoClient,
 	)

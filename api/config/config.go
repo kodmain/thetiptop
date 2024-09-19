@@ -35,9 +35,19 @@ type Config struct {
 	} `yaml:"security"`
 }
 
-func Get(key string) interface{} {
+// Get Retrieve the value from cfg based on the provided key
+// Retrieves a value from a config structure by key, following a path syntax (e.g. "parent.child").
+// If the value is not found or is nil, it returns the provided defaultValue.
+//
+// Parameters:
+// - key: string The key to access the value, formatted as "parent.child".
+// - defaultValue: interface{} The value to return if the key is not found or the value is nil.
+//
+// Returns:
+// - interface{} The retrieved value from cfg, or defaultValue if the key is not found or value is nil.
+func Get(key string, defaultValue interface{}) interface{} {
 	if cfg == nil {
-		return nil
+		return defaultValue
 	}
 
 	path := strings.Split(key, ".")
@@ -55,11 +65,11 @@ func Get(key string) interface{} {
 		} else if val.Kind() == reflect.Map {
 			val = val.MapIndex(reflect.ValueOf(elem))
 		} else {
-			return nil
+			return defaultValue
 		}
 
 		if val.Kind() == reflect.Ptr && val.IsNil() {
-			return nil
+			return defaultValue
 		}
 	}
 
@@ -71,7 +81,7 @@ func Get(key string) interface{} {
 		return val.Interface()
 	}
 
-	return nil
+	return defaultValue
 }
 
 func Reset() {

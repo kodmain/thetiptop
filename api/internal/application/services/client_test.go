@@ -2,105 +2,118 @@ package services_test
 
 import (
 	"fmt"
-	"sync"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/entities"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-var (
-	email              = "test@example.com"
-	emailSyntaxFail    = "testexample.com"
-	password           = "validP@ssw0rd"
-	passwordFail       = "WrongP@ssw0rd"
-	passwordSyntaxFail = "secret"
-	trueValue          = aws.Bool(true)
-	falseValue         = aws.Bool(false)
+func TestRegisterClient(t *testing.T) {
+	config.Load(aws.String("../../../config.test.yml"))
 
-	ExpiredAccessToken  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDgyMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJyZWZyZXNoIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmxlSEFpT2pFM01UTXhNRGt4TXpFc0ltbGtJam9pTjJNM09UUXdNR1l0TURBMllTMDBOelZsTFRrM1lqWXROV1JpWkdVek56QTNOakF4SWl3aWIyWm1Jam8zTWpBd0xDSjBlWEJsSWpveExDSjBlaUk2SWt4dlkyRnNJbjAuNUxhZTU2SE5jUTFPSGNQX0ZoVGZjT090SHBhWlZnUkZ5NnZ6ekJ1Z043WSIsInR5cGUiOjAsInR6IjoiTG9jYWwifQ.BxW2wfHiiCr0aTsuWwRVmh0Wd-BX20AoUDTGg_rIDoM"
-	ExpiredRefreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y"
-)
+	t.Run("invalid password", func(t *testing.T) {
+		mockClient := new(DomainUserService)
+		// Mock de la méthode RegisterClient
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(&entities.Client{}, nil)
 
-type DomainClientService struct {
-	mock.Mock
-	mu sync.Mutex
-}
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &passwordSyntaxFail,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        trueValue,
+		})
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.NotNil(t, response)
+	})
 
-func (dcs *DomainClientService) GetClient(client *transfert.Client) (*entities.Client, error) {
-	args := dcs.Called(client)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*entities.Client), args.Error(1)
-}
+	t.Run("missing newsletter", func(t *testing.T) {
+		mockClient := new(DomainUserService)
+		// Pas besoin de mocker RegisterClient car l'erreur survient avant l'appel
 
-func (dcs *DomainClientService) PasswordRecover(obj *transfert.Credential) error {
-	args := dcs.Called(obj)
-	return args.Error(0)
-}
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: nil, // Newsletter manquant
+			CGU:        trueValue,
+		})
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.Equal(t, "value newsletter is required", response)
+	})
 
-func (dcs *DomainClientService) UserRegister(credential *transfert.Credential, client *transfert.Client) (*entities.Client, error) {
-	args := dcs.Called(credential, client)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*entities.Client), args.Error(1)
-}
+	t.Run("invalid cgu", func(t *testing.T) {
+		mockClient := new(DomainUserService)
+		// Pas besoin de mocker RegisterClient car l'erreur survient avant l'appel
 
-func (dcs *DomainClientService) UserAuth(obj *transfert.Credential) (*entities.Client, error) {
-	args := dcs.Called(obj)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*entities.Client), args.Error(1)
-}
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        falseValue, // CGU doit être à true
+		})
+		assert.Equal(t, fiber.StatusBadRequest, statusCode)
+		assert.Equal(t, "cgu sould be true", response)
+	})
 
-func (dcs *DomainClientService) MailValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, error) {
-	args := dcs.Called(validation, credential)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*entities.Validation), args.Error(1)
-}
+	t.Run("valid password and fields", func(t *testing.T) {
+		mockClient := new(DomainUserService)
+		// Mock pour simuler un cas de succès
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(&entities.Client{}, nil)
 
-func (dcs *DomainClientService) ValidationRecover(validation *transfert.Validation, credential *transfert.Credential) error {
-	args := dcs.Called(validation, credential)
-	return args.Error(0)
-}
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        trueValue,
+		})
 
-func (dcs *DomainClientService) PasswordValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, error) {
-	dcs.mu.Lock()
-	defer dcs.mu.Unlock()
+		assert.Equal(t, fiber.StatusCreated, statusCode)
+		assert.NotNil(t, response)
+	})
 
-	args := dcs.Called(validation, credential)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*entities.Validation), args.Error(1)
-}
+	t.Run("client already exists", func(t *testing.T) {
+		mockClient := new(DomainUserService)
+		// Simuler le cas où le client existe déjà
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrCredentialAlreadyExists))
 
-func (dcs *DomainClientService) UpdateClient(client *transfert.Client) error {
-	args := dcs.Called(client)
-	return args.Error(0)
-}
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        trueValue,
+		})
+		assert.Equal(t, fiber.StatusConflict, statusCode)
+		assert.NotNil(t, response)
+	})
 
-func (dcs *DomainClientService) DeleteClient(client *transfert.Client) error {
-	args := dcs.Called(client)
-	return args.Error(0)
-}
+	t.Run("server error during registration", func(t *testing.T) {
+		mockClient := new(DomainUserService)
+		// Simuler une erreur serveur lors de la tentative d'enregistrement
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf("server error"))
 
-func (dcs *DomainClientService) PasswordUpdate(credential *transfert.Credential) error {
-	args := dcs.Called(credential)
-	return args.Error(0)
+		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
+			Email:    &email,
+			Password: &password,
+		}, &transfert.Client{
+			Newsletter: trueValue,
+			CGU:        trueValue,
+		})
+		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
+		assert.Equal(t, "server error", response)
+	})
 }
 
 func TestMailValidation(t *testing.T) {
@@ -108,7 +121,7 @@ func TestMailValidation(t *testing.T) {
 
 	// Cas de validation réussie
 	t.Run("successful validation", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Génération d'un ID aléatoire pour la validation
 		id, err := uuid.NewRandom()
 		assert.NoError(t, err)
@@ -136,7 +149,7 @@ func TestMailValidation(t *testing.T) {
 
 	// Cas d'un token avec une syntaxe invalide
 	t.Run("invalid token syntax", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Appel avec un token invalide
 		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: aws.String("invalidToken"),
@@ -151,7 +164,7 @@ func TestMailValidation(t *testing.T) {
 
 	// Cas d'un token avec une syntaxe invalide
 	t.Run("invalid email syntax", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Appel avec un token invalide
 		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: luhn.PointerString(),
@@ -166,7 +179,7 @@ func TestMailValidation(t *testing.T) {
 
 	// Cas où la validation n'a pas été trouvée
 	t.Run("validation not found", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Configuration du mock pour renvoyer l'erreur "validation not found"
 		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationNotFound))
 
@@ -182,7 +195,7 @@ func TestMailValidation(t *testing.T) {
 	})
 
 	t.Run("validation already validated", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationExpired))
 
 		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
@@ -197,7 +210,7 @@ func TestMailValidation(t *testing.T) {
 
 	// Cas où la validation a déjà été effectuée
 	t.Run("validation already validated", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Configuration du mock pour renvoyer l'erreur "validation already validated"
 		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationAlreadyValidated))
 
@@ -217,7 +230,7 @@ func TestValidationRecover(t *testing.T) {
 	validationType := "password_recovery"
 
 	t.Run("invalid email", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Cas d'une erreur de validation de l'email
 		statusCode, response := services.ValidationRecover(mockClient, &transfert.Credential{
 			Email: aws.String(emailSyntaxFail),
@@ -230,7 +243,7 @@ func TestValidationRecover(t *testing.T) {
 	})
 
 	t.Run("invalid email", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Cas d'une erreur de validation de l'email
 		statusCode, response := services.ValidationRecover(mockClient, &transfert.Credential{
 			Email: aws.String(email),
@@ -243,7 +256,7 @@ func TestValidationRecover(t *testing.T) {
 	})
 
 	t.Run("successful recovery", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Mock pour un cas de récupération réussi
 		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(nil)
 
@@ -258,9 +271,9 @@ func TestValidationRecover(t *testing.T) {
 	})
 
 	t.Run("client not found", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Mock pour simuler un client non trouvé
-		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(fmt.Errorf(errors.ErrClientNotFound))
+		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(fmt.Errorf(errors.ErrUserNotFound))
 
 		statusCode, response := services.ValidationRecover(mockClient, &transfert.Credential{
 			Email: aws.String(email),
@@ -270,12 +283,12 @@ func TestValidationRecover(t *testing.T) {
 
 		// Correction des attentes pour vérifier le bon statut et message
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
-		assert.Equal(t, errors.ErrClientNotFound, response)
+		assert.Equal(t, errors.ErrUserNotFound, response)
 		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("other error", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Mock pour simuler un client non trouvé
 		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(fmt.Errorf("random error"))
 
@@ -295,7 +308,7 @@ func TestValidationRecover(t *testing.T) {
 func TestUpdateClient(t *testing.T) {
 
 	t.Run("invalid client data", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Test pour vérifier la validation de l'ID (UUID)
 		statusCode, response := services.UpdateClient(mockClient, &transfert.Client{
 			ID:         nil, // ID manquant
@@ -306,7 +319,7 @@ func TestUpdateClient(t *testing.T) {
 	})
 
 	t.Run("invalid newsletter data", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Test pour vérifier la validation de la valeur newsletter
 		// Aucune interaction avec UpdateClient ici, car la validation échoue avant d'appeler cette méthode
 		statusCode, response := services.UpdateClient(mockClient, &transfert.Client{
@@ -318,22 +331,24 @@ func TestUpdateClient(t *testing.T) {
 	})
 
 	t.Run("successful client update", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Mock pour simuler un cas de mise à jour réussie
-		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(nil)
+		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(&entities.Client{
+			ID: "123e4567-e89b-12d3-a456-426614174000",
+		}, nil)
 
 		// Fournir un UUID valide ici
 		statusCode, response := services.UpdateClient(mockClient, &transfert.Client{
 			ID:         aws.String("123e4567-e89b-12d3-a456-426614174000"), // UUID valide
 			Newsletter: aws.Bool(true),
 		})
-		assert.Equal(t, fiber.StatusNoContent, statusCode)
-		assert.Nil(t, response)
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.NotNil(t, response)
 		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("client update error", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Simuler une erreur lors de la mise à jour du client
 		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(fmt.Errorf("update error"))
 
@@ -349,9 +364,9 @@ func TestUpdateClient(t *testing.T) {
 	})
 
 	t.Run("client update error", func(t *testing.T) {
-		mockClient := new(DomainClientService)
+		mockClient := new(DomainUserService)
 		// Simuler une erreur lors de la mise à jour du client
-		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(fmt.Errorf("update error"))
+		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf("update error"))
 
 		// Fournir un UUID valide mais avec un champ Newsletter manquant (incomplet)
 		statusCode, response := services.UpdateClient(mockClient, &transfert.Client{
@@ -368,7 +383,7 @@ func TestUpdateClient(t *testing.T) {
 
 func TestGetClient(t *testing.T) {
 	t.Run("validation error", func(t *testing.T) {
-		mockService := new(DomainClientService)
+		mockService := new(DomainUserService)
 		// Simuler une entrée incorrecte avec un ID manquant
 		dtoClient := &transfert.Client{
 			ID: nil, // Manque l'ID
@@ -383,7 +398,7 @@ func TestGetClient(t *testing.T) {
 	})
 
 	t.Run("client not found", func(t *testing.T) {
-		mockService := new(DomainClientService)
+		mockService := new(DomainUserService)
 		// Simuler une entrée valide
 		dtoClient := &transfert.Client{
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
@@ -402,7 +417,7 @@ func TestGetClient(t *testing.T) {
 	})
 
 	t.Run("internal server error", func(t *testing.T) {
-		mockService := new(DomainClientService)
+		mockService := new(DomainUserService)
 		// Simuler une entrée valide
 		dtoClient := &transfert.Client{
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
@@ -421,7 +436,7 @@ func TestGetClient(t *testing.T) {
 	})
 
 	t.Run("successful client retrieval", func(t *testing.T) {
-		mockService := new(DomainClientService)
+		mockService := new(DomainUserService)
 		// Simuler une entrée valide
 		dtoClient := &transfert.Client{
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
@@ -448,7 +463,7 @@ func TestGetClient(t *testing.T) {
 func TestDeleteClient(t *testing.T) {
 	t.Run("should return 400 if validation fails", func(t *testing.T) {
 		// Créer un mock pour le service client
-		mockService := new(DomainClientService)
+		mockService := new(DomainUserService)
 
 		// Cas où l'ID du client est manquant
 		dtoClient := &transfert.Client{ID: nil}
@@ -463,7 +478,7 @@ func TestDeleteClient(t *testing.T) {
 
 	t.Run("should return 404 if client not found", func(t *testing.T) {
 		// Créer un mock pour le service client
-		mockService := new(DomainClientService)
+		mockService := new(DomainUserService)
 
 		// Cas où le client n'est pas trouvé
 		clientID := "123e4567-e89b-12d3-a456-426614174000"
@@ -484,7 +499,7 @@ func TestDeleteClient(t *testing.T) {
 	t.Run("should return 500 if internal server error occurs", func(t *testing.T) {
 
 		// Créer un mock pour le service client
-		mockService := new(DomainClientService)
+		mockService := new(DomainUserService)
 		// Cas où une erreur interne survient lors de la suppression
 		clientID := "123e4567-e89b-12d3-a456-426614174000"
 		dtoClient := &transfert.Client{ID: &clientID}
@@ -503,7 +518,7 @@ func TestDeleteClient(t *testing.T) {
 
 	t.Run("should return 204 if client is deleted successfully", func(t *testing.T) {
 		// Créer un mock pour le service client
-		mockService := new(DomainClientService)
+		mockService := new(DomainUserService)
 		// Cas de suppression réussie
 		clientID := "123e4567-e89b-12d3-a456-426614174000"
 		dtoClient := &transfert.Client{ID: &clientID}
