@@ -31,8 +31,8 @@ func UserAuth(c *fiber.Ctx) error {
 
 	status, response := services.UserAuth(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
-			mail.Get(),
+			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dto,
 	)
 
@@ -92,8 +92,8 @@ func CredentialUpdate(c *fiber.Ctx) error {
 
 	status, response := services.CredentialUpdate(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
-			mail.Get(),
+			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoValidation, dtoCredential,
 	)
 
@@ -127,8 +127,8 @@ func MailValidation(c *fiber.Ctx) error {
 
 	status, response := services.MailValidation(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
-			mail.Get(),
+			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoValidation, dtoCredential,
 	)
 
@@ -156,8 +156,8 @@ func ValidationRecover(c *fiber.Ctx) error {
 
 	status, response := services.ValidationRecover(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.client.database", "default").(string))),
-			mail.Get(),
+			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoValidation,
 	)
 
