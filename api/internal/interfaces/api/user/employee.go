@@ -38,8 +38,8 @@ func RegisterEmployee(c *fiber.Ctx) error {
 
 	status, response := services.RegisterEmployee(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.employee.database", "default").(string))),
-			mail.Get(),
+			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoEmployee,
 	)
 
@@ -68,8 +68,8 @@ func UpdateEmployee(c *fiber.Ctx) error {
 
 	status, response := services.UpdateEmployee(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.employee.database", "default").(string))),
-			mail.Get(),
+			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
 	)
 
@@ -100,8 +100,8 @@ func GetEmployee(c *fiber.Ctx) error {
 
 	status, response := services.GetEmployee(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.employee.database", "default").(string))),
-			mail.Get(),
+			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
 	)
 
@@ -131,8 +131,8 @@ func DeleteEmployee(c *fiber.Ctx) error {
 
 	status, response := services.DeleteEmployee(
 		domain.User(
-			repositories.NewUserRepository(database.Get(config.Get("services.employee.database", "default").(string))),
-			mail.Get(),
+			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
 	)
 

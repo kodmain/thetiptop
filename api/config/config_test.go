@@ -25,6 +25,12 @@ func TestLoad(t *testing.T) {
 	assert.Error(t, err) // This test will fail because no credentials are provided
 }
 
+func TestGetString(t *testing.T) {
+	config.Load(aws.String("../config.test.yml"))
+	assert.Equal(t, "default", config.GetString("providers.databases", "default"))
+	assert.Equal(t, "default", config.GetString("services.client.database", "default"))
+}
+
 func TestGet(t *testing.T) {
 	// Reset config before running tests
 	config.Reset()

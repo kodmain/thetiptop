@@ -15,6 +15,10 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
+const (
+	DEFAULT = "default"
+)
+
 var (
 	cfg *Config
 )
@@ -45,7 +49,7 @@ type Config struct {
 //
 // Returns:
 // - interface{} The retrieved value from cfg, or defaultValue if the key is not found or value is nil.
-func Get(key string, defaultValue interface{}) interface{} {
+func Get(key string, defaultValue any) any {
 	if cfg == nil {
 		return defaultValue
 	}
@@ -79,6 +83,16 @@ func Get(key string, defaultValue interface{}) interface{} {
 
 	if val.IsValid() && !val.IsZero() {
 		return val.Interface()
+	}
+
+	return defaultValue
+}
+
+func GetString(key string, defaultValue string) string {
+	value := Get(key, defaultValue)
+
+	if strValue, ok := value.(string); ok {
+		return strValue
 	}
 
 	return defaultValue
