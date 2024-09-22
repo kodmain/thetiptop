@@ -60,7 +60,7 @@ func RegisterEmployee(ctx *fiber.Ctx) error {
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/employee [put]
-// @Id			user.UpdateEmployee
+// @Id			jwt.Auth => user.UpdateEmployee
 func UpdateEmployee(ctx *fiber.Ctx) error {
 	dtoEmployee := &transfert.Employee{}
 	if err := ctx.BodyParser(dtoEmployee); err != nil {
@@ -88,7 +88,7 @@ func UpdateEmployee(ctx *fiber.Ctx) error {
 // @Failure		404	{object}	nil "Employee not found"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/employee/{id} [get]
-// @Id			user.GetEmployee
+// @Id			jwt.Auth => user.GetEmployee
 func GetEmployee(ctx *fiber.Ctx) error {
 	EmployeeID := ctx.Params("id")
 
@@ -122,7 +122,7 @@ func GetEmployee(ctx *fiber.Ctx) error {
 // @Failure		404	{object}	nil "Employee not found"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/employee/{id} [delete]
-// @Id			user.DeleteEmployee
+// @Id			jwt.Auth => user.DeleteEmployee
 func DeleteEmployee(ctx *fiber.Ctx) error {
 	EmployeeID := ctx.Params("id")
 
