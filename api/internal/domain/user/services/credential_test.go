@@ -83,6 +83,18 @@ func TestUserAuth(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("no dto", func(t *testing.T) {
+		service, mockRepo, _ := setup()
+
+		// Appeler le service avec un mot de passe incorrect
+		client, err := service.UserAuth(nil)
+
+		// Vérification que le client est nul et que l'erreur concerne un mot de passe incorrect
+		assert.Nil(t, client)
+		assert.EqualError(t, err, errors.ErrNoDto) // Assurez-vous que l'erreur est appropriée
+		mockRepo.AssertExpectations(t)
+	})
+
 	t.Run("invalid password", func(t *testing.T) {
 		service, mockRepo, _ := setup()
 
@@ -491,6 +503,29 @@ func TestValidationRecover(t *testing.T) {
 
 		// Vérifier que l'erreur correspond à "Client not found"
 		assert.EqualError(t, err, errors.ErrUserNotFound)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("fail client", func(t *testing.T) {
+		service, mockRepo, _ := setup()
+
+		// Simuler que le credential n'est pas trouvé
+		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
+			Return(&entities.Credential{
+				Email: aws.String("test@example.com"), // L'email est vide, car on cherche à simuler un credential non trouvé
+			}, nil)
+
+		mockRepo.On("ReadUser", mock.AnythingOfType("*transfert.User")).
+			Return(&entities.Client{}, nil, nil)
+
+		mockRepo.On("CreateValidation", mock.AnythingOfType("*transfert.Validation")).
+			Return(nil, fmt.Errorf(errors.ErrValidationNotFound))
+
+		err := service.ValidationRecover(&transfert.Validation{}, &transfert.Credential{
+			Email: aws.String("test@example.com"),
+		})
+
+		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
