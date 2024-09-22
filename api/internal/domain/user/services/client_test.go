@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
@@ -287,10 +288,11 @@ func TestGetClient(t *testing.T) {
 }
 
 func TestDeleteClient(t *testing.T) {
+	ctx := new(fiber.Ctx)
 
 	t.Run("should return error if dtoClient is nil", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
-		service := services.User(mockRepo, nil)
+		service := services.User(ctx, mockRepo, nil)
 
 		err := service.DeleteClient(nil)
 		assert.EqualError(t, err, errors.ErrNoDto)
@@ -298,7 +300,7 @@ func TestDeleteClient(t *testing.T) {
 
 	t.Run("should return error if client ID is nil", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
-		service := services.User(mockRepo, nil)
+		service := services.User(ctx, mockRepo, nil)
 
 		dtoClient := &transfert.Client{ID: nil}
 		err := service.DeleteClient(dtoClient)
@@ -307,7 +309,7 @@ func TestDeleteClient(t *testing.T) {
 
 	t.Run("should delete client successfully", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
-		service := services.User(mockRepo, nil)
+		service := services.User(ctx, mockRepo, nil)
 		// Client DTO avec un ID valide
 		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")
 		dtoClient := &transfert.Client{ID: clientID}
@@ -325,7 +327,7 @@ func TestDeleteClient(t *testing.T) {
 
 	t.Run("should return error if repository delete fails", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
-		service := services.User(mockRepo, nil)
+		service := services.User(ctx, mockRepo, nil)
 
 		// Client DTO avec un ID valide
 		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")

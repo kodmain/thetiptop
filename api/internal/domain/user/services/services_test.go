@@ -1,6 +1,7 @@
 package services_test
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
@@ -163,7 +164,8 @@ func (m *MailServiceMock) Expeditor() string {
 func setup() (*services.UserService, *UserRepositoryMock, *MailServiceMock) {
 	mockRepository := new(UserRepositoryMock)
 	mockMailer := new(MailServiceMock)
-	service := services.User(mockRepository, mockMailer)
+	ctx := new(fiber.Ctx)
+	service := services.User(ctx, mockRepository, mockMailer)
 
 	return service, mockRepository, mockMailer
 }
