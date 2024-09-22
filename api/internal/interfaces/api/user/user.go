@@ -23,20 +23,21 @@ import (
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/user/auth [post]
 // @Id			user.UserAuth
-func UserAuth(c *fiber.Ctx) error {
+func UserAuth(ctx *fiber.Ctx) error {
 	dto := &transfert.Credential{}
-	if err := c.BodyParser(dto); err != nil {
+	if err := ctx.BodyParser(dto); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	status, response := services.UserAuth(
 		domain.User(
+			ctx,
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dto,
 	)
 
-	return c.Status(status).JSON(response)
+	return ctx.Status(status).JSON(response)
 }
 
 // @Tags		User
@@ -51,8 +52,8 @@ func UserAuth(c *fiber.Ctx) error {
 // @Param 		Authorization header string true "With the bearer started"
 // @Router		/user/auth/renew [get]
 // @Id			user.UserAuthRenew
-func UserAuthRenew(c *fiber.Ctx) error {
-	token := c.Locals("token")
+func UserAuthRenew(ctx *fiber.Ctx) error {
+	token := ctx.Locals("token")
 	if token == nil {
 		return fiber.NewError(fiber.StatusBadRequest, "no token")
 	}
@@ -61,7 +62,7 @@ func UserAuthRenew(c *fiber.Ctx) error {
 		token.(*jwt.Token),
 	)
 
-	return c.Status(status).JSON(response)
+	return ctx.Status(status).JSON(response)
 }
 
 // @Tags		User
@@ -79,25 +80,26 @@ func UserAuthRenew(c *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/user/password [put]
 // @Id			user.CredentialUpdate
-func CredentialUpdate(c *fiber.Ctx) error {
+func CredentialUpdate(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
-	if err := c.BodyParser(dtoCredential); err != nil {
+	if err := ctx.BodyParser(dtoCredential); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	dtoValidation := &transfert.Validation{}
-	if err := c.BodyParser(dtoValidation); err != nil {
+	if err := ctx.BodyParser(dtoValidation); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	status, response := services.CredentialUpdate(
 		domain.User(
+			ctx,
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoValidation, dtoCredential,
 	)
 
-	return c.Status(status).JSON(response)
+	return ctx.Status(status).JSON(response)
 }
 
 // @Tags		User
@@ -114,25 +116,26 @@ func CredentialUpdate(c *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/user/register/validation [put]
 // @Id			user.MailValidation
-func MailValidation(c *fiber.Ctx) error {
+func MailValidation(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
-	if err := c.BodyParser(dtoCredential); err != nil {
+	if err := ctx.BodyParser(dtoCredential); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	dtoValidation := &transfert.Validation{}
-	if err := c.BodyParser(dtoValidation); err != nil {
+	if err := ctx.BodyParser(dtoValidation); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	status, response := services.MailValidation(
 		domain.User(
+			ctx,
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoValidation, dtoCredential,
 	)
 
-	return c.Status(status).JSON(response)
+	return ctx.Status(status).JSON(response)
 }
 
 // @Tags		User
@@ -143,23 +146,24 @@ func MailValidation(c *fiber.Ctx) error {
 // @Param		type		formData	string	true	"Type of validation" enums(mail, password, phone)
 // @Router		/user/validation/renew [post]
 // @Id			user.ValidationRecover
-func ValidationRecover(c *fiber.Ctx) error {
+func ValidationRecover(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
-	if err := c.BodyParser(dtoCredential); err != nil {
+	if err := ctx.BodyParser(dtoCredential); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	dtoValidation := &transfert.Validation{}
-	if err := c.BodyParser(dtoValidation); err != nil {
+	if err := ctx.BodyParser(dtoValidation); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	status, response := services.ValidationRecover(
 		domain.User(
+			ctx,
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoValidation,
 	)
 
-	return c.Status(status).JSON(response)
+	return ctx.Status(status).JSON(response)
 }

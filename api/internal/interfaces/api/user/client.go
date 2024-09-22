@@ -27,25 +27,26 @@ import (
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/register [post]
 // @Id			user.RegisterClient
-func RegisterClient(c *fiber.Ctx) error {
+func RegisterClient(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
-	if err := c.BodyParser(dtoCredential); err != nil {
+	if err := ctx.BodyParser(dtoCredential); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	dtoClient := &transfert.Client{}
-	if err := c.BodyParser(dtoClient); err != nil {
+	if err := ctx.BodyParser(dtoClient); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	status, response := services.RegisterClient(
 		domain.User(
+			ctx,
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoClient,
 	)
 
-	return c.Status(status).JSON(response)
+	return ctx.Status(status).JSON(response)
 }
 
 // @Tags		Client
@@ -62,20 +63,21 @@ func RegisterClient(c *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client [put]
 // @Id			user.UpdateClient
-func UpdateClient(c *fiber.Ctx) error {
+func UpdateClient(ctx *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}
-	if err := c.BodyParser(dtoClient); err != nil {
+	if err := ctx.BodyParser(dtoClient); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	status, response := services.UpdateClient(
 		domain.User(
+			ctx,
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
 	)
 
-	return c.Status(status).JSON(response)
+	return ctx.Status(status).JSON(response)
 }
 
 // @Tags		Client
@@ -89,8 +91,8 @@ func UpdateClient(c *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/{id} [get]
 // @Id			user.GetClient
-func GetClient(c *fiber.Ctx) error {
-	clientID := c.Params("id")
+func GetClient(ctx *fiber.Ctx) error {
+	clientID := ctx.Params("id")
 
 	if clientID == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Client ID is required")
@@ -102,12 +104,13 @@ func GetClient(c *fiber.Ctx) error {
 
 	status, response := services.GetClient(
 		domain.User(
+			ctx,
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
 	)
 
-	return c.Status(status).JSON(response)
+	return ctx.Status(status).JSON(response)
 }
 
 // @Tags		Client
@@ -120,8 +123,8 @@ func GetClient(c *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/{id} [delete]
 // @Id			user.DeleteClient
-func DeleteClient(c *fiber.Ctx) error {
-	clientID := c.Params("id")
+func DeleteClient(ctx *fiber.Ctx) error {
+	clientID := ctx.Params("id")
 
 	if clientID == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Client ID is required")
@@ -133,10 +136,11 @@ func DeleteClient(c *fiber.Ctx) error {
 
 	status, response := services.DeleteClient(
 		domain.User(
+			ctx,
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
 	)
 
-	return c.Status(status).JSON(response)
+	return ctx.Status(status).JSON(response)
 }
