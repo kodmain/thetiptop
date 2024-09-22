@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
@@ -8,12 +9,13 @@ import (
 )
 
 type UserService struct {
+	ctx  *fiber.Ctx
 	repo repositories.UserRepositoryInterface
 	mail mail.ServiceInterface
 }
 
-func User(repo repositories.UserRepositoryInterface, mail mail.ServiceInterface) *UserService {
-	return &UserService{repo, mail}
+func User(ctx *fiber.Ctx, repo repositories.UserRepositoryInterface, mail mail.ServiceInterface) *UserService {
+	return &UserService{ctx, repo, mail}
 }
 
 type UserServiceInterface interface {
