@@ -5,12 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
@@ -28,18 +26,6 @@ const (
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
 )
-
-func generateRandomString(length int, symbol string) string {
-	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
-
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	randomString := make([]byte, length)
-	for i := range randomString {
-		randomString[i] = charset[rng.Intn(len(charset))]
-	}
-	return symbol + string(randomString)
-}
 
 type Email struct {
 	HTML    string `json:"html"`

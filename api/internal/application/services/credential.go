@@ -22,12 +22,15 @@ func UserAuth(service services.UserServiceInterface, credentialDTO *transfert.Cr
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	userID, err := service.UserAuth(credentialDTO)
+	userID, userType, err := service.UserAuth(credentialDTO)
 	if err != nil {
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	accessToken, refreshToken, err := serializer.FromID(*userID)
+	accessToken, refreshToken, err := serializer.FromID(*userID, map[string]any{
+		"type": userType,
+	})
+
 	if err != nil {
 		return fiber.StatusInternalServerError, err.Error()
 	}
@@ -51,7 +54,7 @@ func UserAuthRenew(refresh *serializer.Token) (int, any) {
 		return fiber.StatusUnauthorized, fmt.Errorf("refresh token has expired").Error()
 	}
 
-	accessToken, refreshToken, err := serializer.FromID(refresh.ID)
+	accessToken, refreshToken, err := serializer.FromID(refresh.ID, refresh.Data)
 	if err != nil {
 		return fiber.StatusInternalServerError, err.Error()
 	}

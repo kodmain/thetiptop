@@ -88,6 +88,16 @@ func Get(key string, defaultValue any) any {
 	return defaultValue
 }
 
+func GetInt(key string, defaultValue int) int {
+	value := Get(key, defaultValue)
+
+	if intValue, ok := value.(int); ok {
+		return intValue
+	}
+
+	return defaultValue
+}
+
 func GetString(key string, defaultValue string) string {
 	value := Get(key, defaultValue)
 

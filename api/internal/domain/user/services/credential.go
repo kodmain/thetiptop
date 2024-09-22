@@ -14,9 +14,9 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 )
 
-func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, error) {
+func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, string, error) {
 	if dtoCredential == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
+		return nil, "", fmt.Errorf(errors.ErrNoDto)
 	}
 
 	// Lire les informations d'identification de l'utilisateur
@@ -25,12 +25,12 @@ func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, er
 	})
 
 	if err != nil {
-		return nil, err // Erreur si les credentials ne sont pas trouvés
+		return nil, "", err // Erreur si les credentials ne sont pas trouvés
 	}
 
 	// Comparer les hashs si les credentials existent
 	if !credential.CompareHash(*dtoCredential.Password) {
-		return nil, fmt.Errorf(errors.ErrCredentialNotFound)
+		return nil, "", fmt.Errorf(errors.ErrCredentialNotFound)
 	}
 
 	client, employee, err := s.repo.ReadUser(&transfert.User{
@@ -38,14 +38,14 @@ func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, er
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf(errors.ErrUserNotFound)
+		return nil, "", fmt.Errorf(errors.ErrUserNotFound)
 	}
 
 	if client != nil {
-		return &client.ID, nil
+		return &client.ID, "client", nil
 	}
 
-	return &employee.ID, nil
+	return &employee.ID, "employee", nil
 }
 
 func (s *UserService) PasswordUpdate(dto *transfert.Credential) error {

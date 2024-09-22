@@ -20,7 +20,7 @@ func User(ctx *fiber.Ctx, repo repositories.UserRepositoryInterface, mail mail.S
 
 type UserServiceInterface interface {
 	// Credential
-	UserAuth(dtoCredential *transfert.Credential) (*string, error)
+	UserAuth(dtoCredential *transfert.Credential) (*string, string, error)
 	PasswordUpdate(dtoCredential *transfert.Credential) error
 	ValidationRecover(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) error
 	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) (*entities.Validation, error)

@@ -30,7 +30,7 @@ security:
   validation:
     expire: 30m
   jwt:
-    #tz: Europe/Paris
+    tz: Europe/Paris
     secret: secret
     expire: 15
     refresh: 30

@@ -69,14 +69,15 @@ func TestUserAuth(t *testing.T) {
 			Return(nil, fmt.Errorf(errors.ErrCredentialNotFound))
 
 		// Appeler UserAuth avec un credential dont l'ID est nil (pour simuler un credential non trouvé)
-		client, err := service.UserAuth(&transfert.Credential{
+		user, userType, err := service.UserAuth(&transfert.Credential{
 			Email:    aws.String("test@example.com"),
 			Password: aws.String("wrongpassword"),
 			ID:       nil, // L'ID est nil, car on cherche à simuler un credential non trouvé
 		})
 
-		// Vérification que le client est nul et que l'erreur correspond à "ErrCredentialNotFound"
-		assert.Nil(t, client)
+		// Vérification que le user est nul et que l'erreur correspond à "ErrCredentialNotFound"
+		assert.Nil(t, user)
+		assert.Empty(t, userType)
 		assert.EqualError(t, err, errors.ErrCredentialNotFound)
 
 		// Vérifier que les attentes sur le mock sont satisfaites
@@ -87,10 +88,12 @@ func TestUserAuth(t *testing.T) {
 		service, mockRepo, _ := setup()
 
 		// Appeler le service avec un mot de passe incorrect
-		client, err := service.UserAuth(nil)
+		user, userType, err := service.UserAuth(nil)
 
-		// Vérification que le client est nul et que l'erreur concerne un mot de passe incorrect
-		assert.Nil(t, client)
+		// Vérification que le user est nul et que l'erreur concerne un mot de passe incorrect
+		assert.Nil(t, user)
+		assert.Empty(t, userType)
+
 		assert.EqualError(t, err, errors.ErrNoDto) // Assurez-vous que l'erreur est appropriée
 		mockRepo.AssertExpectations(t)
 	})
@@ -109,13 +112,15 @@ func TestUserAuth(t *testing.T) {
 			Return(expectedCredential, nil)
 
 		// Appeler le service avec un mot de passe incorrect
-		client, err := service.UserAuth(&transfert.Credential{
+		user, userType, err := service.UserAuth(&transfert.Credential{
 			Email:    email,
 			Password: aws.String("wrongpassword"),
 		})
 
-		// Vérification que le client est nul et que l'erreur concerne un mot de passe incorrect
-		assert.Nil(t, client)
+		// Vérification que le user est nul et que l'erreur concerne un mot de passe incorrect
+		assert.Nil(t, user)
+		assert.Empty(t, userType)
+
 		assert.EqualError(t, err, errors.ErrCredentialNotFound) // Assurez-vous que l'erreur est appropriée
 		mockRepo.AssertExpectations(t)
 	})
@@ -134,18 +139,19 @@ func TestUserAuth(t *testing.T) {
 			Return(expectedCredential, nil)
 
 		// Appel du service avec un mot de passe incorrect
-		client, err := service.UserAuth(&transfert.Credential{
+		user, userType, err := service.UserAuth(&transfert.Credential{
 			Email:    email,
 			Password: failpassword, // Mot de passe incorrect
 		})
 
-		// Vérifier que le client est nul et que l'erreur concerne un mot de passe incorrect
-		assert.Nil(t, client)
+		// Vérifier que le user est nul et que l'erreur concerne un mot de passe incorrect
+		assert.Nil(t, user)
+		assert.Empty(t, userType)
 		assert.EqualError(t, err, errors.ErrCredentialNotFound) // Utiliser l'erreur correcte
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("client not found", func(t *testing.T) {
+	t.Run("user not found", func(t *testing.T) {
 		service, mockRepo, _ := setup()
 
 		// Simuler un appel `ReadCredential` qui retourne le credential attendu
@@ -153,38 +159,40 @@ func TestUserAuth(t *testing.T) {
 			return cred.Email != nil && *cred.Email == *email
 		})).Return(expectedCredential, nil)
 
-		// Simuler que le client n'est pas trouvé
+		// Simuler que le user n'est pas trouvé
 		mockRepo.On("ReadUser", mock.AnythingOfType("*transfert.User")).Return(nil, nil, fmt.Errorf(errors.ErrUserNotFound))
 
 		// Appel du service avec un credential valide
-		result, err := service.UserAuth(inputCredential)
+		user, userType, err := service.UserAuth(inputCredential)
 
 		// Vérification des résultats
 		require.Error(t, err)
-		require.Nil(t, result)
+		require.Nil(t, user)
+		assert.Empty(t, userType)
 		require.Equal(t, errors.ErrUserNotFound, err.Error())
 
 		// Vérifier que les attentes sur le mock sont satisfaites
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("client found", func(t *testing.T) {
+	t.Run("user found", func(t *testing.T) {
 		service, mockRepo, _ := setup()
 
 		// Simuler un appel `ReadCredential` qui retourne le credential attendu
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
 			Return(expectedCredential, nil)
 
-		// Simuler un client valide
+		// Simuler un user valide
 		mockRepo.On("ReadUser", mock.AnythingOfType("*transfert.User")).
 			Return(expectedClient, nil, nil)
 
 		// Appel du service avec un credential valide
-		result, err := service.UserAuth(inputCredential)
+		user, userType, err := service.UserAuth(inputCredential)
 
 		// Vérification des résultats
 		require.NoError(t, err)
-		require.NotNil(t, result)
+		require.NotNil(t, user)
+		assert.Equal(t, userType, "client")
 
 		// Vérifier que les attentes sur le mock sont satisfaites
 		mockRepo.AssertExpectations(t)
@@ -202,11 +210,12 @@ func TestUserAuth(t *testing.T) {
 			Return(nil, expectedEmployee, nil)
 
 		// Appel du service avec un credential valide
-		result, err := service.UserAuth(inputCredential)
+		user, userType, err := service.UserAuth(inputCredential)
 
 		// Vérification des résultats
 		require.NoError(t, err)
-		require.NotNil(t, result)
+		require.NotNil(t, user)
+		assert.Equal(t, userType, "employee")
 
 		// Vérifier que les attentes sur le mock sont satisfaites
 		mockRepo.AssertExpectations(t)
