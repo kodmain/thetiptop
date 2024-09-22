@@ -60,12 +60,6 @@ func TestEmployee(t *testing.T) {
 				assert.Equal(t, user.statusSU, status)
 
 				if status == http.StatusCreated {
-					t.Run("GetByID/"+encodingName, func(t *testing.T) {
-						_, status, err := request("GET", urlwithcid, "", encoding, nil)
-						assert.Nil(t, err)
-						assert.Equal(t, http.StatusOK, status)
-					})
-
 					t.Run("Validation/"+encodingName, func(t *testing.T) {
 						var employee entities.Employee
 						err = json.Unmarshal(RegisteredEmployee, &employee)
@@ -103,10 +97,11 @@ func TestEmployee(t *testing.T) {
 				assert.Equal(t, user.statusSI, status)
 
 				if status == http.StatusOK {
+					var tokenData fiber.Map
+					err = json.Unmarshal(JWT, &tokenData)
+					assert.Nil(t, err)
+
 					t.Run("Renew/"+encodingName, func(t *testing.T) {
-						var tokenData fiber.Map
-						err = json.Unmarshal(JWT, &tokenData)
-						assert.Nil(t, err)
 						refresh_token_sting := tokenData["refresh_token"].(string)
 						users := []struct {
 							token  string
@@ -125,8 +120,16 @@ func TestEmployee(t *testing.T) {
 						}
 					})
 
+					authorization := "Bearer " + tokenData["access_token"].(string)
+
+					t.Run("GetByID/"+encodingName, func(t *testing.T) {
+						_, status, err := request("GET", urlwithcid, authorization, encoding, nil)
+						assert.Nil(t, err)
+						assert.Equal(t, http.StatusOK, status)
+					})
+
 					t.Run("Password/"+encodingName, func(t *testing.T) {
-						_, status, err := request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
+						_, status, err := request("POST", USER_VALIDATION_RENEW, authorization, encoding, map[string][]any{
 							"email": {user.email + "wrong"},
 							"type":  {entities.PasswordRecover.String()},
 						})
@@ -134,7 +137,7 @@ func TestEmployee(t *testing.T) {
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusNotFound, status)
 
-						_, status, err = request("POST", USER_VALIDATION_RENEW, "", encoding, map[string][]any{
+						_, status, err = request("POST", USER_VALIDATION_RENEW, authorization, encoding, map[string][]any{
 							"email": {user.email},
 							"type":  {entities.PasswordRecover.String()},
 						})
@@ -149,7 +152,7 @@ func TestEmployee(t *testing.T) {
 						token := extractToken(email.HTML)
 						assert.NotEmpty(t, token)
 
-						_, status, err = request("PUT", USER_PASSWORD, "", encoding, map[string][]any{
+						_, status, err = request("PUT", USER_PASSWORD, authorization, encoding, map[string][]any{
 							"token":    {token},
 							"email":    {user.email},
 							"password": {GOOD_PASS_UPDATED},
@@ -158,32 +161,31 @@ func TestEmployee(t *testing.T) {
 						assert.Nil(t, err)
 						assert.Equal(t, http.StatusOK, status)
 
-						_, status, err = request("POST", USER_AUTH, "", encoding, values)
+						_, status, err = request("POST", USER_AUTH, authorization, encoding, values)
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusBadRequest, status)
 
 						values["password"] = []any{GOOD_PASS_UPDATED}
-						_, status, err = request("POST", USER_AUTH, "", encoding, values)
+						_, status, err = request("POST", USER_AUTH, authorization, encoding, values)
 						assert.NoError(t, err)
 						assert.Equal(t, user.statusSI, status)
 					})
-				}
 
-				UpdateEmployee, status, err := request("PUT", EMPLOYEE, "", encoding, map[string][]any{
-					"id": {c.ID},
-				})
-				UpdateEmployeeString := string(UpdateEmployee)
-				logger.Info(UpdateEmployeeString)
-				assert.Nil(t, err)
-				assert.Equal(t, user.statusUP, status)
+					_, status, err := request("PUT", EMPLOYEE, authorization, encoding, map[string][]any{
+						"id": {c.ID},
+					})
 
-				t.Run("Delete/"+encodingName, func(t *testing.T) {
-					DeletedEmployee, status, err := request("DELETE", urlwithcid, "", encoding, nil)
-					DeletedEmployeeString := string(DeletedEmployee)
-					logger.Info(DeletedEmployeeString)
 					assert.Nil(t, err)
-					assert.Equal(t, user.statusDel, status)
-				})
+					assert.Equal(t, user.statusUP, status)
+
+					t.Run("Delete/"+encodingName, func(t *testing.T) {
+						DeletedEmployee, status, err := request("DELETE", urlwithcid, authorization, encoding, nil)
+						DeletedEmployeeString := string(DeletedEmployee)
+						logger.Info(DeletedEmployeeString)
+						assert.Nil(t, err)
+						assert.Equal(t, user.statusDel, status)
+					})
+				}
 			}
 		})
 	}

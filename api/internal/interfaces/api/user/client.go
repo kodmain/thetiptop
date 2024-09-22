@@ -62,7 +62,7 @@ func RegisterClient(ctx *fiber.Ctx) error {
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client [put]
-// @Id			user.UpdateClient
+// @Id			jwt.Auth => user.UpdateClient
 func UpdateClient(ctx *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}
 	if err := ctx.BodyParser(dtoClient); err != nil {
@@ -90,7 +90,7 @@ func UpdateClient(ctx *fiber.Ctx) error {
 // @Failure		404	{object}	nil "Client not found"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/{id} [get]
-// @Id			user.GetClient
+// @Id			jwt.Auth => user.GetClient
 func GetClient(ctx *fiber.Ctx) error {
 	clientID := ctx.Params("id")
 
@@ -122,7 +122,7 @@ func GetClient(ctx *fiber.Ctx) error {
 // @Failure		404	{object}	nil "Client not found"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/{id} [delete]
-// @Id			user.DeleteClient
+// @Id			jwt.Auth => user.DeleteClient
 func DeleteClient(ctx *fiber.Ctx) error {
 	clientID := ctx.Params("id")
 

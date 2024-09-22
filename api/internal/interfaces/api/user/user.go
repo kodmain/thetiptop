@@ -79,7 +79,7 @@ func UserAuthRenew(ctx *fiber.Ctx) error {
 // @Failure		410	{object}	nil "Token expired"
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/user/password [put]
-// @Id			user.CredentialUpdate
+// @Id			jwt.Auth => user.CredentialUpdate
 func CredentialUpdate(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := ctx.BodyParser(dtoCredential); err != nil {

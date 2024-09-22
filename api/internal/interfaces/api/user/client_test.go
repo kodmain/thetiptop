@@ -60,12 +60,6 @@ func TestClient(t *testing.T) {
 				assert.Equal(t, user.statusSU, status)
 
 				if status == http.StatusCreated {
-					t.Run("GetByID/"+encodingName, func(t *testing.T) {
-						_, status, err := request("GET", urlwithcid, "", encoding, nil)
-						assert.Nil(t, err)
-						assert.Equal(t, http.StatusOK, status)
-					})
-
 					t.Run("Validation/"+encodingName, func(t *testing.T) {
 						var client entities.Client
 						err = json.Unmarshal(RegisteredClient, &client)
@@ -103,10 +97,11 @@ func TestClient(t *testing.T) {
 				assert.Equal(t, user.statusSI, status)
 
 				if status == http.StatusOK {
+					var tokenData fiber.Map
+					err = json.Unmarshal(JWT, &tokenData)
+					assert.Nil(t, err)
+
 					t.Run("Renew/"+encodingName, func(t *testing.T) {
-						var tokenData fiber.Map
-						err = json.Unmarshal(JWT, &tokenData)
-						assert.Nil(t, err)
 						refresh_token_sting := tokenData["refresh_token"].(string)
 						users := []struct {
 							token  string
@@ -123,6 +118,14 @@ func TestClient(t *testing.T) {
 							assert.Nil(t, err)
 							assert.Equal(t, user.status, status)
 						}
+					})
+
+					authorization := "Bearer " + tokenData["access_token"].(string)
+
+					t.Run("GetByID/"+encodingName, func(t *testing.T) {
+						_, status, err := request("GET", urlwithcid, authorization, encoding, nil)
+						assert.Nil(t, err)
+						assert.Equal(t, http.StatusOK, status)
 					})
 
 					t.Run("Password/"+encodingName, func(t *testing.T) {
@@ -149,40 +152,41 @@ func TestClient(t *testing.T) {
 						token := extractToken(email.HTML)
 						assert.NotEmpty(t, token)
 
-						_, status, err = request("PUT", USER_PASSWORD, "", encoding, map[string][]any{
+						output, status, err := request("PUT", USER_PASSWORD, authorization, encoding, map[string][]any{
 							"token":    {token},
 							"email":    {user.email},
 							"password": {GOOD_PASS_UPDATED},
 						})
 
+						logger.Info(string(output))
+
 						assert.Nil(t, err)
 						assert.Equal(t, http.StatusOK, status)
 
-						_, status, err = request("POST", USER_AUTH, "", encoding, values)
+						_, status, err = request("POST", USER_AUTH, authorization, encoding, values)
 						assert.NoError(t, err)
 						assert.Equal(t, http.StatusBadRequest, status)
 
 						values["password"] = []any{GOOD_PASS_UPDATED}
-						_, status, err = request("POST", USER_AUTH, "", encoding, values)
+						_, status, err = request("POST", USER_AUTH, authorization, encoding, values)
 						assert.NoError(t, err)
 						assert.Equal(t, user.statusSI, status)
 					})
-				}
 
-				UpdateClient, status, err := request("PUT", CLIENT, "", encoding, map[string][]any{
-					"id":         {c.ID},
-					"newsletter": {true},
-				})
-				logger.Info("out:=====>", c.ID)
-				logger.Info(string(UpdateClient))
-				assert.Nil(t, err)
-				assert.Equal(t, user.statusUP, status)
+					_, status, err := request("PUT", CLIENT, authorization, encoding, map[string][]any{
+						"id":         {c.ID},
+						"newsletter": {true},
+					})
 
-				t.Run("Delete/"+encodingName, func(t *testing.T) {
-					_, status, err := request("DELETE", urlwithcid, "", encoding, nil)
 					assert.Nil(t, err)
-					assert.Equal(t, user.statusDel, status)
-				})
+					assert.Equal(t, user.statusUP, status)
+
+					t.Run("Delete/"+encodingName, func(t *testing.T) {
+						_, status, err := request("DELETE", urlwithcid, authorization, encoding, nil)
+						assert.Nil(t, err)
+						assert.Equal(t, user.statusDel, status)
+					})
+				}
 			}
 		})
 	}
