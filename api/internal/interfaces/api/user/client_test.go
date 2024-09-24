@@ -56,17 +56,13 @@ func TestClient(t *testing.T) {
 				json.Unmarshal(RegisteredClient, &c)
 				urlwithcid := fmt.Sprintf(CLIENT_WITH_ID, c.ID)
 
+				assert.NotNil(t, c)
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSU, status)
 
 				if status == http.StatusCreated {
 					t.Run("Validation/"+encodingName, func(t *testing.T) {
-						var client entities.Client
-						err = json.Unmarshal(RegisteredClient, &client)
-						assert.NoError(t, err)
-						assert.NotNil(t, client)
-						time.Sleep(3 * time.Second)
-						email, err := getMailFor(user.email)
+						email, err := getMailFor(user.email, 100)
 						assert.Nil(t, err)
 						assert.Equal(t, user.email, email.To[0].Address)
 					})
@@ -78,8 +74,7 @@ func TestClient(t *testing.T) {
 						})
 						assert.Nil(t, err)
 						assert.Equal(t, http.StatusNoContent, status)
-						time.Sleep(3 * time.Second)
-						email, err := getMailFor(user.email)
+						email, err := getMailFor(user.email, 100)
 						assert.Nil(t, err)
 						assert.Equal(t, user.email, email.To[0].Address)
 						token := extractToken(email.HTML)
@@ -144,8 +139,7 @@ func TestClient(t *testing.T) {
 
 						assert.Nil(t, err)
 						assert.Equal(t, http.StatusNoContent, status)
-						time.Sleep(1 * time.Second)
-						email, err := getMailFor(user.email)
+						email, err := getMailFor(user.email, 100)
 						assert.Nil(t, err)
 						assert.Equal(t, user.email, email.To[0].Address)
 

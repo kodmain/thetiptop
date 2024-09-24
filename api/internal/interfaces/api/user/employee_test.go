@@ -52,21 +52,17 @@ func TestEmployee(t *testing.T) {
 				RegisteredEmployeeString := string(RegisteredEmployee)
 				logger.Info("RegisteredEmployeeString: ", RegisteredEmployeeString)
 
-				c := entities.Employee{}
-				json.Unmarshal(RegisteredEmployee, &c)
-				urlwithcid := fmt.Sprintf(EMPLOYEE_WITH_ID, c.ID)
+				employee := entities.Employee{}
+				json.Unmarshal(RegisteredEmployee, &employee)
+				urlwithcid := fmt.Sprintf(EMPLOYEE_WITH_ID, employee.ID)
 
+				assert.NotNil(t, employee)
 				assert.Nil(t, err)
 				assert.Equal(t, user.statusSU, status)
 
 				if status == http.StatusCreated {
 					t.Run("Validation/"+encodingName, func(t *testing.T) {
-						var employee entities.Employee
-						err = json.Unmarshal(RegisteredEmployee, &employee)
-						assert.NoError(t, err)
-						assert.NotNil(t, employee)
-						time.Sleep(3 * time.Second)
-						email, err := getMailFor(user.email)
+						email, err := getMailFor(user.email, 100)
 						assert.Nil(t, err)
 						assert.Equal(t, user.email, email.To[0].Address)
 					})
@@ -78,8 +74,7 @@ func TestEmployee(t *testing.T) {
 						})
 						assert.Nil(t, err)
 						assert.Equal(t, http.StatusNoContent, status)
-						time.Sleep(3 * time.Second)
-						email, err := getMailFor(user.email)
+						email, err := getMailFor(user.email, 100)
 						assert.Nil(t, err)
 						assert.Equal(t, user.email, email.To[0].Address)
 						token := extractToken(email.HTML)
@@ -144,8 +139,7 @@ func TestEmployee(t *testing.T) {
 
 						assert.Nil(t, err)
 						assert.Equal(t, http.StatusNoContent, status)
-						time.Sleep(1 * time.Second)
-						email, err := getMailFor(user.email)
+						email, err := getMailFor(user.email, 100)
 						assert.Nil(t, err)
 						assert.Equal(t, user.email, email.To[0].Address)
 
@@ -172,7 +166,7 @@ func TestEmployee(t *testing.T) {
 					})
 
 					_, status, err := request("PUT", EMPLOYEE, authorization, encoding, map[string][]any{
-						"id": {c.ID},
+						"id": {employee.ID},
 					})
 
 					assert.Nil(t, err)

@@ -44,6 +44,13 @@ const docTemplate = `{
                         "name": "newsletter",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -153,6 +160,13 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -186,6 +200,13 @@ const docTemplate = `{
                         "description": "Client ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -233,6 +254,13 @@ const docTemplate = `{
                         "description": "Newsletter",
                         "name": "newsletter",
                         "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -327,6 +355,13 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -360,6 +395,13 @@ const docTemplate = `{
                         "description": "Employee ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],

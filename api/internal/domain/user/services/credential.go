@@ -33,7 +33,7 @@ func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, st
 		return nil, "", fmt.Errorf(errors.ErrCredentialNotFound)
 	}
 
-	client, employee, err := s.repo.ReadUser(&transfert.User{
+	client, _, err := s.repo.ReadUser(&transfert.User{
 		CredentialID: &credential.ID,
 	})
 
@@ -42,10 +42,10 @@ func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, st
 	}
 
 	if client != nil {
-		return &client.ID, "client", nil
+		return &credential.ID, "client", nil
 	}
 
-	return &employee.ID, "employee", nil
+	return &credential.ID, "employee", nil
 }
 
 func (s *UserService) PasswordUpdate(dto *transfert.Credential) error {
@@ -59,6 +59,10 @@ func (s *UserService) PasswordUpdate(dto *transfert.Credential) error {
 
 	if err != nil {
 		return fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	if !s.security.CanUpdate(credential) {
+		return fmt.Errorf(errors.ErrUnauthorized)
 	}
 
 	password, err := hash.Hash(aws.String(*credential.Email+":"+*dto.Password), hash.BCRYPT)

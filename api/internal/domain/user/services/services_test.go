@@ -1,8 +1,8 @@
 package services_test
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
@@ -161,11 +161,40 @@ func (m *MailServiceMock) Expeditor() string {
 	return args.String(0)
 }
 
-func setup() (*services.UserService, *UserRepositoryMock, *MailServiceMock) {
+type PermissionMock struct {
+	mock.Mock
+}
+
+func (m *PermissionMock) IsGranted(roles ...string) bool {
+	args := m.Called(roles)
+	return args.Bool(0)
+}
+
+func (m *PermissionMock) CanRead(ressource entities.Entity, rules ...security.Rule) bool {
+	args := m.Called(ressource)
+	return args.Bool(0)
+}
+
+func (m *PermissionMock) CanCreate(ressource entities.Entity, rules ...security.Rule) bool {
+	args := m.Called(ressource)
+	return args.Bool(0)
+}
+
+func (m *PermissionMock) CanUpdate(ressource entities.Entity, rules ...security.Rule) bool {
+	args := m.Called(ressource)
+	return args.Bool(0)
+}
+
+func (m *PermissionMock) CanDelete(ressource entities.Entity, rules ...security.Rule) bool {
+	args := m.Called(ressource)
+	return args.Bool(0)
+}
+
+func setup() (*services.UserService, *UserRepositoryMock, *MailServiceMock, *PermissionMock) {
 	mockRepository := new(UserRepositoryMock)
 	mockMailer := new(MailServiceMock)
-	ctx := new(fiber.Ctx)
-	service := services.User(ctx, mockRepository, mockMailer)
+	mockSecurity := new(PermissionMock)
+	service := services.User(mockSecurity, mockRepository, mockMailer)
 
-	return service, mockRepository, mockMailer
+	return service, mockRepository, mockMailer, mockSecurity
 }

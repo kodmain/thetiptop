@@ -9,6 +9,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -52,7 +53,7 @@ func TestEmployeeRegister(t *testing.T) {
 	}
 
 	t.Run("nil input", func(t *testing.T) {
-		service, _, _ := setup()
+		service, _, _, _ := setup()
 		require.NotNil(t, service)
 
 		result, err := service.RegisterEmployee(nil, nil)
@@ -62,7 +63,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("employee already exists", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("existing@example.com")}
 		dtoEmployee := &transfert.Employee{}
 
@@ -75,7 +76,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("credential creation error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoEmployee := &transfert.Employee{}
 
@@ -89,7 +90,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("employee creation error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoEmployee := &transfert.Employee{}
 
@@ -104,7 +105,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("employee update error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -118,7 +119,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("credential update error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -133,7 +134,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("successful employee and credential creation", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -153,7 +154,7 @@ func TestEmployeeRegister(t *testing.T) {
 
 func TestGetEmployee(t *testing.T) {
 	t.Run("employee not found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 
@@ -166,56 +167,85 @@ func TestGetEmployee(t *testing.T) {
 	})
 
 	t.Run("successful retrieval", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 		expectedEmployee := &entities.Employee{ID: "employee-id"}
 
 		mockRepo.On("ReadEmployee", dtoEmployee).Return(expectedEmployee, nil)
+		mockPerms.On("CanRead", mock.AnythingOfType("*entities.Employee"), mock.Anything).Return(true)
 
 		employee, err := service.GetEmployee(dtoEmployee)
 		assert.NotNil(t, employee)
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 }
 
 func TestDeleteEmployee(t *testing.T) {
-	t.Run("nil employee DTO returns error", func(t *testing.T) {
-		service, _, _ := setup()
+	t.Run("should return error if dtoEmployee is nil", func(t *testing.T) {
+		mockRepo := new(UserRepositoryMock)
+		mockPermission := new(PermissionMock)
+		service := services.User(mockPermission, mockRepo, nil)
 
 		err := service.DeleteEmployee(nil)
 		assert.EqualError(t, err, errors.ErrNoDto)
 	})
 
-	t.Run("successful deletion", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+	t.Run("should delete employee successfully", func(t *testing.T) {
+		mockRepo := new(UserRepositoryMock)
+		mockPermission := new(PermissionMock)
+		service := services.User(mockPermission, mockRepo, nil)
+		// Employee DTO avec un ID valide
+		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
+		dtoEmployee := &transfert.Employee{ID: employeeID}
 
-		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
-
+		// Simuler la lecture du employee
+		mockRepo.On("ReadEmployee", dtoEmployee).Return(&entities.Employee{ID: *employeeID}, nil)
+		// Simuler la permission de suppression
+		mockPermission.On("CanDelete", mock.AnythingOfType("*entities.Employee")).Return(true)
+		// Simuler la suppression réussie du employee
 		mockRepo.On("DeleteEmployee", dtoEmployee).Return(nil)
 
+		// Appel du service pour supprimer le client
 		err := service.DeleteEmployee(dtoEmployee)
+
+		// Vérifier qu'il n'y a pas d'erreur
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
+		mockPermission.AssertExpectations(t)
 	})
 
-	t.Run("deletion error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+	t.Run("should return error if repository delete fails", func(t *testing.T) {
+		mockRepo := new(UserRepositoryMock)
+		mockPermission := new(PermissionMock)
+		service := services.User(mockPermission, mockRepo, nil)
 
-		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
+		// Employee DTO avec un ID valide
+		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
+		dtoEmployee := &transfert.Employee{ID: employeeID}
 
-		mockRepo.On("DeleteEmployee", dtoEmployee).Return(fmt.Errorf("deletion failed"))
+		// Simuler la lecture du Employee
+		mockRepo.On("ReadEmployee", dtoEmployee).Return(&entities.Employee{ID: *employeeID}, nil)
+		// Simuler la permission de suppression
+		mockPermission.On("CanDelete", mock.AnythingOfType("*entities.Employee")).Return(true)
+		// Simuler une erreur lors de la suppression du Employee
+		mockRepo.On("DeleteEmployee", dtoEmployee).Return(fmt.Errorf("delete failed"))
 
+		// Appel du service pour supprimer le Employee
 		err := service.DeleteEmployee(dtoEmployee)
-		assert.EqualError(t, err, "deletion failed")
+
+		// Vérifier que l'erreur est bien celle attendue
+		assert.EqualError(t, err, "delete failed")
 		mockRepo.AssertExpectations(t)
+		mockPermission.AssertExpectations(t)
 	})
 }
 
 func TestUpdateEmployee(t *testing.T) {
 	t.Run("employee not found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 
@@ -228,32 +258,36 @@ func TestUpdateEmployee(t *testing.T) {
 	})
 
 	t.Run("successful update", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 		existingEmployee := &entities.Employee{ID: "employee-id"}
 
 		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(existingEmployee, nil)
+		mockPerms.On("CanUpdate", mock.AnythingOfType("*entities.Employee"), mock.Anything).Return(true)
 		mockRepo.On("UpdateEmployee", existingEmployee).Return(nil)
 
 		employee, err := service.UpdateEmployee(dtoEmployee)
 		assert.NotNil(t, employee)
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 	t.Run("update error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 		existingEmployee := &entities.Employee{ID: "employee-id"}
 
 		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(existingEmployee, nil)
+		mockPerms.On("CanUpdate", mock.AnythingOfType("*entities.Employee"), mock.Anything).Return(true)
 		mockRepo.On("UpdateEmployee", existingEmployee).Return(fmt.Errorf("update failed"))
 
 		employee, err := service.UpdateEmployee(dtoEmployee)
 		assert.Nil(t, employee)
 		assert.EqualError(t, err, "update failed")
 		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 }

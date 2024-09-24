@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
@@ -31,7 +32,7 @@ func UserAuth(ctx *fiber.Ctx) error {
 
 	status, response := services.UserAuth(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dto,
@@ -93,7 +94,7 @@ func CredentialUpdate(ctx *fiber.Ctx) error {
 
 	status, response := services.CredentialUpdate(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoValidation, dtoCredential,
@@ -129,7 +130,7 @@ func MailValidation(ctx *fiber.Ctx) error {
 
 	status, response := services.MailValidation(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoValidation, dtoCredential,
@@ -159,7 +160,7 @@ func ValidationRecover(ctx *fiber.Ctx) error {
 
 	status, response := services.ValidationRecover(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoValidation,

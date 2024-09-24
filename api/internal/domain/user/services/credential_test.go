@@ -62,7 +62,7 @@ func TestUserAuth(t *testing.T) {
 	}
 
 	t.Run("credential not found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler un credential non trouvé, peu importe les valeurs spécifiques des champs
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
@@ -85,7 +85,7 @@ func TestUserAuth(t *testing.T) {
 	})
 
 	t.Run("no dto", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Appeler le service avec un mot de passe incorrect
 		user, userType, err := service.UserAuth(nil)
@@ -99,7 +99,7 @@ func TestUserAuth(t *testing.T) {
 	})
 
 	t.Run("invalid password", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler un credential valide mais un mot de passe incorrect
 		expectedCredential := &entities.Credential{
@@ -126,7 +126,7 @@ func TestUserAuth(t *testing.T) {
 	})
 
 	t.Run("credential hash fail", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler un credential valide mais un échec de hachage
 		expectedCredential := &entities.Credential{
@@ -152,7 +152,7 @@ func TestUserAuth(t *testing.T) {
 	})
 
 	t.Run("user not found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler un appel `ReadCredential` qui retourne le credential attendu
 		mockRepo.On("ReadCredential", mock.MatchedBy(func(cred *transfert.Credential) bool {
@@ -176,7 +176,7 @@ func TestUserAuth(t *testing.T) {
 	})
 
 	t.Run("user found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler un appel `ReadCredential` qui retourne le credential attendu
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
@@ -199,7 +199,7 @@ func TestUserAuth(t *testing.T) {
 	})
 
 	t.Run("employee found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler un appel `ReadCredential` qui retourne le credential attendu
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
@@ -224,7 +224,7 @@ func TestUserAuth(t *testing.T) {
 
 func TestPasswordUpdate(t *testing.T) {
 	t.Run("TestPasswordUpdate_Success", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
 
 		// Simuler un Credential existant
 		mockCredential := &entities.Credential{Email: aws.String("test@example.com"), Password: aws.String("old-password")}
@@ -232,7 +232,8 @@ func TestPasswordUpdate(t *testing.T) {
 
 		// Simuler la lecture réussie du credential
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).Return(mockCredential, nil)
-		// Simuler le hachage réussi du nouveau mot de passe
+		// Simuler l'autorisation de mise à jour
+		mockPerms.On("CanUpdate", mock.AnythingOfType("*entities.Credential"), mock.Anything).Return(true)
 		// Simuler la mise à jour réussie du credential
 		mockRepo.On("UpdateCredential", mockCredential).Return(nil)
 
@@ -242,10 +243,11 @@ func TestPasswordUpdate(t *testing.T) {
 		// Vérifier qu'il n'y a pas d'erreur
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 	t.Run("TestPasswordUpdate_Fail", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
 
 		// Simuler un Credential existant
 		mockCredential := &entities.Credential{Email: aws.String("test@example.com"), Password: aws.String("old-password")}
@@ -253,20 +255,22 @@ func TestPasswordUpdate(t *testing.T) {
 
 		// Simuler la lecture réussie du credential
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).Return(mockCredential, nil)
-		// Simuler le hachage réussi du nouveau mot de passe
-		// Simuler la mise à jour réussie du credential
+		// Simuler l'autorisation de mise à jour
+		mockPerms.On("CanUpdate", mock.AnythingOfType("*entities.Credential"), mock.Anything).Return(true)
+		// Simuler un échec lors de la mise à jour du credential
 		mockRepo.On("UpdateCredential", mockCredential).Return(fmt.Errorf("update error"))
 
 		// Appel de la méthode PasswordUpdate
 		err := service.PasswordUpdate(&transfert.Credential{Email: mockCredential.Email, Password: aws.String(newPassword)})
 
-		// Vérifier qu'il n'y a pas d'erreur
+		// Vérifier qu'une erreur est retournée
 		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 	t.Run("TestPasswordUpdate_ClientNotFound", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler une erreur de type ErrClientNotFound
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
@@ -280,13 +284,7 @@ func TestPasswordUpdate(t *testing.T) {
 	})
 
 	t.Run("no dto", func(t *testing.T) {
-		service, _, _ := setup()
-		err := service.PasswordUpdate(nil)
-		assert.EqualError(t, err, errors.ErrNoDto)
-	})
-
-	t.Run("no dto", func(t *testing.T) {
-		service, _, _ := setup()
+		service, _, _, _ := setup()
 		err := service.PasswordUpdate(nil)
 		assert.EqualError(t, err, errors.ErrNoDto)
 	})
@@ -294,7 +292,7 @@ func TestPasswordUpdate(t *testing.T) {
 
 func TestPasswordValidation(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		// Mock pour ReadValidation
 		mockValidation := &entities.Validation{
@@ -323,7 +321,7 @@ func TestPasswordValidation(t *testing.T) {
 	})
 
 	t.Run("error client not found", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		// Mock pour `ReadValidation`
 		mockRepo.On("ReadValidation", mock.AnythingOfType("*transfert.Validation")).
@@ -345,7 +343,7 @@ func TestPasswordValidation(t *testing.T) {
 	})
 
 	t.Run("no dto", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		// Appel de la méthode PasswordValidation
 		result, err := service.PasswordValidation(nil, nil)
@@ -360,7 +358,7 @@ func TestPasswordValidation(t *testing.T) {
 	})
 
 	t.Run("validation not found", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		// Simuler une réponse d'erreur pour ReadValidation
 		mockRepo.On("ReadValidation", mock.AnythingOfType("*transfert.Validation")).Return(nil, fmt.Errorf(errors.ErrValidationNotFound)).Once()
@@ -381,7 +379,7 @@ func TestPasswordValidation(t *testing.T) {
 	})
 
 	t.Run("update fail", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		// Simuler une réponse réussie de la méthode ReadValidation
 		mockValidation := &entities.Validation{
@@ -410,7 +408,7 @@ func TestPasswordValidation(t *testing.T) {
 	})
 
 	t.Run("validation expired", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		// Simuler une réponse réussie de la méthode ReadValidation
 		mockValidation := &entities.Validation{
@@ -435,7 +433,7 @@ func TestPasswordValidation(t *testing.T) {
 	})
 
 	t.Run("validation expired", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		// Simuler une réponse réussie de la méthode ReadValidation
 		mockValidation := &entities.Validation{
@@ -460,7 +458,7 @@ func TestPasswordValidation(t *testing.T) {
 	})
 
 	t.Run("validation expired", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		// Simuler une réponse réussie de la méthode ReadValidation
 		mockValidation := &entities.Validation{
@@ -488,7 +486,7 @@ func TestPasswordValidation(t *testing.T) {
 func TestValidationRecover(t *testing.T) {
 
 	t.Run("credential fail", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		err := service.ValidationRecover(nil, &transfert.Credential{
 			Email: aws.String("test@example.com"),
@@ -500,7 +498,7 @@ func TestValidationRecover(t *testing.T) {
 	})
 
 	t.Run("credential not found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler que le credential n'est pas trouvé
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
@@ -516,7 +514,7 @@ func TestValidationRecover(t *testing.T) {
 	})
 
 	t.Run("fail client", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler que le credential n'est pas trouvé
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).
@@ -539,7 +537,7 @@ func TestValidationRecover(t *testing.T) {
 	})
 
 	t.Run("success client", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		luhn := token.Generate(6)
 
@@ -568,7 +566,7 @@ func TestValidationRecover(t *testing.T) {
 	})
 
 	t.Run("success employee", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		luhn := token.Generate(6)
 
@@ -597,7 +595,7 @@ func TestValidationRecover(t *testing.T) {
 	})
 
 	t.Run("fail no client or employee", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler que le credential n'est pas trouvé
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).

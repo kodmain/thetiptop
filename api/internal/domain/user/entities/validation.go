@@ -22,9 +22,11 @@ type Validation struct {
 	Type      ValidationType `gorm:"type:varchar(10)" json:"type"`
 	Validated bool           `gorm:"type:boolean;default:false" json:"validated"`
 
-	ClientID   *string   `gorm:"type:varchar(36)" json:"-"`
-	EmployeeID *string   `gorm:"type:varchar(36)" json:"-"`
-	ExpiresAt  time.Time `json:"-"`
+	ClientID   *string `gorm:"type:varchar(36)" json:"-"`
+	EmployeeID *string `gorm:"type:varchar(36)" json:"-"`
+
+	CredentialID *string   `gorm:"type:varchar(36);index;" json:"-"` // Foreign key to Credential
+	ExpiresAt    time.Time `json:"-"`
 }
 
 func (v *Validation) HasExpired() bool {
@@ -72,6 +74,14 @@ func (validation *Validation) BeforeUpdate(tx *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func (validation *Validation) IsPublic() bool {
+	return false
+}
+
+func (validation *Validation) GetOwnerID() *string {
+	return validation.CredentialID
 }
 
 func CreateValidation(obj *transfert.Validation) *Validation {

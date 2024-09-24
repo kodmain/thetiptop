@@ -37,6 +37,13 @@
                         "name": "newsletter",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -146,6 +153,13 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -179,6 +193,13 @@
                         "description": "Client ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -226,6 +247,13 @@
                         "description": "Newsletter",
                         "name": "newsletter",
                         "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -320,6 +348,13 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -353,6 +388,13 @@
                         "description": "Employee ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
