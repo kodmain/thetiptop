@@ -8,6 +8,7 @@ import (
 )
 
 type Validation struct {
+	ID         *string `json:"id" xml:"id" form:"id"`
 	Token      *string `json:"token" xml:"token" form:"token"`
 	ClientID   *string `json:"client_id" xml:"client_id" form:"client_id"`
 	EmployeeID *string `json:"employee_id" xml:"employee_id" form:"employee_id"`
@@ -16,6 +17,7 @@ type Validation struct {
 
 func (v *Validation) Check(validator data.Validator) error {
 	return validator.Check(data.Object{
+		"id":          v.ID,
 		"token":       v.Token,
 		"client_id":   v.ClientID,
 		"employee_id": v.EmployeeID,

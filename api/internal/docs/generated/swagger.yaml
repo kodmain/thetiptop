@@ -23,6 +23,11 @@ paths:
         name: newsletter
         required: true
         type: boolean
+      - description: With the bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -51,6 +56,11 @@ paths:
         name: id
         required: true
         type: string
+      - description: With the bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -74,6 +84,11 @@ paths:
         format: uuid
         in: path
         name: id
+        required: true
+        type: string
+      - description: With the bearer started
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -153,6 +168,11 @@ paths:
         name: newsletter
         required: true
         type: boolean
+      - description: With the bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -181,6 +201,11 @@ paths:
         name: id
         required: true
         type: string
+      - description: With the bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -204,6 +229,11 @@ paths:
         format: uuid
         in: path
         name: id
+        required: true
+        type: string
+      - description: With the bearer started
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:

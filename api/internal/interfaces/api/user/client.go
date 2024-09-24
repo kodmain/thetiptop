@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 
@@ -40,7 +41,7 @@ func RegisterClient(ctx *fiber.Ctx) error {
 
 	status, response := services.RegisterClient(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoClient,
@@ -55,6 +56,7 @@ func RegisterClient(ctx *fiber.Ctx) error {
 // @Produce		application/json
 // @Param		id			formData	string	true	"Client ID" format(uuid)
 // @Param		newsletter	formData	bool	true	"Newsletter" default(false)
+// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Password updated"
 // @Failure		400	{object}	nil "Invalid email, password or token"
 // @Failure		404	{object}	nil "Client not found"
@@ -71,7 +73,7 @@ func UpdateClient(ctx *fiber.Ctx) error {
 
 	status, response := services.UpdateClient(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
@@ -85,6 +87,7 @@ func UpdateClient(ctx *fiber.Ctx) error {
 // @Summary		Get a client by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Client ID" format(uuid)
+// @Param 		Authorization header string true "With the bearer started"
 // @Success		200	{object}	nil "Client details"
 // @Failure		400	{object}	nil "Invalid client ID"
 // @Failure		404	{object}	nil "Client not found"
@@ -104,7 +107,7 @@ func GetClient(ctx *fiber.Ctx) error {
 
 	status, response := services.GetClient(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
@@ -117,6 +120,7 @@ func GetClient(ctx *fiber.Ctx) error {
 // @Summary		Delete a client by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Client ID" format(uuid)
+// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Client deleted"
 // @Failure		400	{object}	nil "Invalid client ID"
 // @Failure		404	{object}	nil "Client not found"
@@ -136,7 +140,7 @@ func DeleteClient(ctx *fiber.Ctx) error {
 
 	status, response := services.DeleteClient(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,

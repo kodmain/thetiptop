@@ -24,12 +24,12 @@ func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoE
 		return nil, err
 	}
 
+	dtoEmployee.CredentialID = &credential.ID
+
 	employee, err := s.repo.CreateEmployee(dtoEmployee)
 	if err != nil {
 		return nil, err
 	}
-
-	employee.CredentialID = &credential.ID
 
 	employee.Validations = append(employee.Validations, &entities.Validation{
 		EmployeeID: &employee.ID,
@@ -49,36 +49,11 @@ func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoE
 	return employee, nil
 }
 
-func (s *UserService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
-	// Vérifier si le DTO de l'employé est valide
+func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
 	if dtoEmployee == nil {
 		return nil, fmt.Errorf(errors.ErrNoDto)
 	}
 
-	// Lire l'employé depuis le repository
-	employee, err := s.repo.ReadEmployee(dtoEmployee)
-	if err != nil {
-		return nil, fmt.Errorf(errors.ErrEmployeeNotFound)
-	}
-
-	return employee, nil
-}
-
-func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) error {
-	// Vérifier si le DTO de l'employé est valide
-	if dtoEmployee == nil || dtoEmployee.ID == nil {
-		return fmt.Errorf(errors.ErrNoDto)
-	}
-
-	// Supprimer l'employé du repository
-	if err := s.repo.DeleteEmployee(dtoEmployee); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
 	employee, err := s.repo.ReadEmployee(&transfert.Employee{
 		ID: dtoEmployee.ID,
 	})
@@ -87,12 +62,54 @@ func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities
 		return nil, fmt.Errorf(errors.ErrEmployeeNotFound)
 	}
 
+	if !s.security.CanUpdate(employee) {
+		return nil, fmt.Errorf(errors.ErrUnauthorized)
+	}
+
 	if err := data.UpdateEntityWithDto(employee, dtoEmployee); err != nil {
 		return nil, err
 	}
 
 	if err := s.repo.UpdateEmployee(employee); err != nil {
 		return nil, err
+	}
+
+	return employee, nil
+}
+
+func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) error {
+	if dtoEmployee == nil {
+		return fmt.Errorf(errors.ErrNoDto)
+	}
+
+	employee, err := s.repo.ReadEmployee(dtoEmployee)
+	if err != nil {
+		return fmt.Errorf(errors.ErrEmployeeNotFound)
+	}
+
+	if !s.security.CanDelete(employee) {
+		return fmt.Errorf(errors.ErrUnauthorized)
+	}
+
+	if err := s.repo.DeleteEmployee(dtoEmployee); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UserService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+	if dtoEmployee == nil {
+		return nil, fmt.Errorf(errors.ErrNoDto)
+	}
+
+	employee, err := s.repo.ReadEmployee(dtoEmployee)
+	if err != nil {
+		return nil, fmt.Errorf(errors.ErrEmployeeNotFound)
+	}
+
+	if !s.security.CanRead(employee) {
+		return nil, fmt.Errorf(errors.ErrUnauthorized)
 	}
 
 	return employee, nil

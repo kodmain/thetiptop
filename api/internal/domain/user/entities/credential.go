@@ -39,6 +39,14 @@ func (cred *Credential) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
+func (cred *Credential) IsPublic() bool {
+	return false
+}
+
+func (cred *Credential) GetOwnerID() string {
+	return cred.ID
+}
+
 func CreateCredential(obj *transfert.Credential) *Credential {
 	return &Credential{
 		Email:    obj.Email,

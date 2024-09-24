@@ -93,11 +93,6 @@ func TestObject_Hydrate(t *testing.T) {
 				t.Errorf("Hydrate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			/*
-				if !compareTargets(target, tt.want) {
-					t.Errorf("Hydrate() = %v, want %v", target, tt.want)
-				}
-			*/
 		})
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
@@ -38,7 +39,7 @@ func RegisterEmployee(ctx *fiber.Ctx) error {
 
 	status, response := services.RegisterEmployee(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoEmployee,
@@ -53,6 +54,7 @@ func RegisterEmployee(ctx *fiber.Ctx) error {
 // @Produce		application/json
 // @Param		id			formData	string	true	"Employee ID" format(uuid)
 // @Param		newsletter	formData	bool	true	"Newsletter" default(false)
+// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Password updated"
 // @Failure		400	{object}	nil "Invalid email, password or token"
 // @Failure		404	{object}	nil "Employee not found"
@@ -69,7 +71,7 @@ func UpdateEmployee(ctx *fiber.Ctx) error {
 
 	status, response := services.UpdateEmployee(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
@@ -83,6 +85,7 @@ func UpdateEmployee(ctx *fiber.Ctx) error {
 // @Summary		Get a employee by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Employee ID" format(uuid)
+// @Param 		Authorization header string true "With the bearer started"
 // @Success		200	{object}	nil "Employee details"
 // @Failure		400	{object}	nil "Invalid employee ID"
 // @Failure		404	{object}	nil "Employee not found"
@@ -104,7 +107,7 @@ func GetEmployee(ctx *fiber.Ctx) error {
 
 	status, response := services.GetEmployee(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
@@ -117,6 +120,7 @@ func GetEmployee(ctx *fiber.Ctx) error {
 // @Summary		Delete a client by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Employee ID" format(uuid)
+// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Employee deleted"
 // @Failure		400	{object}	nil "Invalid employee ID"
 // @Failure		404	{object}	nil "Employee not found"
@@ -136,7 +140,7 @@ func DeleteEmployee(ctx *fiber.Ctx) error {
 
 	status, response := services.DeleteEmployee(
 		domain.User(
-			ctx,
+			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,

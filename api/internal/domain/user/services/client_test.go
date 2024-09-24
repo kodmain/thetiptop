@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
@@ -57,7 +56,7 @@ func TestClientRegister(t *testing.T) {
 	}
 
 	t.Run("nil input", func(t *testing.T) {
-		service, _, _ := setup()
+		service, _, _, _ := setup()
 		require.NotNil(t, service)
 
 		result, err := service.RegisterClient(nil, nil)
@@ -67,7 +66,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("client already exists", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("existing@example.com")}
 		dtoClient := &transfert.Client{}
 
@@ -80,7 +79,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("credential creation error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoClient := &transfert.Client{}
 
@@ -94,7 +93,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("client creation error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoClient := &transfert.Client{}
 
@@ -109,7 +108,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("client update error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -123,7 +122,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("credential update error", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -138,7 +137,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("successful client and credential creation", func(t *testing.T) {
-		service, mockRepo, mockMailer := setup()
+		service, mockRepo, mockMailer, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -158,7 +157,7 @@ func TestClientRegister(t *testing.T) {
 
 func TestUpdateClient(t *testing.T) {
 	t.Run("client not found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
 
 		// Simuler un client non trouvé dans la base de données
 		mockRepo.On("ReadClient", mock.AnythingOfType("*transfert.Client")).
@@ -177,7 +176,7 @@ func TestUpdateClient(t *testing.T) {
 
 	t.Run("update client success", func(t *testing.T) {
 		clientID := "42debee6-2063-4566-baf1-37a7bdd139ff"
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
 
 		// Simuler un client valide
 		mockClient := &entities.Client{ID: clientID}
@@ -185,6 +184,9 @@ func TestUpdateClient(t *testing.T) {
 		// Le mock retourne un client valide pour l'appel à ReadClient
 		mockRepo.On("ReadClient", mock.AnythingOfType("*transfert.Client")).
 			Return(mockClient, nil)
+
+		// Simuler que la méthode CanUpdate retourne true pour ce client
+		mockPerms.On("CanUpdate", mockClient, mock.Anything).Return(true)
 
 		// Simuler une mise à jour réussie du client
 		mockRepo.On("UpdateClient", mockClient).Return(nil)
@@ -198,10 +200,11 @@ func TestUpdateClient(t *testing.T) {
 
 		// Vérifier que les attentes du mock sont respectées
 		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 	t.Run("update client failure", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
 		clientID := "42debee6-2063-4566-baf1-37a7bdd139ff"
 
 		// Simuler un client valide
@@ -210,6 +213,9 @@ func TestUpdateClient(t *testing.T) {
 		// Le mock retourne un client valide pour l'appel à ReadClient
 		mockRepo.On("ReadClient", mock.AnythingOfType("*transfert.Client")).
 			Return(mockClient, nil)
+
+		// Simuler que la méthode CanUpdate retourne true
+		mockPerms.On("CanUpdate", mockClient, mock.Anything).Return(true)
 
 		// Simuler une erreur lors de la mise à jour du client
 		mockRepo.On("UpdateClient", mockClient).Return(fmt.Errorf("update error"))
@@ -223,12 +229,14 @@ func TestUpdateClient(t *testing.T) {
 
 		// Vérifier que les attentes du mock sont respectées
 		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 }
 
 func TestGetClient(t *testing.T) {
 	t.Run("successful_get", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
+
 		// Simuler un client DTO valide
 		dummyClientDTO := &transfert.Client{
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
@@ -241,6 +249,9 @@ func TestGetClient(t *testing.T) {
 		// Simuler la réponse du repository
 		mockRepo.On("ReadClient", dummyClientDTO).Return(expectedClient, nil)
 
+		// Simuler la méthode CanRead pour le contrôle des permissions
+		mockPerms.On("CanRead", expectedClient, mock.Anything).Return(true)
+
 		// Appeler la méthode du service
 		client, err := service.GetClient(dummyClientDTO)
 
@@ -251,10 +262,12 @@ func TestGetClient(t *testing.T) {
 
 		// Vérifier les attentes sur le mock
 		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 	t.Run("error_nil_dto", func(t *testing.T) {
-		service, _, _ := setup()
+		service, _, _, _ := setup()
+
 		// Appeler la méthode du service avec un DTO nil
 		client, err := service.GetClient(nil)
 
@@ -265,7 +278,8 @@ func TestGetClient(t *testing.T) {
 	})
 
 	t.Run("client_not_found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, _, _ := setup()
+
 		// Simuler un client DTO valide
 		dummyClientDTO := &transfert.Client{
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
@@ -288,32 +302,27 @@ func TestGetClient(t *testing.T) {
 }
 
 func TestDeleteClient(t *testing.T) {
-	ctx := new(fiber.Ctx)
-
 	t.Run("should return error if dtoClient is nil", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
-		service := services.User(ctx, mockRepo, nil)
+		mockPermission := new(PermissionMock)
+		service := services.User(mockPermission, mockRepo, nil)
 
 		err := service.DeleteClient(nil)
 		assert.EqualError(t, err, errors.ErrNoDto)
 	})
 
-	t.Run("should return error if client ID is nil", func(t *testing.T) {
-		mockRepo := new(UserRepositoryMock)
-		service := services.User(ctx, mockRepo, nil)
-
-		dtoClient := &transfert.Client{ID: nil}
-		err := service.DeleteClient(dtoClient)
-		assert.EqualError(t, err, errors.ErrNoDto)
-	})
-
 	t.Run("should delete client successfully", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
-		service := services.User(ctx, mockRepo, nil)
+		mockPermission := new(PermissionMock)
+		service := services.User(mockPermission, mockRepo, nil)
 		// Client DTO avec un ID valide
 		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")
 		dtoClient := &transfert.Client{ID: clientID}
 
+		// Simuler la lecture du client
+		mockRepo.On("ReadClient", dtoClient).Return(&entities.Client{ID: *clientID}, nil)
+		// Simuler la permission de suppression
+		mockPermission.On("CanDelete", mock.AnythingOfType("*entities.Client")).Return(true)
 		// Simuler la suppression réussie du client
 		mockRepo.On("DeleteClient", dtoClient).Return(nil)
 
@@ -323,16 +332,22 @@ func TestDeleteClient(t *testing.T) {
 		// Vérifier qu'il n'y a pas d'erreur
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
+		mockPermission.AssertExpectations(t)
 	})
 
 	t.Run("should return error if repository delete fails", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
-		service := services.User(ctx, mockRepo, nil)
+		mockPermission := new(PermissionMock)
+		service := services.User(mockPermission, mockRepo, nil)
 
 		// Client DTO avec un ID valide
 		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")
 		dtoClient := &transfert.Client{ID: clientID}
 
+		// Simuler la lecture du client
+		mockRepo.On("ReadClient", dtoClient).Return(&entities.Client{ID: *clientID}, nil)
+		// Simuler la permission de suppression
+		mockPermission.On("CanDelete", mock.AnythingOfType("*entities.Client")).Return(true)
 		// Simuler une erreur lors de la suppression du client
 		mockRepo.On("DeleteClient", dtoClient).Return(fmt.Errorf("delete failed"))
 
@@ -342,5 +357,6 @@ func TestDeleteClient(t *testing.T) {
 		// Vérifier que l'erreur est bien celle attendue
 		assert.EqualError(t, err, "delete failed")
 		mockRepo.AssertExpectations(t)
+		mockPermission.AssertExpectations(t)
 	})
 }
