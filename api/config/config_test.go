@@ -27,7 +27,7 @@ func TestLoad(t *testing.T) {
 
 func TestGetString(t *testing.T) {
 	config.Load(aws.String("../config.test.yml"))
-	assert.Equal(t, "default", config.GetString("providers.databases", "default"))
+	assert.Equal(t, "fake", config.GetString("providers.databases.toto", "fake"))
 	assert.Equal(t, "default", config.GetString("services.client.database", "default"))
 }
 
