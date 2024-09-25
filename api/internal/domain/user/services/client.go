@@ -66,9 +66,7 @@ func (s *UserService) UpdateClient(dtoClient *transfert.Client) (*entities.Clien
 		return nil, fmt.Errorf(errors.ErrUnauthorized)
 	}
 
-	if err := data.UpdateEntityWithDto(client, dtoClient); err != nil {
-		return nil, err
-	}
+	data.UpdateEntityWithDto(client, dtoClient)
 
 	if err := s.repo.UpdateClient(client); err != nil {
 		return nil, err

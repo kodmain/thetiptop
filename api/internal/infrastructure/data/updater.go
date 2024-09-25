@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -13,12 +12,7 @@ import (
 //
 // Returns:
 // - error: erreur si quelque chose ne va pas
-func UpdateEntityWithDto(entity interface{}, dto interface{}) error {
-	// Vérifie que le DTO n'est pas nul
-	if dto == nil {
-		return fmt.Errorf("DTO is nil")
-	}
-
+func UpdateEntityWithDto(entity interface{}, dto interface{}) {
 	// Récupère les valeurs des structs entity et DTO
 	entityVal := reflect.ValueOf(entity).Elem()
 	dtoVal := reflect.ValueOf(dto).Elem()
@@ -51,6 +45,4 @@ func UpdateEntityWithDto(entity interface{}, dto interface{}) error {
 			}
 		}
 	}
-
-	return nil
 }
