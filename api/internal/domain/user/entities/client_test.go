@@ -40,6 +40,11 @@ func TestClient_HasSuccessValidation(t *testing.T) {
 
 	result = client.HasSuccessValidation(entities.MailValidation)
 	assert.Nil(t, result)
+
+	assert.Equal(t, client.IsPublic(), false)
+	assert.Equal(t, client.GetOwnerID(), client.ID)
+	client.CredentialID = aws.String(uuid.New().String())
+	assert.Equal(t, client.GetOwnerID(), client.ID)
 }
 
 func TestClient_HasNotExpiredValidation(t *testing.T) {
