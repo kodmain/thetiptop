@@ -80,8 +80,12 @@ func (validation *Validation) IsPublic() bool {
 	return false
 }
 
-func (validation *Validation) GetOwnerID() *string {
-	return validation.CredentialID
+func (validation *Validation) GetOwnerID() string {
+	if validation.CredentialID == nil {
+		return ""
+	}
+
+	return *validation.CredentialID
 }
 
 func CreateValidation(obj *transfert.Validation) *Validation {

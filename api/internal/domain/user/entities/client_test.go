@@ -44,7 +44,7 @@ func TestClient_HasSuccessValidation(t *testing.T) {
 	assert.Equal(t, client.IsPublic(), false)
 	assert.Equal(t, client.GetOwnerID(), client.ID)
 	client.CredentialID = aws.String(uuid.New().String())
-	assert.Equal(t, client.GetOwnerID(), client.CredentialID)
+	assert.Equal(t, client.GetOwnerID(), *client.CredentialID)
 }
 
 func TestClient_HasNotExpiredValidation(t *testing.T) {
