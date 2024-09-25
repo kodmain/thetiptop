@@ -1,8 +1,10 @@
 services:
   client:
     database: default
+    mail: default
   employee:
     database: default
+    mail: default
 
 providers:
   mails:
@@ -39,7 +41,7 @@ security:
   validation:
     expire: 30m
   jwt:
-    #tz: Europe/Paris
+    tz: Europe/Paris
     secret: secret
     expire: 15
     refresh: 30

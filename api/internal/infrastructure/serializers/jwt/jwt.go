@@ -68,7 +68,14 @@ func New(t *JWT) error {
 	return nil
 }
 
-func FromID(id string) (string, string, error) {
+func FromID(id string, datas ...map[string]any) (string, string, error) {
+	var data map[string]any
+	if len(datas) > 1 {
+		return "", "", fmt.Errorf("too many data passe one argument only")
+	} else if len(datas) == 1 {
+		data = datas[0]
+	}
+
 	location, err := time.LoadLocation(instance.TZ)
 	if err != nil {
 		return "", "", err
@@ -83,6 +90,7 @@ func FromID(id string) (string, string, error) {
 		TZ:     location.String(),
 		Type:   REFRESH,
 		Offset: offset,
+		Data:   data,
 	}.Claims())
 
 	refresh, err := token.SignedString([]byte(instance.Secret))
@@ -96,7 +104,7 @@ func FromID(id string) (string, string, error) {
 		TZ:     location.String(),
 		Offset: offset,
 		Type:   ACCESS,
-		//Refresh: &refresh,
+		Data:   data,
 	}.Claims())
 
 	access, err := token.SignedString([]byte(instance.Secret))

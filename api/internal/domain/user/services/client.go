@@ -24,12 +24,12 @@ func (s *UserService) RegisterClient(dtoCredential *transfert.Credential, dtoCli
 		return nil, err
 	}
 
+	dtoClient.CredentialID = &credential.ID
+
 	client, err := s.repo.CreateClient(dtoClient)
 	if err != nil {
 		return nil, err
 	}
-
-	client.CredentialID = &credential.ID
 
 	client.Validations = append(client.Validations, &entities.Validation{
 		ClientID: &client.ID,
@@ -50,6 +50,10 @@ func (s *UserService) RegisterClient(dtoCredential *transfert.Credential, dtoCli
 }
 
 func (s *UserService) UpdateClient(dtoClient *transfert.Client) (*entities.Client, error) {
+	if dtoClient == nil {
+		return nil, fmt.Errorf(errors.ErrNoDto)
+	}
+
 	client, err := s.repo.ReadClient(&transfert.Client{
 		ID: dtoClient.ID,
 	})
@@ -58,9 +62,11 @@ func (s *UserService) UpdateClient(dtoClient *transfert.Client) (*entities.Clien
 		return nil, fmt.Errorf(errors.ErrClientNotFound)
 	}
 
-	if err := data.UpdateEntityWithDto(client, dtoClient); err != nil {
-		return nil, err
+	if !s.security.CanUpdate(client) {
+		return nil, fmt.Errorf(errors.ErrUnauthorized)
 	}
+
+	data.UpdateEntityWithDto(client, dtoClient)
 
 	if err := s.repo.UpdateClient(client); err != nil {
 		return nil, err
@@ -69,21 +75,20 @@ func (s *UserService) UpdateClient(dtoClient *transfert.Client) (*entities.Clien
 	return client, nil
 }
 
-// DeleteClient Delete a client from the repository
-// This function deletes a client entity from the repository, using the provided client DTO.
-//
-// Parameters:
-// - dtoClient: *transfert.Client The client DTO containing the ID of the client to delete.
-//
-// Returns:
-// - error: error An error object if an error occurs, nil otherwise.
 func (s *UserService) DeleteClient(dtoClient *transfert.Client) error {
-	// Vérifier si le DTO est valide
-	if dtoClient == nil || dtoClient.ID == nil {
+	if dtoClient == nil {
 		return fmt.Errorf(errors.ErrNoDto)
 	}
 
-	// Supprimer le client du repository
+	client, err := s.repo.ReadClient(dtoClient)
+	if err != nil {
+		return fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	if !s.security.CanDelete(client) {
+		return fmt.Errorf(errors.ErrUnauthorized)
+	}
+
 	if err := s.repo.DeleteClient(dtoClient); err != nil {
 		return err
 	}
@@ -99,6 +104,10 @@ func (s *UserService) GetClient(dtoClient *transfert.Client) (*entities.Client, 
 	client, err := s.repo.ReadClient(dtoClient)
 	if err != nil {
 		return nil, fmt.Errorf(errors.ErrClientNotFound)
+	}
+
+	if !s.security.CanRead(client) {
+		return nil, fmt.Errorf(errors.ErrUnauthorized)
 	}
 
 	return client, nil

@@ -68,8 +68,27 @@ func (employee *Employee) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func CreateEmployee(obj *transfert.Employee) *Employee {
-	return &Employee{
-		Validations: make(Validations, 0),
+func (e *Employee) IsPublic() bool {
+	return false
+}
+
+func (e *Employee) GetOwnerID() string {
+	if e.CredentialID == nil {
+		return ""
 	}
+
+	return *e.CredentialID
+}
+
+func CreateEmployee(obj *transfert.Employee) *Employee {
+	e := &Employee{
+		Validations:  make(Validations, 0),
+		CredentialID: obj.CredentialID,
+	}
+
+	if obj.ID != nil {
+		e.ID = *obj.ID
+	}
+
+	return e
 }

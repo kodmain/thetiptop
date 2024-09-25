@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/kodmain/thetiptop/api/internal/application/security"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
@@ -8,17 +9,18 @@ import (
 )
 
 type UserService struct {
-	repo repositories.UserRepositoryInterface
-	mail mail.ServiceInterface
+	security security.PermissionInterface
+	repo     repositories.UserRepositoryInterface
+	mail     mail.ServiceInterface
 }
 
-func User(repo repositories.UserRepositoryInterface, mail mail.ServiceInterface) *UserService {
-	return &UserService{repo, mail}
+func User(security security.PermissionInterface, repo repositories.UserRepositoryInterface, mail mail.ServiceInterface) *UserService {
+	return &UserService{security, repo, mail}
 }
 
 type UserServiceInterface interface {
 	// Credential
-	UserAuth(dtoCredential *transfert.Credential) (*string, error)
+	UserAuth(dtoCredential *transfert.Credential) (*string, string, error)
 	PasswordUpdate(dtoCredential *transfert.Credential) error
 	ValidationRecover(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) error
 	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) (*entities.Validation, error)

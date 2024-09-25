@@ -329,7 +329,7 @@ func TestCreateValidation(t *testing.T) {
 	// Cas de création réussie
 	t.Run("successful creation", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "validations" \("id","created_at","updated_at","deleted_at","token","type","validated","client_id","employee_id","expires_at"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7,\$8,\$9,\$10\)`).
+		mock.ExpectExec(`INSERT INTO "validations" \("id","created_at","updated_at","deleted_at","token","type","validated","client_id","employee_id","credential_id","expires_at"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7,\$8,\$9,\$10,\$11\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID
 				sqlmock.AnyArg(), // CreatedAt
@@ -340,6 +340,7 @@ func TestCreateValidation(t *testing.T) {
 				false,            // Validated
 				dto.ClientID,     // ClientID
 				nil,              // EmployeeID (probablement NULL)
+				nil,              // CredentialID (probablement NULL)
 				sqlmock.AnyArg(), // ExpiresAt
 			).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
@@ -356,7 +357,7 @@ func TestCreateValidation(t *testing.T) {
 	// Cas où la création échoue
 	t.Run("creation with error", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "validations" \("id","created_at","updated_at","deleted_at","token","type","validated","client_id","employee_id","expires_at"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7,\$8,\$9,\$10\)`).
+		mock.ExpectExec(`INSERT INTO "validations" \("id","created_at","updated_at","deleted_at","token","type","validated","client_id","employee_id","credential_id","expires_at"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6,\$7,\$8,\$9,\$10,\$11\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID
 				sqlmock.AnyArg(), // CreatedAt
@@ -366,7 +367,8 @@ func TestCreateValidation(t *testing.T) {
 				sqlmock.AnyArg(), // Type
 				false,            // Validated
 				dto.ClientID,     // ClientID
-				nil,              // EmployeeID
+				nil,              // EmployeeID (probablement NULL)
+				nil,              // CredentialID (probablement NULL)
 				sqlmock.AnyArg(), // ExpiresAt
 			).WillReturnError(errors.New("some error"))
 		mock.ExpectRollback()
@@ -380,6 +382,7 @@ func TestCreateValidation(t *testing.T) {
 		err = mock.ExpectationsWereMet()
 		assert.NoError(t, err)
 	})
+
 }
 
 // TestReadValidation teste la lecture d'une validation
@@ -467,7 +470,6 @@ func TestReadValidation(t *testing.T) {
 }
 
 // TestUpdateValidation teste la méthode UpdateValidation du UserRepository
-// TestUpdateValidation teste la mise à jour d'une validation
 func TestUpdateValidation(t *testing.T) {
 	// Initialisation du repository, du mock et de la base de données
 	repo, mock, db := setup()
@@ -487,8 +489,8 @@ func TestUpdateValidation(t *testing.T) {
 	t.Run("successful update", func(t *testing.T) {
 		// Mock de la requête SQL pour la mise à jour de l'entité
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "validations" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"token"=\$4,"type"=\$5,"validated"=\$6,"client_id"=\$7,"employee_id"=\$8,"expires_at"=\$9 WHERE "validations"."deleted_at" IS NULL AND "id" = \$10`).
-			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, entity.Token, sqlmock.AnyArg(), sqlmock.AnyArg(), entity.ClientID, nil, entity.ExpiresAt, entity.ID).
+		mock.ExpectExec(`UPDATE "validations" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"token"=\$4,"type"=\$5,"validated"=\$6,"client_id"=\$7,"employee_id"=\$8,"credential_id"=\$9,"expires_at"=\$10 WHERE "validations"."deleted_at" IS NULL AND "id" = \$11`).
+			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, entity.Token, sqlmock.AnyArg(), sqlmock.AnyArg(), entity.ClientID, nil, nil, entity.ExpiresAt, entity.ID).
 			WillReturnResult(sqlmock.NewResult(1, 1)) // Succès de la mise à jour
 		mock.ExpectCommit()
 
@@ -519,8 +521,8 @@ func TestUpdateValidation(t *testing.T) {
 	t.Run("update failure", func(t *testing.T) {
 		// Mock pour simuler une erreur SQL lors de la mise à jour
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "validations" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"token"=\$4,"type"=\$5,"validated"=\$6,"client_id"=\$7,"employee_id"=\$8,"expires_at"=\$9 WHERE "validations"."deleted_at" IS NULL AND "id" = \$10`).
-			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, entity.Token, sqlmock.AnyArg(), sqlmock.AnyArg(), entity.ClientID, nil, entity.ExpiresAt, entity.ID).
+		mock.ExpectExec(`UPDATE "validations" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"token"=\$4,"type"=\$5,"validated"=\$6,"client_id"=\$7,"employee_id"=\$8,"credential_id"=\$9,"expires_at"=\$10 WHERE "validations"."deleted_at" IS NULL AND "id" = \$11`).
+			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, entity.Token, sqlmock.AnyArg(), sqlmock.AnyArg(), entity.ClientID, nil, nil, entity.ExpiresAt, entity.ID).
 			WillReturnError(errors.New("update failed")) // Simuler une erreur
 		mock.ExpectRollback()
 
@@ -863,11 +865,11 @@ func TestCreateEmployee(t *testing.T) {
 		// Insertion dans la table employees avec la colonne credential_id
 		mock.ExpectExec(`INSERT INTO "employees" \("id","created_at","updated_at","deleted_at","credential_id"\) VALUES \(\$1,\$2,\$3,\$4,\$5\)`).
 			WithArgs(
-				sqlmock.AnyArg(), // ID (UUID)
-				sqlmock.AnyArg(), // CreatedAt
-				sqlmock.AnyArg(), // UpdatedAt
-				nil,              // DeletedAt
-				nil,              // CredentialID
+				sqlmock.AnyArg(),  // ID (UUID)
+				sqlmock.AnyArg(),  // CreatedAt
+				sqlmock.AnyArg(),  // UpdatedAt
+				nil,               // DeletedAt
+				"credential-uuid", // CredentialID (mis à jour pour refléter la valeur correcte)
 			).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		mock.ExpectCommit()
@@ -889,11 +891,11 @@ func TestCreateEmployee(t *testing.T) {
 
 		mock.ExpectExec(`INSERT INTO "employees" \("id","created_at","updated_at","deleted_at","credential_id"\) VALUES \(\$1,\$2,\$3,\$4,\$5\)`).
 			WithArgs(
-				sqlmock.AnyArg(), // ID (UUID)
-				sqlmock.AnyArg(), // CreatedAt
-				sqlmock.AnyArg(), // UpdatedAt
-				nil,              // DeletedAt
-				nil,              // CredentialID
+				sqlmock.AnyArg(),  // ID (UUID)
+				sqlmock.AnyArg(),  // CreatedAt
+				sqlmock.AnyArg(),  // UpdatedAt
+				nil,               // DeletedAt
+				"credential-uuid", // CredentialID (mis à jour pour refléter la valeur correcte)
 			).WillReturnError(fmt.Errorf("creation error"))
 
 		mock.ExpectRollback()
@@ -909,6 +911,7 @@ func TestCreateEmployee(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
 func TestReadEmployee(t *testing.T) {
 	repo, mock, db := setup()
 	defer db.Close()
@@ -919,8 +922,8 @@ func TestReadEmployee(t *testing.T) {
 
 	t.Run("successful read", func(t *testing.T) {
 		// Ajustement de l'expression régulière pour matcher la requête SQL exacte
-		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL ORDER BY "employees"\."id" LIMIT \$2`).
-			WithArgs(dto.ID, 1).
+		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL AND "employees"\."id" = \$2 ORDER BY "employees"\."id" LIMIT \$3`).
+			WithArgs(dto.ID, dto.ID, 1).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "credential_id"}).AddRow(uuid, "credential-uuid"))
 
 		entity, err := repo.ReadEmployee(dto)
@@ -940,8 +943,8 @@ func TestReadEmployee(t *testing.T) {
 
 	t.Run("employee not found", func(t *testing.T) {
 		// Même ajustement pour la requête "not found"
-		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL ORDER BY "employees"\."id" LIMIT \$2`).
-			WithArgs(dto.ID, 1).
+		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL AND "employees"\."id" = \$2 ORDER BY "employees"\."id" LIMIT \$3`).
+			WithArgs(dto.ID, dto.ID, 1).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "credential_id"}))
 
 		entity, err := repo.ReadEmployee(dto)
@@ -1020,9 +1023,9 @@ func TestDeleteEmployee(t *testing.T) {
 
 	t.Run("successful deletion", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "employees" SET "deleted_at"=\$1 WHERE "employees"\."id" = \$2 AND "employees"\."deleted_at" IS NULL`).
-			WithArgs(sqlmock.AnyArg(), dto.ID).       // La date actuelle sera utilisée pour "deleted_at"
-			WillReturnResult(sqlmock.NewResult(1, 1)) // 1 ligne affectée par la suppression
+		mock.ExpectExec(`UPDATE "employees" SET "deleted_at"=\$1 WHERE "employees"\."id" = \$2 AND "employees"\."id" = \$3 AND "employees"\."deleted_at" IS NULL`).
+			WithArgs(sqlmock.AnyArg(), dto.ID, dto.ID). // Deux fois l'ID correspondant à deux conditions
+			WillReturnResult(sqlmock.NewResult(1, 1))   // 1 ligne affectée par la suppression
 		mock.ExpectCommit()
 
 		err := repo.DeleteEmployee(dto)
@@ -1034,8 +1037,8 @@ func TestDeleteEmployee(t *testing.T) {
 
 	t.Run("deletion failure", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "employees" SET "deleted_at"=\$1 WHERE "employees"\."id" = \$2 AND "employees"\."deleted_at" IS NULL`).
-			WithArgs(sqlmock.AnyArg(), dto.ID).
+		mock.ExpectExec(`UPDATE "employees" SET "deleted_at"=\$1 WHERE "employees"\."id" = \$2 AND "employees"\."id" = \$3 AND "employees"\."deleted_at" IS NULL`).
+			WithArgs(sqlmock.AnyArg(), dto.ID, dto.ID).
 			WillReturnError(fmt.Errorf("delete error"))
 		mock.ExpectRollback()
 

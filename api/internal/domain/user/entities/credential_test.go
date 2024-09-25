@@ -40,6 +40,9 @@ func TestNewCredential(t *testing.T) {
 	if credential.UpdatedAt.After(now) {
 		t.Errorf("Expected UpdatedAt to be before or equal to current time, got %s", credential.UpdatedAt)
 	}
+
+	assert.Equal(t, credential.IsPublic(), false)
+	assert.Equal(t, credential.GetOwnerID(), credential.ID)
 }
 
 func TestCredentialBefore(t *testing.T) {
