@@ -44,7 +44,7 @@ func TestEmployee_HasSuccessValidation(t *testing.T) {
 	assert.Equal(t, employee.IsPublic(), false)
 	assert.Equal(t, employee.GetOwnerID(), employee.ID)
 	employee.CredentialID = aws.String(uuid.New().String())
-	assert.Equal(t, employee.GetOwnerID(), employee.CredentialID)
+	assert.Equal(t, employee.GetOwnerID(), *employee.CredentialID)
 }
 
 func TestEmployeeHasNotExpiredValidation(t *testing.T) {
