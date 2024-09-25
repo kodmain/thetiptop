@@ -19,11 +19,11 @@ providers:
   databases:
     file:
       protocol: sqlite
-      dbname: ${PWD}/db.sqlite #uncomment this line to use a file 
+      dbname: ${PWD}/db.sqlite
       logger: true
     default:
       protocol: sqlite
-      dbname: ':memory:' # we need memory for test
+      dbname: ':memory:'
       logger: true
 
 security:
