@@ -9,7 +9,7 @@ paths:
     put:
       consumes:
       - multipart/form-data
-      operationId: user.UpdateClient
+      operationId: jwt.Auth => user.UpdateClient
       parameters:
       - description: Client ID
         format: uuid
@@ -23,6 +23,11 @@ paths:
         name: newsletter
         required: true
         type: boolean
+      - description: With the bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -43,12 +48,17 @@ paths:
       - Client
   /client/{id}:
     delete:
-      operationId: user.DeleteClient
+      operationId: jwt.Auth => user.DeleteClient
       parameters:
       - description: Client ID
         format: uuid
         in: path
         name: id
+        required: true
+        type: string
+      - description: With the bearer started
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -68,12 +78,17 @@ paths:
     get:
       consumes:
       - multipart/form-data
-      operationId: user.GetClient
+      operationId: jwt.Auth => user.GetClient
       parameters:
       - description: Client ID
         format: uuid
         in: path
         name: id
+        required: true
+        type: string
+      - description: With the bearer started
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -139,7 +154,7 @@ paths:
     put:
       consumes:
       - multipart/form-data
-      operationId: user.UpdateEmployee
+      operationId: jwt.Auth => user.UpdateEmployee
       parameters:
       - description: Employee ID
         format: uuid
@@ -153,6 +168,11 @@ paths:
         name: newsletter
         required: true
         type: boolean
+      - description: With the bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -173,12 +193,17 @@ paths:
       - Employee
   /employee/{id}:
     delete:
-      operationId: user.DeleteEmployee
+      operationId: jwt.Auth => user.DeleteEmployee
       parameters:
       - description: Employee ID
         format: uuid
         in: path
         name: id
+        required: true
+        type: string
+      - description: With the bearer started
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -198,12 +223,17 @@ paths:
     get:
       consumes:
       - multipart/form-data
-      operationId: user.GetEmployee
+      operationId: jwt.Auth => user.GetEmployee
       parameters:
       - description: Employee ID
         format: uuid
         in: path
         name: id
+        required: true
+        type: string
+      - description: With the bearer started
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -342,7 +372,7 @@ paths:
     put:
       consumes:
       - multipart/form-data
-      operationId: user.CredentialUpdate
+      operationId: jwt.Auth => user.CredentialUpdate
       parameters:
       - default: user-thetiptop@yopmail.com
         description: Email address

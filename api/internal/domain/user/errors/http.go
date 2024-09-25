@@ -2,8 +2,9 @@ package errors
 
 const (
 	// common errors
-	ErrNoDto  = "no data transfer object provided"
-	ErrNoData = "no data provided"
+	ErrNoDto        = "no data transfer object provided"
+	ErrNoData       = "no data provided"
+	ErrUnauthorized = "unauthorized"
 
 	// user errors
 	ErrUserNotFound = "user not found"

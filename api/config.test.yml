@@ -1,8 +1,10 @@
 services:
   client:
     database: default
+    mail: default
   employee:
     database: default
+    mail: default
 
 providers:
   mails:
@@ -17,18 +19,18 @@ providers:
   databases:
     file:
       protocol: sqlite
-      dbname: ${PWD}/db.sqlite #uncomment this line to use a file 
+      dbname: ${PWD}/db.sqlite
       logger: true
     default:
       protocol: sqlite
-      dbname: ':memory:' # we need memory for test
+      dbname: ':memory:'
       logger: true
 
 security:
   validation:
     expire: 30m
   jwt:
-    #tz: Europe/Paris
+    tz: Europe/Paris
     secret: secret
     expire: 15
     refresh: 30

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -15,6 +16,10 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
+const (
+	DEFAULT = "default"
+)
+
 var (
 	cfg *Config
 )
@@ -22,6 +27,7 @@ var (
 type Config struct {
 	Services map[string]struct {
 		Database string `yaml:"database"`
+		Mail     string `yaml:"mail"`
 	} `yaml:"services"`
 	Providers struct {
 		Mails     map[string]*mail.Config     `yaml:"mails"`
@@ -45,7 +51,7 @@ type Config struct {
 //
 // Returns:
 // - interface{} The retrieved value from cfg, or defaultValue if the key is not found or value is nil.
-func Get(key string, defaultValue interface{}) interface{} {
+func Get(key string, defaultValue any) any {
 	if cfg == nil {
 		return defaultValue
 	}
@@ -58,27 +64,70 @@ func Get(key string, defaultValue interface{}) interface{} {
 			val = val.Elem()
 		}
 
-		if val.Kind() == reflect.Struct {
+		switch val.Kind() {
+		case reflect.Struct:
 			val = val.FieldByNameFunc(func(name string) bool {
 				return strings.EqualFold(elem, name)
 			})
-		} else if val.Kind() == reflect.Map {
+		case reflect.Map:
 			val = val.MapIndex(reflect.ValueOf(elem))
-		} else {
+		default:
 			return defaultValue
 		}
 
-		if val.Kind() == reflect.Ptr && val.IsNil() {
+		if !val.IsValid() {
 			return defaultValue
 		}
 	}
 
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
+	finalValue := convertValue(val.Interface(), defaultValue)
+	return finalValue
+}
+
+func convertValue(val any, defaultValue any) any {
+	switch defaultValue.(type) {
+	case int:
+		switch v := val.(type) {
+		case string:
+			if intValue, err := strconv.Atoi(v); err == nil {
+				return intValue
+			}
+		case int:
+			return v
+		}
+	case string:
+		return reflect.ValueOf(val).String()
+	case bool:
+		switch v := val.(type) {
+		case string:
+			if boolValue, err := strconv.ParseBool(v); err == nil {
+				return boolValue
+			}
+		case bool:
+			return v
+		}
+	default:
+		return val
 	}
 
-	if val.IsValid() && !val.IsZero() {
-		return val.Interface()
+	return defaultValue
+}
+
+func GetInt(key string, defaultValue int) int {
+	value := Get(key, defaultValue)
+
+	if intValue, ok := value.(int); ok {
+		return intValue
+	}
+
+	return defaultValue
+}
+
+func GetString(key string, defaultValue string) string {
+	value := Get(key, defaultValue)
+
+	if strValue, ok := value.(string); ok {
+		return strValue
 	}
 
 	return defaultValue

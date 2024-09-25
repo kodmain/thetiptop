@@ -51,7 +51,7 @@ func TestUserAuth(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler le cas où le client n'est pas trouvé
-		mockClient.On("UserAuth", mock.Anything).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		mockClient.On("UserAuth", mock.Anything).Return(nil, "", fmt.Errorf(errors.ErrClientNotFound))
 
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &email,
@@ -67,7 +67,7 @@ func TestUserAuth(t *testing.T) {
 		assert.NoError(t, err)
 		mockClient := new(DomainUserService)
 		// Simuler un cas réussi avec une Credential valide et un ClientID valide
-		mockClient.On("UserAuth", mock.Anything).Return(&ids, nil)
+		mockClient.On("UserAuth", mock.Anything).Return(&ids, "", nil)
 
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &email,

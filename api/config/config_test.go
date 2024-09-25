@@ -25,6 +25,54 @@ func TestLoad(t *testing.T) {
 	assert.Error(t, err) // This test will fail because no credentials are provided
 }
 
+func TestGetString(t *testing.T) {
+	config.Load(aws.String("../config.test.yml"))
+	assert.Equal(t, "fake", config.GetString("providers.databases.toto", "fake"))
+	assert.Equal(t, "default", config.GetString("services.client.database", "default"))
+}
+
+func TestGetInt(t *testing.T) {
+	config.Load(aws.String("../config.test.yml"))
+	assert.Equal(t, 3, config.GetInt("providers.databases", 3))
+	assert.Equal(t, 1025, config.GetInt("providers.mails.default.port", 3))
+}
+
+func TestAll(t *testing.T) {
+	config.Load(aws.String("../config.test.yml"))
+
+	// Services
+	assert.Equal(t, "default", config.Get("services.client.database", "default-value"))
+	assert.Equal(t, "default", config.Get("services.client.mail", "default-value"))
+	assert.Equal(t, "default", config.Get("services.employee.database", "default-value"))
+	assert.Equal(t, "default", config.Get("services.employee.mail", "default-value"))
+
+	// Providers - mails
+	assert.Equal(t, "secret", config.Get("providers.mails.default.username", "default-value"))
+	assert.Equal(t, "secret", config.Get("providers.mails.default.password", "default-value"))
+	assert.Equal(t, "localhost", config.Get("providers.mails.default.host", "default-value"))
+	assert.Equal(t, 1025, config.GetInt("providers.mails.default.port", 0))
+	assert.Equal(t, "Whoami", config.Get("providers.mails.default.expeditor", "default-value"))
+	assert.Equal(t, "whoami@localhost", config.Get("providers.mails.default.from", "default-value"))
+
+	// Providers - databases
+	assert.Equal(t, "sqlite", config.Get("providers.databases.file.protocol", "default-value"))
+	assert.Contains(t, config.Get("providers.databases.file.dbname", "default-value"), "db.sqlite")
+	assert.Equal(t, true, config.Get("providers.databases.file.logger", false))
+
+	assert.Equal(t, "sqlite", config.Get("providers.databases.default.protocol", "default-value"))
+	assert.Equal(t, ":memory:", config.Get("providers.databases.default.dbname", "default-value"))
+	assert.Equal(t, true, config.Get("providers.databases.default.logger", false))
+
+	// Security - validation
+	assert.Equal(t, "30m", config.Get("security.validation.expire", "default-value"))
+
+	// Security - jwt
+	assert.Equal(t, "Europe/Paris", config.Get("security.jwt.tz", "default-value"))
+	assert.Equal(t, "secret", config.Get("security.jwt.secret", "default-value"))
+	assert.Equal(t, 15, config.GetInt("security.jwt.expire", 0))
+	assert.Equal(t, 30, config.GetInt("security.jwt.refresh", 0))
+}
+
 func TestGet(t *testing.T) {
 	// Reset config before running tests
 	config.Reset()
