@@ -19,8 +19,8 @@ func TestHasInClient(t *testing.T) {
 	assert.Nil(t, vs.Has(MailValidation))
 
 	assert.Equal(t, v.IsPublic(), false)
-	assert.Equal(t, v.GetOwnerID(), v.CredentialID)
+	assert.Empty(t, v.GetOwnerID())
 	v.CredentialID = aws.String(uuid.New().String())
-	assert.Equal(t, v.GetOwnerID(), v.CredentialID)
+	assert.Equal(t, v.GetOwnerID(), *v.CredentialID)
 
 }
