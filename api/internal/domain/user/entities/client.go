@@ -77,6 +77,10 @@ func (client *Client) IsPublic() bool {
 }
 
 func (client *Client) GetOwnerID() string {
+	if client.CredentialID == nil {
+		return ""
+	}
+
 	return *client.CredentialID
 }
 

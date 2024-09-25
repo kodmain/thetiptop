@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
@@ -39,6 +40,11 @@ func TestEmployee_HasSuccessValidation(t *testing.T) {
 
 	result = employee.HasSuccessValidation(entities.MailValidation)
 	assert.Nil(t, result)
+
+	assert.Equal(t, employee.IsPublic(), false)
+	assert.Equal(t, employee.GetOwnerID(), employee.ID)
+	employee.CredentialID = aws.String(uuid.New().String())
+	assert.Equal(t, employee.GetOwnerID(), employee.ID)
 }
 
 func TestEmployeeHasNotExpiredValidation(t *testing.T) {

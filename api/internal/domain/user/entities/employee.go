@@ -73,6 +73,10 @@ func (e *Employee) IsPublic() bool {
 }
 
 func (e *Employee) GetOwnerID() string {
+	if e.CredentialID == nil {
+		return ""
+	}
+
 	return *e.CredentialID
 }
 
