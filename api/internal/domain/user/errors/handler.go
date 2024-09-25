@@ -1,7 +1,6 @@
 package errors
 
-import "github.com/gofiber/fiber/v2"
-
+/*
 func HTTPResponse(err error) (int, string) {
 	switch err.Error() {
 	case ErrClientNotFound:
@@ -14,3 +13,4 @@ func HTTPResponse(err error) (int, string) {
 	}
 	return fiber.StatusInternalServerError, err.Error()
 }
+*/
