@@ -66,9 +66,7 @@ func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities
 		return nil, fmt.Errorf(errors.ErrUnauthorized)
 	}
 
-	if err := data.UpdateEntityWithDto(employee, dtoEmployee); err != nil {
-		return nil, err
-	}
+	data.UpdateEntityWithDto(employee, dtoEmployee)
 
 	if err := s.repo.UpdateEmployee(employee); err != nil {
 		return nil, err
