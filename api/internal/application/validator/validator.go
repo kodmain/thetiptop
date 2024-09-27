@@ -1,13 +1,12 @@
 package validator
 
 import (
-	"errors"
-	"fmt"
 	"net/mail"
 	"reflect"
 	"strings"
 	"unicode"
 
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 )
 
@@ -16,69 +15,69 @@ const (
 	CANT_BE_NIL = false
 )
 
-func Required(value any, name string) error {
+func Required(value any, name string) errors.ErrorInterface {
 	if value == nil || (reflect.ValueOf(value).Kind() == reflect.Ptr && reflect.ValueOf(value).IsNil()) {
-		return fmt.Errorf("value %v is required", name)
+		return errors.ErrBadRequest.WithData("value %v is required", name)
 	}
 
 	return nil
 }
 
-func Email(value any, name string) error {
+func Email(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrString(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a string", name)
+		return errors.ErrBadRequest.WithData("%v is not a string", name)
 	}
 
 	_, err := mail.ParseAddress(*str)
-	return err
+	return errors.FromErr(err, errors.ErrBadRequest)
 }
 
-func Luhn(value any, name string) error {
+func Luhn(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrString(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a string", name)
+		return errors.ErrBadRequest.WithData("%v is not a string", name)
 	}
 
 	luhn := token.Luhn(*str)
 
-	return luhn.Validate()
+	return errors.FromErr(luhn.Validate(), errors.ErrBadRequest)
 }
 
-func ID(value any, name string) error {
+func ID(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrString(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a string", name)
+		return errors.ErrBadRequest.WithData("%v is not a string", name)
 	}
 
 	id := *str
 	if len(id) != 36 || id[8] != '-' || id[13] != '-' || id[18] != '-' || id[23] != '-' {
-		return errors.New("invalid UUID")
+		return errors.ErrBadRequest.WithData("invalid UUID")
 	}
 
 	return nil
 }
 
-func Password(value any, name string) error {
+func Password(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrString(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a string", name)
+		return errors.ErrBadRequest.WithData("%v is not a string", name)
 	}
 
 	var (
@@ -127,54 +126,54 @@ func Password(value any, name string) error {
 	}
 
 	if len(errs) > 0 {
-		return errors.New("invalid password: \n" + strings.Join(errs, "\n"))
+		return errors.ErrBadRequest.WithData("invalid password: \n" + strings.Join(errs, "\n"))
 	}
 
 	return nil
 }
 
-func IsTrue(value any, name string) error {
+func IsTrue(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrBool(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a boolean", name)
+		return errors.ErrBadRequest.WithData("%v is not a boolean", name)
 	}
 
 	if !*str {
-		return fmt.Errorf("%v sould be true", name)
+		return errors.ErrBadRequest.WithData("%v sould be true", name)
 	}
 
 	return nil
 }
 
-func IsFalse(value any, name string) error {
+func IsFalse(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrBool(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a boolean", name)
+		return errors.ErrBadRequest.WithData("%v is not a boolean", name)
 	}
 
 	if *str {
-		return fmt.Errorf("%v sould be false", name)
+		return errors.ErrBadRequest.WithData("%v sould be false", name)
 	}
 
 	return nil
 }
 
-func IsBool(value any, name string) error {
+func IsBool(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrBool(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a boolean", name)
+		return errors.ErrBadRequest.WithData("%v is not a boolean", name)
 	}
 
 	return nil

@@ -1,7 +1,6 @@
 package services_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -48,7 +47,7 @@ func TestRegisterClient(t *testing.T) {
 			CGU:        trueValue,
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value newsletter is required", response)
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("invalid cgu", func(t *testing.T) {
@@ -63,7 +62,7 @@ func TestRegisterClient(t *testing.T) {
 			CGU:        falseValue, // CGU doit être à true
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "cgu sould be true", response)
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("valid password and fields", func(t *testing.T) {
@@ -86,7 +85,7 @@ func TestRegisterClient(t *testing.T) {
 	t.Run("client already exists", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler le cas où le client existe déjà
-		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf(errors.ErrCredentialAlreadyExists))
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, errors.ErrCredentialAlreadyExists)
 
 		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
 			Email:    &email,
@@ -102,7 +101,7 @@ func TestRegisterClient(t *testing.T) {
 	t.Run("server error during registration", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler une erreur serveur lors de la tentative d'enregistrement
-		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf("server error"))
+		mockClient.On("RegisterClient", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Client")).Return(nil, errors.ErrInternalServer.WithData("server error"))
 
 		statusCode, response := services.RegisterClient(mockClient, &transfert.Credential{
 			Email:    &email,
@@ -112,7 +111,7 @@ func TestRegisterClient(t *testing.T) {
 			CGU:        trueValue,
 		})
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Equal(t, "server error", response)
+		assert.Error(t, response.(*errors.Error))
 	})
 }
 
@@ -181,7 +180,7 @@ func TestMailValidation(t *testing.T) {
 	t.Run("validation not found", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Configuration du mock pour renvoyer l'erreur "validation not found"
-		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationNotFound))
+		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, errors.ErrValidationNotFound)
 
 		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: luhn.PointerString(),
@@ -196,7 +195,7 @@ func TestMailValidation(t *testing.T) {
 
 	t.Run("validation already validated", func(t *testing.T) {
 		mockClient := new(DomainUserService)
-		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationExpired))
+		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, errors.ErrValidationExpired)
 
 		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: luhn.PointerString(),
@@ -205,14 +204,14 @@ func TestMailValidation(t *testing.T) {
 		})
 		assert.Equal(t, fiber.StatusGone, statusCode)
 		assert.NotNil(t, response)
-		assert.Equal(t, errors.ErrValidationExpired, response.(string))
+		assert.Equal(t, errors.ErrValidationExpired, response)
 	})
 
 	// Cas où la validation a déjà été effectuée
 	t.Run("validation already validated", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Configuration du mock pour renvoyer l'erreur "validation already validated"
-		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(errors.ErrValidationAlreadyValidated))
+		mockClient.On("MailValidation", mock.Anything, mock.Anything).Return(nil, errors.ErrValidationAlreadyValidated)
 
 		statusCode, response := services.MailValidation(mockClient, &transfert.Validation{
 			Token: luhn.PointerString(),
@@ -239,7 +238,7 @@ func TestValidationRecover(t *testing.T) {
 		})
 		// Ajustement du message d'erreur pour correspondre à celui renvoyé par le validateur
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "mail: missing '@' or angle-addr", response)
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("invalid email", func(t *testing.T) {
@@ -252,7 +251,7 @@ func TestValidationRecover(t *testing.T) {
 		})
 		// Ajustement du message d'erreur pour correspondre à celui renvoyé par le validateur
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value type is required", response)
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("successful recovery", func(t *testing.T) {
@@ -273,7 +272,7 @@ func TestValidationRecover(t *testing.T) {
 	t.Run("client not found", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Mock pour simuler un client non trouvé
-		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(fmt.Errorf(errors.ErrUserNotFound))
+		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(errors.ErrUserNotFound)
 
 		statusCode, response := services.ValidationRecover(mockClient, &transfert.Credential{
 			Email: aws.String(email),
@@ -290,7 +289,7 @@ func TestValidationRecover(t *testing.T) {
 	t.Run("other error", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Mock pour simuler un client non trouvé
-		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(fmt.Errorf("random error"))
+		mockClient.On("ValidationRecover", mock.AnythingOfType("*transfert.Validation"), mock.AnythingOfType("*transfert.Credential")).Return(errors.ErrInternalServer.WithData("random error"))
 
 		statusCode, response := services.ValidationRecover(mockClient, &transfert.Credential{
 			Email: aws.String(email),
@@ -299,8 +298,8 @@ func TestValidationRecover(t *testing.T) {
 		})
 
 		// Correction des attentes pour vérifier le bon statut et message
-		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "random error", response)
+		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
+		assert.Error(t, response.(*errors.Error))
 		mockClient.AssertExpectations(t)
 	})
 }
@@ -315,7 +314,7 @@ func TestUpdateClient(t *testing.T) {
 			Newsletter: aws.Bool(true),
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value id is required", response) // Ajustement du message attendu
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("invalid newsletter data", func(t *testing.T) {
@@ -327,7 +326,7 @@ func TestUpdateClient(t *testing.T) {
 			Newsletter: nil,                                                // Valeur incorrecte pour Newsletter
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value newsletter is required", response) // Message attendu pour erreur booléenne
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("successful client update", func(t *testing.T) {
@@ -350,7 +349,7 @@ func TestUpdateClient(t *testing.T) {
 	t.Run("client update error", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler une erreur lors de la mise à jour du client
-		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(fmt.Errorf("update error"))
+		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(errors.ErrInternalServer.WithData("update error"))
 
 		// Fournir un UUID valide mais avec un champ Newsletter manquant (incomplet)
 		statusCode, response := services.UpdateClient(mockClient, &transfert.Client{
@@ -359,14 +358,14 @@ func TestUpdateClient(t *testing.T) {
 		})
 		// La validation va échouer avant que `UpdateClient` ne soit appelé, donc nous testons cela
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value newsletter is required", response) // Message d'erreur attendu
-		mockClient.AssertNotCalled(t, "UpdateClient")             // Vérifier que le mock n'a pas été appelé
+		assert.Error(t, response.(*errors.Error))
+		mockClient.AssertNotCalled(t, "UpdateClient") // Vérifier que le mock n'a pas été appelé
 	})
 
 	t.Run("client update error", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler une erreur lors de la mise à jour du client
-		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(nil, fmt.Errorf("update error"))
+		mockClient.On("UpdateClient", mock.AnythingOfType("*transfert.Client")).Return(nil, errors.ErrInternalServer.WithData("update error"))
 
 		// Fournir un UUID valide mais avec un champ Newsletter manquant (incomplet)
 		statusCode, response := services.UpdateClient(mockClient, &transfert.Client{
@@ -375,7 +374,7 @@ func TestUpdateClient(t *testing.T) {
 		})
 		// La validation va échouer avant que `UpdateClient` ne soit appelé, donc nous testons cela
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Equal(t, "update error", response)     // Message d'erreur attendu
+		assert.Error(t, response.(*errors.Error))
 		mockClient.AssertNotCalled(t, "UpdateClient") // Vérifier que le mock n'a pas été appelé
 	})
 
@@ -394,7 +393,7 @@ func TestGetClient(t *testing.T) {
 
 		// Vérifications
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value id is required", response)
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("client not found", func(t *testing.T) {
@@ -405,7 +404,7 @@ func TestGetClient(t *testing.T) {
 		}
 
 		// Simuler la réponse du service qui ne trouve pas le client
-		mockService.On("GetClient", dtoClient).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		mockService.On("GetClient", dtoClient).Return(nil, errors.ErrClientNotFound)
 
 		// Appel de la méthode
 		statusCode, response := services.GetClient(mockService, dtoClient)
@@ -424,14 +423,14 @@ func TestGetClient(t *testing.T) {
 		}
 
 		// Simuler une erreur interne inattendue
-		mockService.On("GetClient", dtoClient).Return(nil, fmt.Errorf("internal error"))
+		mockService.On("GetClient", dtoClient).Return(nil, errors.ErrInternalServer.WithData("internal error"))
 
 		// Appel de la méthode
 		statusCode, response := services.GetClient(mockService, dtoClient)
 
 		// Vérifications
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Equal(t, "internal error", response)
+		assert.Error(t, response.(*errors.Error))
 		mockService.AssertExpectations(t)
 	})
 
@@ -473,7 +472,7 @@ func TestDeleteClient(t *testing.T) {
 
 		// Vérifier le résultat
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value id is required", response)
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("should return 404 if client not found", func(t *testing.T) {
@@ -485,7 +484,7 @@ func TestDeleteClient(t *testing.T) {
 		dtoClient := &transfert.Client{ID: &clientID}
 
 		// Configurer le mock pour renvoyer une erreur client non trouvé
-		mockService.On("DeleteClient", dtoClient).Return(fmt.Errorf(errors.ErrClientNotFound))
+		mockService.On("DeleteClient", dtoClient).Return(errors.ErrClientNotFound)
 
 		// Appel de la fonction DeleteClient
 		statusCode, response := services.DeleteClient(mockService, dtoClient)
@@ -505,14 +504,14 @@ func TestDeleteClient(t *testing.T) {
 		dtoClient := &transfert.Client{ID: &clientID}
 
 		// Configurer le mock pour renvoyer une erreur interne
-		mockService.On("DeleteClient", dtoClient).Return(fmt.Errorf("internal error"))
+		mockService.On("DeleteClient", dtoClient).Return(errors.ErrInternalServer.WithData("internal error"))
 
 		// Appel de la fonction DeleteClient
 		statusCode, response := services.DeleteClient(mockService, dtoClient)
 
 		// Vérifier le résultat
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Equal(t, "internal error", response)
+		assert.Error(t, response.(*errors.Error))
 		mockService.AssertExpectations(t)
 	})
 

@@ -1,34 +1,32 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
-func (s *UserService) RegisterClient(dtoCredential *transfert.Credential, dtoClient *transfert.Client) (*entities.Client, error) {
+func (s *UserService) RegisterClient(dtoCredential *transfert.Credential, dtoClient *transfert.Client) (*entities.Client, errors.ErrorInterface) {
 	if dtoCredential == nil || dtoClient == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
+		return nil, errors.ErrNoDto
 	}
 
 	_, err := s.repo.ReadCredential(dtoCredential)
 	if err == nil {
-		return nil, fmt.Errorf(errors.ErrClientAlreadyExists)
+		return nil, errors.ErrClientAlreadyExists
 	}
 
 	credential, err := s.repo.CreateCredential(dtoCredential)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	dtoClient.CredentialID = &credential.ID
 
 	client, err := s.repo.CreateClient(dtoClient)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	client.Validations = append(client.Validations, &entities.Validation{
@@ -37,11 +35,11 @@ func (s *UserService) RegisterClient(dtoCredential *transfert.Credential, dtoCli
 	})
 
 	if err := s.repo.UpdateClient(client); err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	if err := s.repo.UpdateCredential(credential); err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	go s.sendValidationMail(credential, client.Validations[0])
@@ -49,9 +47,9 @@ func (s *UserService) RegisterClient(dtoCredential *transfert.Credential, dtoCli
 	return client, nil
 }
 
-func (s *UserService) UpdateClient(dtoClient *transfert.Client) (*entities.Client, error) {
+func (s *UserService) UpdateClient(dtoClient *transfert.Client) (*entities.Client, errors.ErrorInterface) {
 	if dtoClient == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
+		return nil, errors.ErrNoDto
 	}
 
 	client, err := s.repo.ReadClient(&transfert.Client{
@@ -59,55 +57,55 @@ func (s *UserService) UpdateClient(dtoClient *transfert.Client) (*entities.Clien
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf(errors.ErrClientNotFound)
+		return nil, errors.ErrClientNotFound
 	}
 
 	if !s.security.CanUpdate(client) {
-		return nil, fmt.Errorf(errors.ErrUnauthorized)
+		return nil, errors.ErrUnauthorized
 	}
 
 	data.UpdateEntityWithDto(client, dtoClient)
 
 	if err := s.repo.UpdateClient(client); err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	return client, nil
 }
 
-func (s *UserService) DeleteClient(dtoClient *transfert.Client) error {
+func (s *UserService) DeleteClient(dtoClient *transfert.Client) errors.ErrorInterface {
 	if dtoClient == nil {
-		return fmt.Errorf(errors.ErrNoDto)
+		return errors.ErrNoDto
 	}
 
 	client, err := s.repo.ReadClient(dtoClient)
 	if err != nil {
-		return fmt.Errorf(errors.ErrClientNotFound)
+		return errors.ErrClientNotFound
 	}
 
 	if !s.security.CanDelete(client) {
-		return fmt.Errorf(errors.ErrUnauthorized)
+		return errors.ErrUnauthorized
 	}
 
 	if err := s.repo.DeleteClient(dtoClient); err != nil {
-		return err
+		return errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	return nil
 }
 
-func (s *UserService) GetClient(dtoClient *transfert.Client) (*entities.Client, error) {
+func (s *UserService) GetClient(dtoClient *transfert.Client) (*entities.Client, errors.ErrorInterface) {
 	if dtoClient == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
+		return nil, errors.ErrNoDto
 	}
 
 	client, err := s.repo.ReadClient(dtoClient)
 	if err != nil {
-		return nil, fmt.Errorf(errors.ErrClientNotFound)
+		return nil, errors.ErrClientNotFound
 	}
 
 	if !s.security.CanRead(client) {
-		return nil, fmt.Errorf(errors.ErrUnauthorized)
+		return nil, errors.ErrUnauthorized
 	}
 
 	return client, nil

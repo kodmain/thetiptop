@@ -1,7 +1,6 @@
 package services_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -42,7 +41,7 @@ func TestRegisterEmployee(t *testing.T) {
 
 	t.Run("employee already exists", func(t *testing.T) {
 		mockService := new(DomainUserService)
-		mockService.On("RegisterEmployee", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Employee")).Return(nil, fmt.Errorf(errors.ErrCredentialAlreadyExists))
+		mockService.On("RegisterEmployee", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Employee")).Return(nil, errors.ErrCredentialAlreadyExists)
 
 		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
 			Email:    &email,
@@ -54,14 +53,14 @@ func TestRegisterEmployee(t *testing.T) {
 
 	t.Run("server error during registration", func(t *testing.T) {
 		mockService := new(DomainUserService)
-		mockService.On("RegisterEmployee", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Employee")).Return(nil, fmt.Errorf("server error"))
+		mockService.On("RegisterEmployee", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Employee")).Return(nil, errors.ErrInternalServer.WithData("server error"))
 
 		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
 			Email:    &email,
 			Password: &password,
 		}, &transfert.Employee{})
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Equal(t, "server error", response)
+		assert.Error(t, response.(errors.ErrorInterface))
 	})
 }
 
@@ -73,7 +72,7 @@ func TestDeleteEmployee(t *testing.T) {
 		statusCode, response := services.DeleteEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value id is required", response)
+		assert.Error(t, response.(errors.ErrorInterface))
 	})
 
 	t.Run("should return 404 if employee not found", func(t *testing.T) {
@@ -81,7 +80,7 @@ func TestDeleteEmployee(t *testing.T) {
 		employeeID := "123e4567-e89b-12d3-a456-426614174000"
 		dtoEmployee := &transfert.Employee{ID: &employeeID}
 
-		mockService.On("DeleteEmployee", dtoEmployee).Return(fmt.Errorf(errors.ErrEmployeeNotFound))
+		mockService.On("DeleteEmployee", dtoEmployee).Return(errors.ErrEmployeeNotFound)
 
 		statusCode, response := services.DeleteEmployee(mockService, dtoEmployee)
 
@@ -95,12 +94,12 @@ func TestDeleteEmployee(t *testing.T) {
 		employeeID := "123e4567-e89b-12d3-a456-426614174000"
 		dtoEmployee := &transfert.Employee{ID: &employeeID}
 
-		mockService.On("DeleteEmployee", dtoEmployee).Return(fmt.Errorf("internal error"))
+		mockService.On("DeleteEmployee", dtoEmployee).Return(errors.ErrInternalServer.WithData("internal error"))
 
 		statusCode, response := services.DeleteEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Equal(t, "internal error", response)
+		assert.Error(t, response.(errors.ErrorInterface))
 		mockService.AssertExpectations(t)
 	})
 
@@ -126,31 +125,33 @@ func TestUpdateEmployee(t *testing.T) {
 			ID: nil, // ID manquant
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value id is required", response)
+		assert.Error(t, response.(errors.ErrorInterface))
 	})
 
 	t.Run("successful employee update", func(t *testing.T) {
 		mockService := new(DomainUserService)
-		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, nil)
+		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(&entities.Employee{
+			ID: "123e4567-e89b-12d3-a456-426614174000",
+		}, nil)
 
 		statusCode, response := services.UpdateEmployee(mockService, &transfert.Employee{
 			ID: aws.String("123e4567-e89b-12d3-a456-426614174000"),
 		})
 
 		assert.Equal(t, fiber.StatusOK, statusCode)
-		assert.Nil(t, response)
+		assert.NotNil(t, response)
 		mockService.AssertExpectations(t)
 	})
 
 	t.Run("employee update error", func(t *testing.T) {
 		mockService := new(DomainUserService)
-		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, fmt.Errorf("update error"))
+		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, errors.ErrInternalServer.WithData("update error"))
 
 		statusCode, response := services.UpdateEmployee(mockService, &transfert.Employee{
 			ID: aws.String("123e4567-e89b-12d3-a456-426614174000"),
 		})
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Equal(t, "update error", response)
+		assert.Error(t, response.(errors.ErrorInterface))
 		mockService.AssertExpectations(t)
 	})
 }
@@ -163,7 +164,7 @@ func TestGetEmployee(t *testing.T) {
 		statusCode, response := services.GetEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Equal(t, "value id is required", response)
+		assert.Error(t, response.(errors.ErrorInterface))
 	})
 
 	t.Run("employee not found", func(t *testing.T) {
@@ -172,7 +173,7 @@ func TestGetEmployee(t *testing.T) {
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
 		}
 
-		mockService.On("GetEmployee", dtoEmployee).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound))
+		mockService.On("GetEmployee", dtoEmployee).Return(nil, errors.ErrEmployeeNotFound)
 
 		statusCode, response := services.GetEmployee(mockService, dtoEmployee)
 
@@ -187,12 +188,12 @@ func TestGetEmployee(t *testing.T) {
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
 		}
 
-		mockService.On("GetEmployee", dtoEmployee).Return(nil, fmt.Errorf("random error"))
+		mockService.On("GetEmployee", dtoEmployee).Return(nil, errors.ErrInternalServer.WithData("random error"))
 
 		statusCode, response := services.GetEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Equal(t, "random error", response)
+		assert.Error(t, response.(errors.ErrorInterface))
 		mockService.AssertExpectations(t)
 	})
 

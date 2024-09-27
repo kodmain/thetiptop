@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
@@ -21,25 +20,15 @@ import (
 // - any: The response object, which can be an error message in case of failure, or nil for successful deletion
 func DeleteClient(service services.UserServiceInterface, dtoClient *transfert.Client) (int, any) {
 	// Validation of the client ID
-	err := dtoClient.Check(data.Validator{
+	if err := dtoClient.Check(data.Validator{
 		"id": {validator.Required, validator.ID},
-	})
-
-	// Return 400 if validation fails
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
 	// Attempt to delete the client using the service
-	err = service.DeleteClient(dtoClient)
-	if err != nil {
-		// Handle specific error cases like client not found
-		if err.Error() == errors.ErrClientNotFound {
-			return fiber.StatusNotFound, err.Error()
-		}
-
-		// Return 500 for any internal server errors
-		return fiber.StatusInternalServerError, err.Error()
+	if err := service.DeleteClient(dtoClient); err != nil {
+		return err.Code(), err
 	}
 
 	// Return 204 if the deletion is successful with no content
@@ -47,74 +36,54 @@ func DeleteClient(service services.UserServiceInterface, dtoClient *transfert.Cl
 }
 
 func GetClient(service services.UserServiceInterface, dtoClient *transfert.Client) (int, any) {
-	err := dtoClient.Check(data.Validator{
+	if err := dtoClient.Check(data.Validator{
 		"id": {validator.Required, validator.ID},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
 	client, err := service.GetClient(dtoClient)
 	if err != nil {
-		if err.Error() == errors.ErrClientNotFound {
-			return fiber.StatusNotFound, err.Error()
-		}
-
-		return fiber.StatusInternalServerError, err.Error()
+		return err.Code(), err
 	}
 
 	return fiber.StatusOK, client
 }
 
 func UpdateClient(service services.UserServiceInterface, clientDTO *transfert.Client) (int, any) {
-	err := clientDTO.Check(data.Validator{
+	if err := clientDTO.Check(data.Validator{
 		"id":         {validator.Required, validator.ID},
 		"newsletter": {validator.IsBool},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
 	client, err := service.UpdateClient(clientDTO)
 	if err != nil {
-		if err.Error() == errors.ErrClientNotFound {
-			return fiber.StatusNotFound, err.Error()
-		}
-
-		return fiber.StatusInternalServerError, err.Error()
+		return err.Code(), err
 	}
 
 	return fiber.StatusOK, client
 }
 
 func RegisterClient(service services.UserServiceInterface, credentialDTO *transfert.Credential, clientDTO *transfert.Client) (int, any) {
-	err := credentialDTO.Check(data.Validator{
+	if err := credentialDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
-	err = clientDTO.Check(data.Validator{
+	if err := clientDTO.Check(data.Validator{
 		"newsletter": {validator.Required, validator.IsBool},
 		"cgu":        {validator.Required, validator.IsBool, validator.IsTrue},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
 	credential, err := service.RegisterClient(credentialDTO, clientDTO)
 	if err != nil {
-		if err.Error() == errors.ErrCredentialAlreadyExists {
-			return fiber.StatusConflict, err.Error()
-		}
-
-		return fiber.StatusInternalServerError, err.Error()
+		return err.Code(), err
 	}
 
 	return fiber.StatusCreated, credential

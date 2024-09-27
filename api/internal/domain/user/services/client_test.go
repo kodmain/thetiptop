@@ -62,7 +62,7 @@ func TestClientRegister(t *testing.T) {
 		result, err := service.RegisterClient(nil, nil)
 		require.Error(t, err)
 		require.Nil(t, result)
-		require.Equal(t, errors.ErrNoDto, err.Error())
+		require.Equal(t, errors.ErrNoDto, err)
 	})
 
 	t.Run("client already exists", func(t *testing.T) {
@@ -74,7 +74,7 @@ func TestClientRegister(t *testing.T) {
 
 		client, err := service.RegisterClient(dtoCredential, dtoClient)
 		assert.Nil(t, client)
-		assert.EqualError(t, err, errors.ErrClientAlreadyExists)
+		assert.EqualError(t, err, errors.ErrClientAlreadyExists.Error())
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -163,7 +163,7 @@ func TestUpdateClient(t *testing.T) {
 		client, err := service.UpdateClient(nil)
 
 		// Vérifier que l'erreur est bien une erreur "No DTO"
-		assert.EqualError(t, err, errors.ErrNoDto)
+		assert.EqualError(t, err, errors.ErrNoDto.Error())
 		assert.Nil(t, client)
 	})
 
@@ -172,13 +172,13 @@ func TestUpdateClient(t *testing.T) {
 
 		// Simuler un client non trouvé dans la base de données
 		mockRepo.On("ReadClient", mock.AnythingOfType("*transfert.Client")).
-			Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+			Return(nil, fmt.Errorf(errors.ErrClientNotFound.Error()))
 
 		// Appel du service avec un client introuvable
 		client, err := service.UpdateClient(&transfert.Client{ID: aws.String("invalid-id")})
 
 		// Vérifier que l'erreur est bien une erreur "Client not found"
-		assert.EqualError(t, err, errors.ErrClientNotFound)
+		assert.EqualError(t, err, errors.ErrClientNotFound.Error())
 		assert.Nil(t, client)
 
 		// Vérifier que les attentes du mock sont respectées
@@ -202,7 +202,7 @@ func TestUpdateClient(t *testing.T) {
 		client, err := service.UpdateClient(&transfert.Client{ID: aws.String("valid-id")})
 
 		// Vérifier que l'erreur est bien une erreur "Unauthorized"
-		assert.EqualError(t, err, errors.ErrUnauthorized)
+		assert.EqualError(t, err, errors.ErrUnauthorized.Error())
 		assert.Nil(t, client)
 
 		// Vérifier que les attentes du mock sont respectées
@@ -310,7 +310,7 @@ func TestGetClient(t *testing.T) {
 		// Vérifier que l'erreur est retournée
 		require.Error(t, err)
 		require.Nil(t, client)
-		assert.EqualError(t, err, errors.ErrNoDto)
+		assert.EqualError(t, err, errors.ErrNoDto.Error())
 	})
 
 	t.Run("cant read client", func(t *testing.T) {
@@ -352,7 +352,7 @@ func TestGetClient(t *testing.T) {
 		}
 
 		// Simuler la réponse du repository qui ne trouve pas le client
-		mockRepo.On("ReadClient", dummyClientDTO).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		mockRepo.On("ReadClient", dummyClientDTO).Return(nil, fmt.Errorf(errors.ErrClientNotFound.Error()))
 
 		// Appeler la méthode du service
 		client, err := service.GetClient(dummyClientDTO)
@@ -360,7 +360,7 @@ func TestGetClient(t *testing.T) {
 		// Vérifier que l'erreur est retournée
 		require.Error(t, err)
 		require.Nil(t, client)
-		assert.EqualError(t, err, errors.ErrClientNotFound)
+		assert.EqualError(t, err, errors.ErrClientNotFound.Error())
 
 		// Vérifier les attentes sur le mock
 		mockRepo.AssertExpectations(t)
@@ -374,7 +374,7 @@ func TestDeleteClient(t *testing.T) {
 		service := services.User(mockPermission, mockRepo, nil)
 
 		err := service.DeleteClient(nil)
-		assert.EqualError(t, err, errors.ErrNoDto)
+		assert.EqualError(t, err, errors.ErrNoDto.Error())
 	})
 
 	t.Run("should return error if client not found", func(t *testing.T) {
@@ -387,13 +387,13 @@ func TestDeleteClient(t *testing.T) {
 		dtoClient := &transfert.Client{ID: clientID}
 
 		// Simuler la lecture du client
-		mockRepo.On("ReadClient", dtoClient).Return(nil, fmt.Errorf(errors.ErrClientNotFound))
+		mockRepo.On("ReadClient", dtoClient).Return(nil, fmt.Errorf(errors.ErrClientNotFound.Error()))
 
 		// Appel du service pour supprimer le client
 		err := service.DeleteClient(dtoClient)
 
 		// Vérifier que l'erreur est bien celle attendue
-		assert.EqualError(t, err, errors.ErrClientNotFound)
+		assert.EqualError(t, err, errors.ErrClientNotFound.Error())
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -415,7 +415,7 @@ func TestDeleteClient(t *testing.T) {
 		err := service.DeleteClient(dtoClient)
 
 		// Vérifier que l'erreur est bien celle attendue
-		assert.EqualError(t, err, errors.ErrUnauthorized)
+		assert.EqualError(t, err, errors.ErrUnauthorized.Error())
 		mockRepo.AssertExpectations(t)
 		mockPermission.AssertExpectations(t)
 	})
