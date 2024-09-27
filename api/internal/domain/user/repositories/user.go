@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -78,10 +77,10 @@ func (r *UserRepository) ReadUser(obj *transfert.User) (*entities.Client, *entit
 
 	// Si aucune des deux entités n'est trouvée, retourner une erreur
 	if resultClient.Error != nil && resultEmployee.Error != nil {
-		return nil, nil, fmt.Errorf("user not found: neither client nor employee matches the provided ID or credential")
+		return nil, nil, errors.ErrUserNotFound
 	}
 
-	return nil, nil, fmt.Errorf("unknown error occurred")
+	return nil, nil, errors.ErrUnknown
 }
 
 func (r *UserRepository) CreateCredential(obj *transfert.Credential) (*entities.Credential, error) {
@@ -97,7 +96,7 @@ func (r *UserRepository) CreateCredential(obj *transfert.Credential) (*entities.
 	result := r.store.Engine.Create(credential)
 	if result.Error != nil {
 		if result.Error.Error() == "UNIQUE constraint failed: credentials.email" {
-			return nil, fmt.Errorf(errors.ErrCredentialAlreadyExists)
+			return nil, errors.ErrCredentialAlreadyExists
 		}
 
 		return nil, result.Error

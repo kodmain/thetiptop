@@ -2,7 +2,6 @@ package repositories_test
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
@@ -117,7 +117,7 @@ func TestCreateCredential(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
-		assert.Equal(t, "credential already exists", err.Error())
+		assert.Equal(t, errors.ErrCredentialAlreadyExists.Error(), err.Error())
 
 		err = mock.ExpectationsWereMet()
 		assert.NoError(t, err)
@@ -370,7 +370,7 @@ func TestCreateValidation(t *testing.T) {
 				nil,              // EmployeeID (probablement NULL)
 				nil,              // CredentialID (probablement NULL)
 				sqlmock.AnyArg(), // ExpiresAt
-			).WillReturnError(errors.New("some error"))
+			).WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
 		entity, err := repo.CreateValidation(dto)
@@ -453,7 +453,7 @@ func TestReadValidation(t *testing.T) {
 		// Mock pour simuler une erreur SQL
 		mock.ExpectQuery(`SELECT \* FROM "validations" WHERE \("validations"\."token" = \$1 AND "validations"\."client_id" = \$2\) AND "validations"\."deleted_at" IS NULL ORDER BY "validations"\."id" LIMIT \$3`).
 			WithArgs(dto.Token, dto.ClientID, 1).
-			WillReturnError(errors.New("some error")) // Simuler une erreur
+			WillReturnError(fmt.Errorf("some error")) // Simuler une erreur
 
 		// Appel de la méthode ReadValidation du repository
 		result, err := repo.ReadValidation(dto)
@@ -523,7 +523,7 @@ func TestUpdateValidation(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`UPDATE "validations" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"token"=\$4,"type"=\$5,"validated"=\$6,"client_id"=\$7,"employee_id"=\$8,"credential_id"=\$9,"expires_at"=\$10 WHERE "validations"."deleted_at" IS NULL AND "id" = \$11`).
 			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, entity.Token, sqlmock.AnyArg(), sqlmock.AnyArg(), entity.ClientID, nil, nil, entity.ExpiresAt, entity.ID).
-			WillReturnError(errors.New("update failed")) // Simuler une erreur
+			WillReturnError(fmt.Errorf("update failed")) // Simuler une erreur
 		mock.ExpectRollback()
 
 		// Appel de la méthode UpdateValidation
@@ -589,7 +589,7 @@ func TestDeleteValidationRepository(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`UPDATE "validations" SET "deleted_at"=\$1 WHERE \("validations"\."token" = \$2 AND "validations"\."client_id" = \$3\) AND "validations"\."deleted_at" IS NULL`).
 			WithArgs(sqlmock.AnyArg(), dto.Token, dto.ClientID).
-			WillReturnError(errors.New("some error")) // Simuler une erreur
+			WillReturnError(fmt.Errorf("some error")) // Simuler une erreur
 		mock.ExpectRollback()
 
 		// Appel de la méthode DeleteValidation
@@ -1149,7 +1149,7 @@ func TestReadUser(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Nil(t, client)
 		assert.Nil(t, employee)
-		assert.EqualError(t, err, "user not found: neither client nor employee matches the provided ID or credential")
+		assert.EqualError(t, err, "user.not_found")
 	})
 
 	t.Run("error on reading client and employee", func(t *testing.T) {
@@ -1163,12 +1163,12 @@ func TestReadUser(t *testing.T) {
 		// Simuler une erreur lors de la lecture des clients
 		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL LIMIT 1`).
 			WithArgs(dto.ToClient().ID).
-			WillReturnError(errors.New("some client error"))
+			WillReturnError(fmt.Errorf("some client error"))
 
 		// Simuler une erreur lors de la lecture des employés
 		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL LIMIT 1`).
 			WithArgs(dto.ToClient().ID).
-			WillReturnError(errors.New("some employee error"))
+			WillReturnError(fmt.Errorf("some employee error"))
 
 		client, employee, err := repo.ReadUser(dto)
 
@@ -1176,6 +1176,6 @@ func TestReadUser(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Nil(t, client)
 		assert.Nil(t, employee)
-		assert.EqualError(t, err, "user not found: neither client nor employee matches the provided ID or credential")
+		assert.EqualError(t, err, "user.not_found")
 	})
 }

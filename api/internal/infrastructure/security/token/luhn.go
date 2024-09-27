@@ -1,7 +1,6 @@
 package token
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -45,7 +44,7 @@ func (l Luhn) Validate() error {
 
 	// Si le total modulo 10 n'est pas égal à 0, alors le nombre est invalide.
 	if sum%10 != 0 {
-		return errors.New("invalid number")
+		return fmt.Errorf("invalid number")
 	}
 
 	return nil
@@ -87,7 +86,7 @@ func calculateLuhnSum(number string, parity int) (int64, error) {
 	var sum int64
 	for i, d := range number {
 		if d < asciiZero || d > asciiTen {
-			return 0, errors.New("invalid digit")
+			return 0, fmt.Errorf("invalid digit")
 		}
 
 		d = d - asciiZero

@@ -1,9 +1,9 @@
 package data_test
 
 import (
-	"errors"
 	"testing"
 
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
@@ -12,14 +12,14 @@ func TestValidator_Check(t *testing.T) {
 	ns1 := newString("value1")
 	ns2 := newString("value2")
 	// setup control functions
-	successControl := func(value any, name string) error {
+	successControl := func(value any, name string) errors.ErrorInterface {
 		stringValue, ok := value.(*string)
 		if !ok {
-			return errors.New("value is not a string")
+			return errors.ErrBadRequest.WithData("value is not a string")
 		}
 
 		if value == nil || *stringValue == "" {
-			return errors.New("value is empty")
+			return errors.ErrBadRequest.WithData("value is empty")
 		}
 		return nil
 	}

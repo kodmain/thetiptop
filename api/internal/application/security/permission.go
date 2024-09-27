@@ -15,28 +15,27 @@ type PermissionInterface interface {
 
 type UserAccess struct {
 	CredentialID string
-	Role         []string
+	Role         string
 }
 
 type Rule func(p *UserAccess, r entities.Entity) bool
 
 func (p *UserAccess) IsGranted(roles ...string) bool {
 	for _, role := range roles {
-		for _, userRole := range p.Role {
-			if userRole == role {
-				return true
-			}
+		if p.Role == role {
+			return true
 		}
 	}
+
 	return false
 }
 
 func (p *UserAccess) CanRead(ressource entities.Entity, rules ...Rule) bool {
-	if p.IsGranted("admin") || ressource.IsPublic() {
+	if p.CredentialID == ressource.GetOwnerID() && p.CredentialID != "" {
 		return true
 	}
 
-	if p.CredentialID == ressource.GetOwnerID() {
+	if ressource.IsPublic() {
 		return true
 	}
 
@@ -50,7 +49,7 @@ func (p *UserAccess) CanRead(ressource entities.Entity, rules ...Rule) bool {
 }
 
 func (p *UserAccess) CanCreate(ressource entities.Entity, rules ...Rule) bool {
-	if p.IsGranted("admin") || p.CredentialID == ressource.GetOwnerID() {
+	if p.CredentialID == ressource.GetOwnerID() && p.CredentialID != "" {
 		return true
 	}
 
@@ -64,7 +63,7 @@ func (p *UserAccess) CanCreate(ressource entities.Entity, rules ...Rule) bool {
 }
 
 func (p *UserAccess) CanUpdate(ressource entities.Entity, rules ...Rule) bool {
-	if p.IsGranted("admin") || p.CredentialID == ressource.GetOwnerID() {
+	if p.CredentialID == ressource.GetOwnerID() && p.CredentialID != "" {
 		return true
 	}
 
@@ -78,7 +77,7 @@ func (p *UserAccess) CanUpdate(ressource entities.Entity, rules ...Rule) bool {
 }
 
 func (p *UserAccess) CanDelete(ressource entities.Entity, rules ...Rule) bool {
-	if p.IsGranted("admin") || p.CredentialID == ressource.GetOwnerID() {
+	if p.CredentialID == ressource.GetOwnerID() && p.CredentialID != "" {
 		return true
 	}
 
@@ -96,6 +95,11 @@ func NewUserAccess(token any) *UserAccess {
 	if token != nil {
 		if token, ok := token.(*jwt.Token); ok {
 			p.CredentialID = token.ID
+			if role, exists := token.Data["role"]; exists {
+				if roleStr, ok := role.(string); ok {
+					p.Role = roleStr
+				}
+			}
 		}
 	}
 

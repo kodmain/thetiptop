@@ -1,10 +1,10 @@
 package jwt
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/password"
 )
 
@@ -68,17 +68,17 @@ func New(t *JWT) error {
 	return nil
 }
 
-func FromID(id string, datas ...map[string]any) (string, string, error) {
+func FromID(id string, datas ...map[string]any) (string, string, errors.ErrorInterface) {
 	var data map[string]any
 	if len(datas) > 1 {
-		return "", "", fmt.Errorf("too many data passe one argument only")
+		return "", "", errors.ErrInternalServer.WithData("serializer/jwt: too many data")
 	} else if len(datas) == 1 {
 		data = datas[0]
 	}
 
 	location, err := time.LoadLocation(instance.TZ)
 	if err != nil {
-		return "", "", err
+		return "", "", errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	now := time.Now().In(location)
@@ -95,7 +95,7 @@ func FromID(id string, datas ...map[string]any) (string, string, error) {
 
 	refresh, err := token.SignedString([]byte(instance.Secret))
 	if err != nil {
-		return "", "", err
+		return "", "", errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	token = jwt.NewWithClaims(jwt.SigningMethodHS256, Token{
@@ -109,27 +109,27 @@ func FromID(id string, datas ...map[string]any) (string, string, error) {
 
 	access, err := token.SignedString([]byte(instance.Secret))
 	if err != nil {
-		return "", "", err
+		return "", "", errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	return access, refresh, nil
 }
 
-func TokenToClaims(tokenString string) (*Token, error) {
+func TokenToClaims(tokenString string) (*Token, errors.ErrorInterface) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method")
+			return nil, errors.ErrUnauthorized.WithData("unexpected signing method")
 		}
 		return []byte(instance.Secret), nil
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrUnauthorized)
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, fmt.Errorf("invalid token claims")
+		return nil, errors.ErrUnauthorized.WithData("invalid token claims")
 	}
 
 	return fromClaims(claims), nil

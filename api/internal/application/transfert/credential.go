@@ -1,8 +1,6 @@
 package transfert
 
 import (
-	"fmt"
-
 	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
@@ -13,7 +11,7 @@ type Credential struct {
 	Password *string `json:"password" xml:"password" form:"password"`
 }
 
-func (c *Credential) Check(validator data.Validator) error {
+func (c *Credential) Check(validator data.Validator) errors.ErrorInterface {
 	return validator.Check(data.Object{
 		"email":    c.Email,
 		"password": c.Password,
@@ -22,7 +20,7 @@ func (c *Credential) Check(validator data.Validator) error {
 
 func NewCredential(obj data.Object, mandatory data.Validator) (*Credential, error) {
 	if obj == nil {
-		return nil, fmt.Errorf(errors.ErrNoData)
+		return nil, errors.ErrNoData
 	}
 
 	c := &Credential{}

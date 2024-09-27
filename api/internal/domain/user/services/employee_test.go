@@ -59,7 +59,7 @@ func TestEmployeeRegister(t *testing.T) {
 		result, err := service.RegisterEmployee(nil, nil)
 		require.Error(t, err)
 		require.Nil(t, result)
-		require.Equal(t, errors.ErrNoDto, err.Error())
+		require.Equal(t, errors.ErrNoDto, err)
 	})
 
 	t.Run("employee already exists", func(t *testing.T) {
@@ -71,7 +71,7 @@ func TestEmployeeRegister(t *testing.T) {
 
 		Employee, err := service.RegisterEmployee(dtoCredential, dtoEmployee)
 		assert.Nil(t, Employee)
-		assert.EqualError(t, err, errors.ErrEmployeeAlreadyExists)
+		assert.EqualError(t, err, errors.ErrEmployeeAlreadyExists.Error())
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -162,7 +162,7 @@ func TestGetEmployee(t *testing.T) {
 		// Vérifier que l'erreur est retournée
 		require.Error(t, err)
 		require.Nil(t, employee)
-		assert.EqualError(t, err, errors.ErrNoDto)
+		assert.EqualError(t, err, errors.ErrNoDto.Error())
 	})
 
 	t.Run("employee not found", func(t *testing.T) {
@@ -170,11 +170,11 @@ func TestGetEmployee(t *testing.T) {
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 
-		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound))
+		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound.Error()))
 
 		employee, err := service.GetEmployee(dtoEmployee)
 		assert.Nil(t, employee)
-		assert.EqualError(t, err, errors.ErrEmployeeNotFound)
+		assert.EqualError(t, err, errors.ErrEmployeeNotFound.Error())
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -231,7 +231,7 @@ func TestDeleteEmployee(t *testing.T) {
 		service := services.User(mockPermission, mockRepo, nil)
 
 		err := service.DeleteEmployee(nil)
-		assert.EqualError(t, err, errors.ErrNoDto)
+		assert.EqualError(t, err, errors.ErrNoDto.Error())
 	})
 
 	t.Run("should return error if employee not found", func(t *testing.T) {
@@ -244,13 +244,13 @@ func TestDeleteEmployee(t *testing.T) {
 		dtoEmployee := &transfert.Employee{ID: employeeID}
 
 		// Simuler la lecture du employee
-		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound))
+		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound.Error()))
 
 		// Appel du service pour supprimer le employee
 		err := service.DeleteEmployee(dtoEmployee)
 
 		// Vérifier que l'erreur est bien celle attendue
-		assert.EqualError(t, err, errors.ErrEmployeeNotFound)
+		assert.EqualError(t, err, errors.ErrEmployeeNotFound.Error())
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -272,7 +272,7 @@ func TestDeleteEmployee(t *testing.T) {
 		err := service.DeleteEmployee(dtoEmployee)
 
 		// Vérifier que l'erreur est bien celle attendue
-		assert.EqualError(t, err, errors.ErrUnauthorized)
+		assert.EqualError(t, err, errors.ErrUnauthorized.Error())
 		mockRepo.AssertExpectations(t)
 		mockPermission.AssertExpectations(t)
 	})
@@ -336,7 +336,7 @@ func TestUpdateEmployee(t *testing.T) {
 		employee, err := service.UpdateEmployee(nil)
 
 		// Vérifier que l'erreur est bien une erreur "No DTO"
-		assert.EqualError(t, err, errors.ErrNoDto)
+		assert.EqualError(t, err, errors.ErrNoDto.Error())
 		assert.Nil(t, employee)
 	})
 
@@ -345,11 +345,11 @@ func TestUpdateEmployee(t *testing.T) {
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 
-		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound))
+		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound.Error()))
 
 		employee, err := service.UpdateEmployee(dtoEmployee)
 		assert.Nil(t, employee)
-		assert.EqualError(t, err, errors.ErrEmployeeNotFound)
+		assert.EqualError(t, err, errors.ErrEmployeeNotFound.Error())
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -370,7 +370,7 @@ func TestUpdateEmployee(t *testing.T) {
 		employee, err := service.UpdateEmployee(&transfert.Employee{ID: aws.String("valid-id")})
 
 		// Vérifier que l'erreur est bien une erreur "Unauthorized"
-		assert.EqualError(t, err, errors.ErrUnauthorized)
+		assert.EqualError(t, err, errors.ErrUnauthorized.Error())
 		assert.Nil(t, employee)
 
 		// Vérifier que les attentes du mock sont respectées

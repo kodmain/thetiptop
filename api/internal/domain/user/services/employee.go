@@ -1,34 +1,32 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
-func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	if dtoCredential == nil || dtoEmployee == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
+		return nil, errors.ErrNoDto
 	}
 
 	_, err := s.repo.ReadCredential(dtoCredential)
 	if err == nil {
-		return nil, fmt.Errorf(errors.ErrEmployeeAlreadyExists)
+		return nil, errors.ErrEmployeeAlreadyExists
 	}
 
 	credential, err := s.repo.CreateCredential(dtoCredential)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	dtoEmployee.CredentialID = &credential.ID
 
 	employee, err := s.repo.CreateEmployee(dtoEmployee)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	employee.Validations = append(employee.Validations, &entities.Validation{
@@ -37,11 +35,11 @@ func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoE
 	})
 
 	if err := s.repo.UpdateEmployee(employee); err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	if err := s.repo.UpdateCredential(credential); err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	go s.sendValidationMail(credential, employee.Validations[0])
@@ -49,9 +47,9 @@ func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoE
 	return employee, nil
 }
 
-func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	if dtoEmployee == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
+		return nil, errors.ErrNoDto
 	}
 
 	employee, err := s.repo.ReadEmployee(&transfert.Employee{
@@ -59,55 +57,55 @@ func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf(errors.ErrEmployeeNotFound)
+		return nil, errors.ErrEmployeeNotFound
 	}
 
 	if !s.security.CanUpdate(employee) {
-		return nil, fmt.Errorf(errors.ErrUnauthorized)
+		return nil, errors.ErrUnauthorized
 	}
 
 	data.UpdateEntityWithDto(employee, dtoEmployee)
 
 	if err := s.repo.UpdateEmployee(employee); err != nil {
-		return nil, err
+		return nil, errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	return employee, nil
 }
 
-func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) error {
+func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) errors.ErrorInterface {
 	if dtoEmployee == nil {
-		return fmt.Errorf(errors.ErrNoDto)
+		return errors.ErrNoDto
 	}
 
 	employee, err := s.repo.ReadEmployee(dtoEmployee)
 	if err != nil {
-		return fmt.Errorf(errors.ErrEmployeeNotFound)
+		return errors.ErrEmployeeNotFound
 	}
 
 	if !s.security.CanDelete(employee) {
-		return fmt.Errorf(errors.ErrUnauthorized)
+		return errors.ErrUnauthorized
 	}
 
 	if err := s.repo.DeleteEmployee(dtoEmployee); err != nil {
-		return err
+		return errors.FromErr(err, errors.ErrInternalServer)
 	}
 
 	return nil
 }
 
-func (s *UserService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+func (s *UserService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	if dtoEmployee == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
+		return nil, errors.ErrNoDto
 	}
 
 	employee, err := s.repo.ReadEmployee(dtoEmployee)
 	if err != nil {
-		return nil, fmt.Errorf(errors.ErrEmployeeNotFound)
+		return nil, errors.ErrEmployeeNotFound
 	}
 
 	if !s.security.CanRead(employee) {
-		return nil, fmt.Errorf(errors.ErrUnauthorized)
+		return nil, errors.ErrUnauthorized
 	}
 
 	return employee, nil

@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -26,104 +27,119 @@ type DomainUserService struct {
 	mu sync.Mutex
 }
 
-func (dcs *DomainUserService) GetClient(client *transfert.Client) (*entities.Client, error) {
+func (dcs *DomainUserService) GetClient(client *transfert.Client) (*entities.Client, errors.ErrorInterface) {
 	args := dcs.Called(client)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Client), args.Error(1)
+	return args.Get(0).(*entities.Client), nil
 }
 
-func (dcs *DomainUserService) PasswordRecover(obj *transfert.Credential) error {
-	args := dcs.Called(obj)
-	return args.Error(0)
-}
-
-func (dcs *DomainUserService) UserAuth(obj *transfert.Credential) (*string, string, error) {
+func (dcs *DomainUserService) PasswordRecover(obj *transfert.Credential) errors.ErrorInterface {
 	args := dcs.Called(obj)
 	if args.Get(0) == nil {
-		return nil, "", args.Error(2) // Retourne nil pour *string et l'erreur s'il y en a une
+		return nil
 	}
-
-	return args.Get(0).(*string), args.Get(1).(string), args.Error(2)
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (dcs *DomainUserService) MailValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, error) {
+func (dcs *DomainUserService) UserAuth(obj *transfert.Credential) (*string, string, errors.ErrorInterface) {
+	args := dcs.Called(obj)
+	if args.Get(0) == nil {
+		return nil, "", args.Get(2).(errors.ErrorInterface) // Retourne nil pour *string et l'erreur s'il y en a une
+	}
+
+	return args.Get(0).(*string), args.Get(1).(string), nil
+}
+
+func (dcs *DomainUserService) MailValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, errors.ErrorInterface) {
 	args := dcs.Called(validation, credential)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Validation), args.Error(1)
+	return args.Get(0).(*entities.Validation), nil
 }
 
-func (dcs *DomainUserService) ValidationRecover(validation *transfert.Validation, credential *transfert.Credential) error {
+func (dcs *DomainUserService) ValidationRecover(validation *transfert.Validation, credential *transfert.Credential) errors.ErrorInterface {
 	args := dcs.Called(validation, credential)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (dcs *DomainUserService) PasswordValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, error) {
+func (dcs *DomainUserService) PasswordValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, errors.ErrorInterface) {
 	dcs.mu.Lock()
 	defer dcs.mu.Unlock()
 
 	args := dcs.Called(validation, credential)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Validation), args.Error(1)
+	return args.Get(0).(*entities.Validation), nil
 }
 
-func (dcs *DomainUserService) UpdateClient(client *transfert.Client) (*entities.Client, error) {
+func (dcs *DomainUserService) UpdateClient(client *transfert.Client) (*entities.Client, errors.ErrorInterface) {
 	args := dcs.Called(client)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
 
-	return args.Get(0).(*entities.Client), args.Error(1)
+	return args.Get(0).(*entities.Client), nil
 }
 
-func (dcs *DomainUserService) DeleteClient(client *transfert.Client) error {
+func (dcs *DomainUserService) DeleteClient(client *transfert.Client) errors.ErrorInterface {
 	args := dcs.Called(client)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (dcs *DomainUserService) PasswordUpdate(credential *transfert.Credential) error {
+func (dcs *DomainUserService) PasswordUpdate(credential *transfert.Credential) errors.ErrorInterface {
 	args := dcs.Called(credential)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (dcs *DomainUserService) RegisterClient(credential *transfert.Credential, client *transfert.Client) (*entities.Client, error) {
+func (dcs *DomainUserService) RegisterClient(credential *transfert.Credential, client *transfert.Client) (*entities.Client, errors.ErrorInterface) {
 	args := dcs.Called(credential, client)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Client), args.Error(1)
+	return args.Get(0).(*entities.Client), nil
 }
 
-func (dcs *DomainUserService) RegisterEmployee(credential *transfert.Credential, employee *transfert.Employee) (*entities.Employee, error) {
+func (dcs *DomainUserService) RegisterEmployee(credential *transfert.Credential, employee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	args := dcs.Called(credential, employee)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Employee), args.Error(1)
+	return args.Get(0).(*entities.Employee), nil
 }
 
-func (dcs *DomainUserService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+func (dcs *DomainUserService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	args := dcs.Called(dtoEmployee)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Employee), args.Error(1)
+	return args.Get(0).(*entities.Employee), nil
 }
 
-func (dcs *DomainUserService) DeleteEmployee(dtoEmployee *transfert.Employee) error {
-	args := dcs.Called(dtoEmployee)
-	return args.Error(0)
-}
-
-func (dcs *DomainUserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+func (dcs *DomainUserService) DeleteEmployee(dtoEmployee *transfert.Employee) errors.ErrorInterface {
 	args := dcs.Called(dtoEmployee)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil
 	}
-	return args.Get(0).(*entities.Employee), args.Error(1)
+	return args.Get(0).(errors.ErrorInterface)
+}
+
+func (dcs *DomainUserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
+	args := dcs.Called(dtoEmployee)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(errors.ErrorInterface)
+	}
+	return args.Get(0).(*entities.Employee), nil
 }
