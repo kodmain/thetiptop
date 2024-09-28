@@ -1,9 +1,5 @@
 package errors
 
-import (
-	"encoding/json"
-)
-
 type ErrorInterface interface {
 	Error() string
 	Code() int
@@ -32,18 +28,9 @@ func (e *Error) Error() string {
 func (e *Error) WithData(a ...any) *Error {
 	return &Error{
 		code:    e.code,
-		message: e.Error(),
+		message: e.message,
 		data:    a,
 	}
-}
-
-func (e *Error) Marshal() ([]byte, error) {
-	serialized := map[string]any{
-		"code":    e.code,
-		"message": e.Error(),
-		"data":    e.data,
-	}
-	return json.Marshal(serialized)
 }
 
 func FromErr(err error, code ErrorInterface) ErrorInterface {
@@ -63,11 +50,16 @@ func FromErr(err error, code ErrorInterface) ErrorInterface {
 }
 
 func new(code int, message string) *Error {
-	registredErrors[message] = &Error{
+	err := &Error{
 		code:    code,
 		message: message,
-		data:    nil,
 	}
 
-	return registredErrors[message]
+	registredErrors[message] = err
+
+	return err
+}
+
+func ListErrors() map[string]*Error {
+	return registredErrors
 }
