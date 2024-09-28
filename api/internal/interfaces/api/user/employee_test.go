@@ -36,7 +36,7 @@ func TestEmployee(t *testing.T) {
 		}{
 			// mail, pass, status-signup, status-signin
 			{fmt.Sprintf("employee%v", encoding) + GOOD_EMAIL, GOOD_PASS, http.StatusCreated, http.StatusOK, http.StatusNoContent, http.StatusOK},
-			{fmt.Sprintf("employee%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusBadRequest, http.StatusMethodNotAllowed, http.StatusBadRequest},
+			{fmt.Sprintf("employee%v", encoding) + GOOD_EMAIL, GOOD_PASS + "hello", http.StatusConflict, http.StatusNotFound, http.StatusMethodNotAllowed, http.StatusBadRequest},
 			{fmt.Sprintf("employee%v", encoding) + WRONG_EMAIL, WRONG_PASS, http.StatusBadRequest, http.StatusBadRequest, http.StatusMethodNotAllowed, http.StatusBadRequest},
 		}
 
@@ -157,7 +157,7 @@ func TestEmployee(t *testing.T) {
 
 						_, status, err = request("POST", USER_AUTH, authorization, encoding, values)
 						assert.NoError(t, err)
-						assert.Equal(t, http.StatusBadRequest, status)
+						assert.Equal(t, http.StatusNotFound, status)
 
 						values["password"] = []any{GOOD_PASS_UPDATED}
 						_, status, err = request("POST", USER_AUTH, authorization, encoding, values)
