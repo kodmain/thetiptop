@@ -150,6 +150,17 @@ paths:
       summary: Register a client.
       tags:
       - Client
+  /code/error:
+    get:
+      consumes:
+      - multipart/form-data
+      operationId: code.ListErrors
+      produces:
+      - application/json
+      responses: {}
+      summary: List all code errors.
+      tags:
+      - Error
   /employee:
     put:
       consumes:
