@@ -8,7 +8,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

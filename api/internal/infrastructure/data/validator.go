@@ -1,6 +1,6 @@
 package data
 
-import "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
+import "github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 
 type Control func(any, string) errors.ErrorInterface
 type Validator map[string][]Control

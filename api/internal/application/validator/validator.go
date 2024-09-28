@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 )
 

@@ -3,8 +3,8 @@ package data_test
 import (
 	"testing"
 
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 )
 
 func TestValidator_Check(t *testing.T) {
