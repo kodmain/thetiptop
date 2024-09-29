@@ -21,7 +21,7 @@ type Client struct {
 	Validations  Validations `gorm:"foreignKey:ClientID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
 
 	// Additional fields
-	CGU        *bool `gorm:"type:boolean;default:fal" json:"cgu"`
+	CGU        *bool `gorm:"type:boolean;default:false" json:"cgu"`
 	Newsletter *bool `gorm:"type:boolean;default:false" json:"newsletter"`
 }
 
