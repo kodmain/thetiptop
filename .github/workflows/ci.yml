@@ -23,17 +23,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      - name: What is next version?
-        id: semver
-        uses: ietf-tools/semver-action@v1
-        with:
-          token: ${{ github.token }}
-          branch: main
-          skipInvalidTags: true
-          noVersionBumpBehavior: patch
-          noNewCommitBehavior: current
-          patchList: 'vendor, update, fix, bugfix, perf, refactor, test, tests, chore, ci, docs, improve, style, build, revert, improvement, enhancement, coverage, clean'
 
       - name: Setup Go
         uses: actions/setup-go@v5
