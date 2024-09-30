@@ -78,8 +78,6 @@ func start(http, https int) error {
 	config.Load(aws.String("../../../../config.test.yml"))
 	logger.Info("starting application")
 	srv = server.Create()
-
-	logger.Warn(*env.PORT_HTTP)
 	srv.Register(interfaces.Endpoints)
 
 	return srv.Start()
@@ -185,10 +183,6 @@ func createRequest(method, uri, token string, form map[string][]any, encoding En
 		if len(form) > 0 {
 			formValues := createFormValues(form)
 			uri = fmt.Sprintf("%s?%s", uri, formValues.Encode())
-		}
-
-		if method == http.MethodDelete {
-			logger.Warn("DELETE", uri)
 		}
 
 		req, err = http.NewRequest(method, uri, nil)
