@@ -68,17 +68,10 @@ func New(t *JWT) error {
 	return nil
 }
 
-func FromID(id string, datas ...map[string]any) (string, string, errors.ErrorInterface) {
-	var data map[string]any
-	if len(datas) > 1 {
-		return "", "", errors.ErrInternalServer.WithData("serializer/jwt: too many data")
-	} else if len(datas) == 1 {
-		data = datas[0]
-	}
-
+func FromID(id string, data map[string]any) (string, string, errors.ErrorInterface) {
 	location, err := time.LoadLocation(instance.TZ)
 	if err != nil {
-		return "", "", errors.FromErr(err, errors.ErrInternalServer)
+		return "", "", errors.ErrAuthInvalidToken
 	}
 
 	now := time.Now().In(location)
@@ -95,7 +88,7 @@ func FromID(id string, datas ...map[string]any) (string, string, errors.ErrorInt
 
 	refresh, err := token.SignedString([]byte(instance.Secret))
 	if err != nil {
-		return "", "", errors.FromErr(err, errors.ErrInternalServer)
+		return "", "", errors.ErrAuthInvalidToken
 	}
 
 	token = jwt.NewWithClaims(jwt.SigningMethodHS256, Token{
@@ -109,7 +102,7 @@ func FromID(id string, datas ...map[string]any) (string, string, errors.ErrorInt
 
 	access, err := token.SignedString([]byte(instance.Secret))
 	if err != nil {
-		return "", "", errors.FromErr(err, errors.ErrInternalServer)
+		return "", "", errors.ErrAuthInvalidToken
 	}
 
 	return access, refresh, nil
@@ -118,18 +111,18 @@ func FromID(id string, datas ...map[string]any) (string, string, errors.ErrorInt
 func TokenToClaims(tokenString string) (*Token, errors.ErrorInterface) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.ErrUnauthorized.WithData("unexpected signing method")
+			return nil, errors.ErrAuthFailed
 		}
 		return []byte(instance.Secret), nil
 	})
 
 	if err != nil {
-		return nil, errors.FromErr(err, errors.ErrUnauthorized)
+		return nil, errors.ErrAuthFailed
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, errors.ErrUnauthorized.WithData("invalid token claims")
+		return nil, errors.ErrAuthFailed
 	}
 
 	return fromClaims(claims), nil

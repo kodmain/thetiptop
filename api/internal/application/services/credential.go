@@ -38,20 +38,17 @@ func UserAuth(service services.UserServiceInterface, credentialDTO *transfert.Cr
 }
 
 func UserAuthRenew(refresh *serializer.Token) (int, any) {
-	var err errors.ErrorInterface = errors.ErrBadRequest
+	var err errors.ErrorInterface = errors.ErrAuthInvalidToken
 	if refresh == nil {
-		err.WithData("missing token")
 		return err.Code(), err
 	}
 
 	err = errors.ErrUnauthorized
 	if refresh.Type != serializer.REFRESH {
-		err.WithData("invalid token type")
 		return err.Code(), err
 	}
 
 	if refresh.HasExpired() {
-		err.WithData("refresh token has expired")
 		return err.Code(), err
 	}
 

@@ -32,13 +32,13 @@ func Parser(c *fiber.Ctx) error {
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid Authorization header format")
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid Authorization header format")
 	}
 
 	tokenString := parts[1]
 	token, err := TokenToClaims(tokenString)
 	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, "Invalid token: "+err.Error())
+		return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 	}
 
 	c.Locals("token", token)

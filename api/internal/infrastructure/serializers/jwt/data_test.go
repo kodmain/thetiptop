@@ -11,7 +11,7 @@ func TestData(t *testing.T) {
 	t.Run("with args", func(t *testing.T) {
 		jwt.New(nil)
 
-		token, refresh, err := jwt.FromID("oki")
+		token, refresh, err := jwt.FromID("oki", nil)
 		assert.NoError(t, err)
 
 		access, err := jwt.TokenToClaims(token)

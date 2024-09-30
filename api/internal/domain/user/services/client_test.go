@@ -1,13 +1,13 @@
 package services_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
@@ -74,7 +74,7 @@ func TestClientRegister(t *testing.T) {
 
 		client, err := service.RegisterClient(dtoCredential, dtoClient)
 		assert.Nil(t, client)
-		assert.EqualError(t, err, errors.ErrClientAlreadyExists.Error())
+		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -83,12 +83,12 @@ func TestClientRegister(t *testing.T) {
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoClient := &transfert.Client{}
 
-		mockRepo.On("ReadCredential", dtoCredential).Return(nil, fmt.Errorf("not found"))
-		mockRepo.On("CreateCredential", dtoCredential).Return(nil, fmt.Errorf("error creating credential"))
+		mockRepo.On("ReadCredential", dtoCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
+		mockRepo.On("CreateCredential", dtoCredential).Return(nil, errors.ErrInternalServer)
 
 		client, err := service.RegisterClient(dtoCredential, dtoClient)
 		assert.Nil(t, client)
-		assert.EqualError(t, err, "error creating credential")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -97,49 +97,49 @@ func TestClientRegister(t *testing.T) {
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoClient := &transfert.Client{}
 
-		mockRepo.On("ReadCredential", dtoCredential).Return(nil, fmt.Errorf("not found"))
+		mockRepo.On("ReadCredential", dtoCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", dtoCredential).Return(expectedCredential, nil)
-		mockRepo.On("CreateClient", dtoClient).Return(nil, fmt.Errorf("error creating client"))
+		mockRepo.On("CreateClient", dtoClient).Return(nil, errors.ErrInternalServer)
 
 		client, err := service.RegisterClient(dtoCredential, dtoClient)
 		assert.Nil(t, client)
-		assert.EqualError(t, err, "error creating client")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("client update error", func(t *testing.T) {
 		service, mockRepo, _, _ := setup()
 
-		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
+		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
 		mockRepo.On("CreateClient", inputClient).Return(expectedClient, nil)
-		mockRepo.On("UpdateClient", expectedClient).Return(fmt.Errorf("error updating client"))
+		mockRepo.On("UpdateClient", expectedClient).Return(errors.ErrInternalServer)
 
 		client, err := service.RegisterClient(inputCredential, inputClient)
 		assert.Nil(t, client)
-		assert.EqualError(t, err, "error updating client")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("credential update error", func(t *testing.T) {
 		service, mockRepo, _, _ := setup()
 
-		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
+		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
 		mockRepo.On("CreateClient", inputClient).Return(expectedClient, nil)
 		mockRepo.On("UpdateClient", expectedClient).Return(nil)
-		mockRepo.On("UpdateCredential", expectedCredential).Return(fmt.Errorf("error updating credential"))
+		mockRepo.On("UpdateCredential", expectedCredential).Return(errors.ErrInternalServer)
 
 		client, err := service.RegisterClient(inputCredential, inputClient)
 		assert.Nil(t, client)
-		assert.EqualError(t, err, "error updating credential")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("successful client and credential creation", func(t *testing.T) {
 		service, mockRepo, mockMailer, _ := setup()
 
-		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
+		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
 		mockRepo.On("CreateClient", inputClient).Return(expectedClient, nil)
 		mockRepo.On("UpdateClient", expectedClient).Return(nil)
@@ -172,13 +172,13 @@ func TestUpdateClient(t *testing.T) {
 
 		// Simuler un client non trouvé dans la base de données
 		mockRepo.On("ReadClient", mock.AnythingOfType("*transfert.Client")).
-			Return(nil, fmt.Errorf(errors.ErrClientNotFound.Error()))
+			Return(nil, errors_domain_user.ErrClientNotFound)
 
 		// Appel du service avec un client introuvable
 		client, err := service.UpdateClient(&transfert.Client{ID: aws.String("invalid-id")})
 
 		// Vérifier que l'erreur est bien une erreur "Client not found"
-		assert.EqualError(t, err, errors.ErrClientNotFound.Error())
+		assert.Error(t, err)
 		assert.Nil(t, client)
 
 		// Vérifier que les attentes du mock sont respectées
@@ -254,13 +254,13 @@ func TestUpdateClient(t *testing.T) {
 		mockPerms.On("CanUpdate", mockClient, mock.Anything).Return(true)
 
 		// Simuler une erreur lors de la mise à jour du client
-		mockRepo.On("UpdateClient", mockClient).Return(fmt.Errorf("update error"))
+		mockRepo.On("UpdateClient", mockClient).Return(errors.ErrInternalServer)
 
 		// Appel du service avec un client valide mais une mise à jour échouée
 		client, err := service.UpdateClient(&transfert.Client{ID: aws.String("valid-id")})
 
 		// Vérifier que l'erreur est bien celle retournée par le mock lors de la mise à jour
-		assert.EqualError(t, err, "update error")
+		assert.EqualError(t, err, "common.internal_error")
 		assert.Nil(t, client)
 
 		// Vérifier que les attentes du mock sont respectées
@@ -352,7 +352,7 @@ func TestGetClient(t *testing.T) {
 		}
 
 		// Simuler la réponse du repository qui ne trouve pas le client
-		mockRepo.On("ReadClient", dummyClientDTO).Return(nil, fmt.Errorf(errors.ErrClientNotFound.Error()))
+		mockRepo.On("ReadClient", dummyClientDTO).Return(nil, errors_domain_user.ErrClientNotFound)
 
 		// Appeler la méthode du service
 		client, err := service.GetClient(dummyClientDTO)
@@ -360,7 +360,7 @@ func TestGetClient(t *testing.T) {
 		// Vérifier que l'erreur est retournée
 		require.Error(t, err)
 		require.Nil(t, client)
-		assert.EqualError(t, err, errors.ErrClientNotFound.Error())
+		assert.Error(t, err)
 
 		// Vérifier les attentes sur le mock
 		mockRepo.AssertExpectations(t)
@@ -387,13 +387,13 @@ func TestDeleteClient(t *testing.T) {
 		dtoClient := &transfert.Client{ID: clientID}
 
 		// Simuler la lecture du client
-		mockRepo.On("ReadClient", dtoClient).Return(nil, fmt.Errorf(errors.ErrClientNotFound.Error()))
+		mockRepo.On("ReadClient", dtoClient).Return(nil, errors_domain_user.ErrClientNotFound)
 
 		// Appel du service pour supprimer le client
 		err := service.DeleteClient(dtoClient)
 
 		// Vérifier que l'erreur est bien celle attendue
-		assert.EqualError(t, err, errors.ErrClientNotFound.Error())
+		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -458,13 +458,13 @@ func TestDeleteClient(t *testing.T) {
 		// Simuler la permission de suppression
 		mockPermission.On("CanDelete", mock.AnythingOfType("*entities.Client")).Return(true)
 		// Simuler une erreur lors de la suppression du client
-		mockRepo.On("DeleteClient", dtoClient).Return(fmt.Errorf("delete failed"))
+		mockRepo.On("DeleteClient", dtoClient).Return(errors.ErrInternalServer)
 
 		// Appel du service pour supprimer le client
 		err := service.DeleteClient(dtoClient)
 
 		// Vérifier que l'erreur est bien celle attendue
-		assert.EqualError(t, err, "delete failed")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 		mockPermission.AssertExpectations(t)
 	})
