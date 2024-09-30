@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -28,18 +27,6 @@ const (
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
 )
-
-func generateRandomString(length int, symbol string) string {
-	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
-
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	randomString := make([]byte, length)
-	for i := range randomString {
-		randomString[i] = charset[rng.Intn(len(charset))]
-	}
-	return symbol + string(randomString)
-}
 
 type Email struct {
 	HTML    string `json:"html"`
@@ -279,40 +266,52 @@ func deleteMail(emailID string) error {
 	return nil
 }
 
-func getMailFor(emailAddr string) (*Email, error) {
+// getMailFor Try to retrieve an email for the given address X times before returning an error
+// This function will attempt to find and delete an email associated with the given address.
+// It will retry the operation X times before failing.
+//
+// Parameters:
+// - emailAddr: string The email address to search for
+// - retries: int The number of times to retry before failing
+//
+// Returns:
+// - email: *Email The found email
+// - error: error Error if the operation fails after X attempts
+func getMailFor(emailAddr string, retries int) (*Email, error) {
 	apiUrl := "http://localhost:1080/email"
-	var content []byte
-	var statusCode int
-	var err error
 
-	content, statusCode, err = request("GET", apiUrl, "", FormURLEncoded)
+	for i := 0; i < retries; i++ {
+		content, statusCode, err := request("GET", apiUrl, "", FormURLEncoded)
 
-	if err != nil {
-		return nil, fmt.Errorf("erreur lors de la requête HTTP: %v", err)
-	}
+		if err != nil {
+			return nil, fmt.Errorf("erreur lors de la requête HTTP: %v", err)
+		}
 
-	if statusCode != http.StatusOK {
-		return nil, fmt.Errorf("statut de réponse non OK: %d", statusCode)
-	}
+		if statusCode != http.StatusOK {
+			return nil, fmt.Errorf("statut de réponse non OK: %d", statusCode)
+		}
 
-	var emails []*Email
-	if err := json.Unmarshal(content, &emails); err != nil {
-		return nil, fmt.Errorf("erreur lors du parsing des emails: %v", err)
-	}
+		var emails []*Email
+		if err := json.Unmarshal(content, &emails); err != nil {
+			return nil, fmt.Errorf("erreur lors du parsing des emails: %v", err)
+		}
 
-	for _, email := range emails {
-		for _, to := range email.To {
-			if to.Address == emailAddr {
-				deleteErr := deleteMail(email.ID)
-				if deleteErr != nil {
-					return nil, fmt.Errorf("erreur lors de la suppression de l'email: %v", deleteErr)
+		for _, email := range emails {
+			for _, to := range email.To {
+				if to.Address == emailAddr {
+					deleteErr := deleteMail(email.ID)
+					if deleteErr != nil {
+						return nil, fmt.Errorf("erreur lors de la suppression de l'email: %v", deleteErr)
+					}
+					return email, nil
 				}
-				return email, nil
 			}
 		}
+
+		time.Sleep(100 * time.Millisecond)
 	}
 
-	return nil, fmt.Errorf("aucun email trouvé pour l'adresse %s", emailAddr)
+	return nil, fmt.Errorf("aucun email trouvé pour l'adresse %s après %d tentatives", emailAddr, retries)
 }
 
 func extractToken(html string) string {

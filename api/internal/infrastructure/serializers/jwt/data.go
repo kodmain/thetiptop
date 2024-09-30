@@ -15,29 +15,13 @@ const (
 )
 
 type Token struct {
-	ID     string `json:"id"`
-	Exp    int64  `json:"exp"`
-	TZ     string `json:"tz"`
-	Offset int    `json:"offset"`
-	Type   TYPE   `json:"type"`
-
-	//Refresh *string `json:"refresh,omitempty"`
+	ID     string         `json:"id"`
+	Exp    int64          `json:"exp"`
+	TZ     string         `json:"tz"`
+	Offset int            `json:"offset"`
+	Type   TYPE           `json:"type"`
+	Data   map[string]any `json:"data"`
 }
-
-/*
-func (t *Token) HasRefresh() *Token {
-	if t.Refresh == nil {
-		return nil
-	}
-
-	token, err := TokenToClaims(*t.Refresh)
-	if err != nil {
-		return nil
-	}
-
-	return token
-}
-*/
 
 func (t *Token) IsNotValid() bool {
 	return t.Type != ACCESS
@@ -67,26 +51,40 @@ func (a Token) Claims() jwt.MapClaims {
 		"tz":   a.TZ,
 		"off":  a.Offset,
 		"type": a.Type,
+		"data": a.Data,
 	}
-
-	/*
-		if a.Refresh != nil {
-			claims["refresh"] = a.Refresh
-		}
-	*/
 
 	return claims
 }
 
 func fromClaims(claims jwt.MapClaims) *Token {
-	return &Token{
-		ID:     claims["id"].(string),
-		Exp:    convertToInt64(claims["exp"]),
-		TZ:     claims["tz"].(string),
-		Type:   TYPE(convertToInt(claims["type"])),
-		Offset: convertToInt(claims["off"]),
-		//Refresh: convertToStringPointer(claims["refresh"]),
+	token := &Token{}
+
+	if id, ok := claims["id"].(string); ok {
+		token.ID = id
 	}
+
+	if exp, ok := claims["exp"]; ok {
+		token.Exp = convertToInt64(exp)
+	}
+
+	if tz, ok := claims["tz"].(string); ok {
+		token.TZ = tz
+	}
+
+	if typ, ok := claims["type"]; ok {
+		token.Type = TYPE(convertToInt(typ))
+	}
+
+	if offset, ok := claims["off"]; ok {
+		token.Offset = convertToInt(offset)
+	}
+
+	if data, ok := claims["data"].(map[string]any); ok {
+		token.Data = data
+	}
+
+	return token
 }
 
 func convertToInt64(val interface{}) int64 {
@@ -111,15 +109,4 @@ func convertToInt(val interface{}) int {
 		log.Fatalf("Invalid type for int conversion: %T\n", v)
 		return 0
 	}
-}
-
-func convertToStringPointer(val interface{}) *string {
-	if val == nil {
-		return nil
-	}
-	if str, ok := val.(string); ok {
-		return &str
-	}
-	log.Fatalf("Invalid type for string pointer conversion: %T\n", val)
-	return nil
 }

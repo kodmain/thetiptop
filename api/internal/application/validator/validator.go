@@ -1,13 +1,11 @@
 package validator
 
 import (
-	"errors"
-	"fmt"
 	"net/mail"
 	"reflect"
-	"strings"
 	"unicode"
 
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 )
 
@@ -16,36 +14,40 @@ const (
 	CANT_BE_NIL = false
 )
 
-func Required(value any, name string) error {
+func Required(value any, name string) errors.ErrorInterface {
 	if value == nil || (reflect.ValueOf(value).Kind() == reflect.Ptr && reflect.ValueOf(value).IsNil()) {
-		return fmt.Errorf("value %v is required", name)
+		return errors.ErrValueRequired
 	}
 
 	return nil
 }
 
-func Email(value any, name string) error {
+func Email(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrString(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a string", name)
+		return errors.ErrValueIsNotString
 	}
 
 	_, err := mail.ParseAddress(*str)
-	return err
+	if err != nil {
+		return errors.ErrValueIsNotEmail
+	}
+
+	return nil
 }
 
-func Luhn(value any, name string) error {
+func Luhn(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrString(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a string", name)
+		return errors.ErrValueIsNotString
 	}
 
 	luhn := token.Luhn(*str)
@@ -53,32 +55,32 @@ func Luhn(value any, name string) error {
 	return luhn.Validate()
 }
 
-func ID(value any, name string) error {
+func ID(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrString(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a string", name)
+		return errors.ErrValueIsNotString
 	}
 
 	id := *str
 	if len(id) != 36 || id[8] != '-' || id[13] != '-' || id[18] != '-' || id[23] != '-' {
-		return errors.New("invalid UUID")
+		return errors.ErrValueIsNotUUID
 	}
 
 	return nil
 }
 
-func Password(value any, name string) error {
+func Password(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrString(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a string", name)
+		return errors.ErrValueIsNotString
 	}
 
 	var (
@@ -86,15 +88,14 @@ func Password(value any, name string) error {
 		hasMaj     bool
 		hasNumber  bool
 		hasSpecial bool
-		errs       []string
 	)
 
 	if len(*str) < 8 {
-		errs = append(errs, "- password is too short")
+		return errors.ErrValuePasswordIsToShort
 	}
 
 	if len(*str) > 64 {
-		errs = append(errs, "- password is too long")
+		return errors.ErrValuePasswordIsToLong
 	}
 
 	for _, c := range *str {
@@ -111,70 +112,66 @@ func Password(value any, name string) error {
 	}
 
 	if !hasMin {
-		errs = append(errs, "- password must include lowercase letters")
+		return errors.ErrValuePasswordMustIncludeLowercase
 	}
 
 	if !hasMaj {
-		errs = append(errs, "- password must include uppercase letters")
+		return errors.ErrValuePasswordMustIncludeUppercase
 	}
 
 	if !hasNumber {
-		errs = append(errs, "- password must include numbers")
+		return errors.ErrValuePasswordMustIncludeNumber
 	}
 
 	if !hasSpecial {
-		errs = append(errs, "- password must include special characters")
-	}
-
-	if len(errs) > 0 {
-		return errors.New("invalid password: \n" + strings.Join(errs, "\n"))
+		return errors.ErrValuePasswordMustIncludeSpecial
 	}
 
 	return nil
 }
 
-func IsTrue(value any, name string) error {
+func IsTrue(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrBool(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a boolean", name)
+		return errors.ErrValueIsNotBool
 	}
 
 	if !*str {
-		return fmt.Errorf("%v sould be true", name)
+		return errors.ErrValueBoolMustBeTrue
 	}
 
 	return nil
 }
 
-func IsFalse(value any, name string) error {
+func IsFalse(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrBool(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a boolean", name)
+		return errors.ErrValueIsNotBool
 	}
 
 	if *str {
-		return fmt.Errorf("%v sould be false", name)
+		return errors.ErrValueBoolMustBeFalse
 	}
 
 	return nil
 }
 
-func IsBool(value any, name string) error {
+func IsBool(value any, name string) errors.ErrorInterface {
 	if err := Required(value, name); err != nil {
 		return err
 	}
 
 	str := anyToPtrBool(value)
 	if str == nil {
-		return fmt.Errorf("%v is not a boolean", name)
+		return errors.ErrValueIsNotBool
 	}
 
 	return nil

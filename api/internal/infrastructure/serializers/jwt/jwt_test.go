@@ -33,7 +33,7 @@ func TestFromID(t *testing.T) {
 
 	id := "exampleID"
 
-	access, refresh, err := jwt.FromID(id)
+	access, refresh, err := jwt.FromID(id, nil)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, access)
 	assert.NotEmpty(t, refresh)

@@ -72,11 +72,24 @@ func (client *Client) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
+func (client *Client) IsPublic() bool {
+	return false
+}
+
+func (client *Client) GetOwnerID() string {
+	if client.CredentialID == nil {
+		return ""
+	}
+
+	return *client.CredentialID
+}
+
 func CreateClient(obj *transfert.Client) *Client {
 	c := &Client{
-		Validations: make(Validations, 0),
-		CGU:         obj.CGU,
-		Newsletter:  obj.Newsletter,
+		Validations:  make(Validations, 0),
+		CGU:          obj.CGU,
+		Newsletter:   obj.Newsletter,
+		CredentialID: obj.CredentialID,
 	}
 
 	if obj.ID != nil {

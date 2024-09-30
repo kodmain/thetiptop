@@ -1,10 +1,8 @@
 package transfert
 
 import (
-	"fmt"
-
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 )
 
 type Client struct {
@@ -14,7 +12,7 @@ type Client struct {
 	CredentialID *string `json:"credential_id" xml:"credential_id" form:"credential_id"`
 }
 
-func (c *Client) Check(validator data.Validator) error {
+func (c *Client) Check(validator data.Validator) errors.ErrorInterface {
 	return validator.Check(data.Object{
 		"id":            c.ID,
 		"newsletter":    c.Newsletter,
@@ -25,7 +23,7 @@ func (c *Client) Check(validator data.Validator) error {
 
 func NewClient(obj data.Object, mandatory data.Validator) (*Client, error) {
 	if obj == nil {
-		return nil, fmt.Errorf(errors.ErrNoData)
+		return nil, errors.ErrNoData
 	}
 
 	c := &Client{}

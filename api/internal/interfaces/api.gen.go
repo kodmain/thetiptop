@@ -7,6 +7,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/docs"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
+	"github.com/kodmain/thetiptop/api/internal/interfaces/api/code"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/api/user"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/status"
 	"github.com/swaggo/swag"
@@ -19,6 +21,8 @@ func init() {
 // API represents a collection of HTTP endpoints grouped by namespace and version.
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
+		"code.ListErrors":        code.ListErrors,
+		"jwt.Auth":               jwt.Auth,
 		"status.HealthCheck":     status.HealthCheck,
 		"status.IP":              status.IP,
 		"user.CredentialUpdate":  user.CredentialUpdate,

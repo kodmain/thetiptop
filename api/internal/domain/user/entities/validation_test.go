@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
@@ -35,7 +36,10 @@ func TestNewValidation(t *testing.T) {
 	})
 
 	assert.NotNil(t, val.Token)
-
+	assert.Equal(t, val.IsPublic(), false)
+	assert.Empty(t, val.GetOwnerID())
+	val.CredentialID = aws.String(uuid.New().String())
+	assert.Equal(t, val.GetOwnerID(), *val.CredentialID)
 }
 
 func TestNewValidationWithoutCID(t *testing.T) {
