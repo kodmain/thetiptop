@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/kodmain/thetiptop/api/assets"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
@@ -102,19 +103,19 @@ type Template struct {
 }
 
 // Inject insère des données dans les templates HTML et texte.
-func (t *Template) Inject(data Data) ([]byte, []byte, error) {
+func (t *Template) Inject(data Data) ([]byte, []byte, errors.ErrorInterface) {
 	var html bytes.Buffer
 	var text bytes.Buffer
 
 	if t.Html != nil {
 		if err := t.Html.Execute(&html, data); err != nil {
-			return nil, nil, err
+			return nil, nil, errors.ErrInternalServer
 		}
 	}
 
 	if t.Text != nil {
 		if err := t.Text.Execute(&text, data); err != nil {
-			return nil, nil, err
+			return nil, nil, errors.ErrInternalServer
 		}
 	}
 

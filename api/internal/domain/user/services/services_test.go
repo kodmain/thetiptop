@@ -6,6 +6,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/stretchr/testify/mock"
@@ -15,7 +16,7 @@ type UserRepositoryMock struct {
 	mock.Mock
 }
 
-func (m *UserRepositoryMock) ReadUser(user *transfert.User) (*entities.Client, *entities.Employee, error) {
+func (m *UserRepositoryMock) ReadUser(user *transfert.User) (*entities.Client, *entities.Employee, errors.ErrorInterface) {
 	args := m.Called(user)
 	if args.Get(0) == nil && args.Get(1) != nil && args.Get(2) == nil {
 		return nil, args.Get(1).(*entities.Employee), nil
@@ -24,78 +25,92 @@ func (m *UserRepositoryMock) ReadUser(user *transfert.User) (*entities.Client, *
 	if args.Get(0) != nil && args.Get(1) == nil && args.Get(2) == nil {
 		return args.Get(0).(*entities.Client), nil, nil
 	}
-	return nil, nil, args.Error(2)
+	return nil, nil, args.Get(2).(errors.ErrorInterface)
 }
 
-func (m *UserRepositoryMock) CreateClient(client *transfert.Client) (*entities.Client, error) {
+func (m *UserRepositoryMock) CreateClient(client *transfert.Client) (*entities.Client, errors.ErrorInterface) {
 	args := m.Called(client)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Client), args.Error(1)
+	return args.Get(0).(*entities.Client), nil
 }
 
-func (m *UserRepositoryMock) ReadClient(client *transfert.Client) (*entities.Client, error) {
+func (m *UserRepositoryMock) ReadClient(client *transfert.Client) (*entities.Client, errors.ErrorInterface) {
 	args := m.Called(client)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Client), args.Error(1)
+	return args.Get(0).(*entities.Client), nil
 }
 
-func (m *UserRepositoryMock) UpdateClient(client *entities.Client) error {
+func (m *UserRepositoryMock) UpdateClient(client *entities.Client) errors.ErrorInterface {
 	args := m.Called(client)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (m *UserRepositoryMock) DeleteClient(client *transfert.Client) error {
+func (m *UserRepositoryMock) DeleteClient(client *transfert.Client) errors.ErrorInterface {
 	args := m.Called(client)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (m *UserRepositoryMock) CreateEmployee(employee *transfert.Employee) (*entities.Employee, error) {
+func (m *UserRepositoryMock) CreateEmployee(employee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	args := m.Called(employee)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Employee), args.Error(1)
+	return args.Get(0).(*entities.Employee), nil
 }
 
-func (m *UserRepositoryMock) ReadEmployee(employee *transfert.Employee) (*entities.Employee, error) {
+func (m *UserRepositoryMock) ReadEmployee(employee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	args := m.Called(employee)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Employee), args.Error(1)
+	return args.Get(0).(*entities.Employee), nil
 }
 
-func (m *UserRepositoryMock) UpdateEmployee(employee *entities.Employee) error {
+func (m *UserRepositoryMock) UpdateEmployee(employee *entities.Employee) errors.ErrorInterface {
 	args := m.Called(employee)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (m *UserRepositoryMock) DeleteEmployee(employee *transfert.Employee) error {
+func (m *UserRepositoryMock) DeleteEmployee(employee *transfert.Employee) errors.ErrorInterface {
 	args := m.Called(employee)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (m *UserRepositoryMock) CreateValidation(validation *transfert.Validation) (*entities.Validation, error) {
+func (m *UserRepositoryMock) CreateValidation(validation *transfert.Validation) (*entities.Validation, errors.ErrorInterface) {
 	args := m.Called(validation)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Validation), args.Error(1)
+	return args.Get(0).(*entities.Validation), nil
 }
 
-func (m *UserRepositoryMock) ReadValidation(validation *transfert.Validation) (*entities.Validation, error) {
+func (m *UserRepositoryMock) ReadValidation(validation *transfert.Validation) (*entities.Validation, errors.ErrorInterface) {
 	args := m.Called(validation)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Validation), args.Error(1)
+	return args.Get(0).(*entities.Validation), nil
 }
 
-func (m *UserRepositoryMock) UpdateValidation(validation *entities.Validation) error {
+func (m *UserRepositoryMock) UpdateValidation(validation *entities.Validation) errors.ErrorInterface {
 	args := m.Called(validation)
 
 	if args.Get(0) == nil {
@@ -104,42 +119,42 @@ func (m *UserRepositoryMock) UpdateValidation(validation *entities.Validation) e
 		return nil
 	}
 
-	return args.Error(0)
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (m *UserRepositoryMock) DeleteValidation(validation *transfert.Validation) error {
+func (m *UserRepositoryMock) DeleteValidation(validation *transfert.Validation) errors.ErrorInterface {
 	args := m.Called(validation)
-	return args.Error(0)
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (m *UserRepositoryMock) CreateCredential(credential *transfert.Credential) (*entities.Credential, error) {
+func (m *UserRepositoryMock) CreateCredential(credential *transfert.Credential) (*entities.Credential, errors.ErrorInterface) {
 	args := m.Called(credential)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Credential), args.Error(1)
+	return args.Get(0).(*entities.Credential), nil
 }
 
-func (m *UserRepositoryMock) ReadCredential(credential *transfert.Credential) (*entities.Credential, error) {
+func (m *UserRepositoryMock) ReadCredential(credential *transfert.Credential) (*entities.Credential, errors.ErrorInterface) {
 	args := m.Called(credential)
 	if args.Get(0) == nil {
-		return nil, args.Error(1)
+		return nil, args.Get(1).(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Credential), args.Error(1)
+	return args.Get(0).(*entities.Credential), nil
 }
 
-func (m *UserRepositoryMock) UpdateCredential(credential *entities.Credential) error {
+func (m *UserRepositoryMock) UpdateCredential(credential *entities.Credential) errors.ErrorInterface {
 	args := m.Called(credential)
 	if args.Get(0) == nil {
 		credential.ID = uuid.New().String()
 		return nil
 	}
-	return args.Error(0)
+	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (m *UserRepositoryMock) DeleteCredential(credential *transfert.Credential) error {
+func (m *UserRepositoryMock) DeleteCredential(credential *transfert.Credential) errors.ErrorInterface {
 	args := m.Called(credential)
-	return args.Error(0)
+	return args.Get(0).(errors.ErrorInterface)
 }
 
 type MailServiceMock struct {
@@ -148,7 +163,11 @@ type MailServiceMock struct {
 
 func (m *MailServiceMock) Send(mail *mail.Mail) error {
 	args := m.Called(mail)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(errors.ErrorInterface)
 }
 
 func (m *MailServiceMock) From() string {

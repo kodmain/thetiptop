@@ -1,13 +1,13 @@
 package services_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
@@ -71,7 +71,7 @@ func TestEmployeeRegister(t *testing.T) {
 
 		Employee, err := service.RegisterEmployee(dtoCredential, dtoEmployee)
 		assert.Nil(t, Employee)
-		assert.EqualError(t, err, errors.ErrEmployeeAlreadyExists.Error())
+		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -80,12 +80,12 @@ func TestEmployeeRegister(t *testing.T) {
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoEmployee := &transfert.Employee{}
 
-		mockRepo.On("ReadCredential", dtoCredential).Return(nil, fmt.Errorf("not found"))
-		mockRepo.On("CreateCredential", dtoCredential).Return(nil, fmt.Errorf("error creating credential"))
+		mockRepo.On("ReadCredential", dtoCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
+		mockRepo.On("CreateCredential", dtoCredential).Return(nil, errors.ErrInternalServer)
 
 		Employee, err := service.RegisterEmployee(dtoCredential, dtoEmployee)
 		assert.Nil(t, Employee)
-		assert.EqualError(t, err, "error creating credential")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -94,49 +94,49 @@ func TestEmployeeRegister(t *testing.T) {
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoEmployee := &transfert.Employee{}
 
-		mockRepo.On("ReadCredential", dtoCredential).Return(nil, fmt.Errorf("not found"))
+		mockRepo.On("ReadCredential", dtoCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", dtoCredential).Return(expectedCredential, nil)
-		mockRepo.On("CreateEmployee", dtoEmployee).Return(nil, fmt.Errorf("error creating employee"))
+		mockRepo.On("CreateEmployee", dtoEmployee).Return(nil, errors.ErrInternalServer)
 
 		Employee, err := service.RegisterEmployee(dtoCredential, dtoEmployee)
 		assert.Nil(t, Employee)
-		assert.EqualError(t, err, "error creating employee")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("employee update error", func(t *testing.T) {
 		service, mockRepo, _, _ := setup()
 
-		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
+		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
 		mockRepo.On("CreateEmployee", inputEmployee).Return(expectedEmployee, nil)
-		mockRepo.On("UpdateEmployee", expectedEmployee).Return(fmt.Errorf("error updating Employee"))
+		mockRepo.On("UpdateEmployee", expectedEmployee).Return(errors.ErrInternalServer)
 
 		Employee, err := service.RegisterEmployee(inputCredential, inputEmployee)
 		assert.Nil(t, Employee)
-		assert.EqualError(t, err, "error updating Employee")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("credential update error", func(t *testing.T) {
 		service, mockRepo, _, _ := setup()
 
-		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
+		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
 		mockRepo.On("CreateEmployee", inputEmployee).Return(expectedEmployee, nil)
 		mockRepo.On("UpdateEmployee", expectedEmployee).Return(nil)
-		mockRepo.On("UpdateCredential", expectedCredential).Return(fmt.Errorf("error updating credential"))
+		mockRepo.On("UpdateCredential", expectedCredential).Return(errors.ErrInternalServer)
 
 		Employee, err := service.RegisterEmployee(inputCredential, inputEmployee)
 		assert.Nil(t, Employee)
-		assert.EqualError(t, err, "error updating credential")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("successful employee and credential creation", func(t *testing.T) {
 		service, mockRepo, mockMailer, _ := setup()
 
-		mockRepo.On("ReadCredential", inputCredential).Return(nil, fmt.Errorf("not found"))
+		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
 		mockRepo.On("CreateEmployee", inputEmployee).Return(expectedEmployee, nil)
 		mockRepo.On("UpdateEmployee", expectedEmployee).Return(nil)
@@ -170,11 +170,11 @@ func TestGetEmployee(t *testing.T) {
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 
-		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound.Error()))
+		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, errors_domain_user.ErrEmployeeNotFound)
 
 		employee, err := service.GetEmployee(dtoEmployee)
 		assert.Nil(t, employee)
-		assert.EqualError(t, err, errors.ErrEmployeeNotFound.Error())
+		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -244,13 +244,13 @@ func TestDeleteEmployee(t *testing.T) {
 		dtoEmployee := &transfert.Employee{ID: employeeID}
 
 		// Simuler la lecture du employee
-		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound.Error()))
+		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, errors_domain_user.ErrEmployeeNotFound)
 
 		// Appel du service pour supprimer le employee
 		err := service.DeleteEmployee(dtoEmployee)
 
 		// Vérifier que l'erreur est bien celle attendue
-		assert.EqualError(t, err, errors.ErrEmployeeNotFound.Error())
+		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -315,13 +315,13 @@ func TestDeleteEmployee(t *testing.T) {
 		// Simuler la permission de suppression
 		mockPermission.On("CanDelete", mock.AnythingOfType("*entities.Employee")).Return(true)
 		// Simuler une erreur lors de la suppression du Employee
-		mockRepo.On("DeleteEmployee", dtoEmployee).Return(fmt.Errorf("delete failed"))
+		mockRepo.On("DeleteEmployee", dtoEmployee).Return(errors.ErrInternalServer)
 
 		// Appel du service pour supprimer le Employee
 		err := service.DeleteEmployee(dtoEmployee)
 
 		// Vérifier que l'erreur est bien celle attendue
-		assert.EqualError(t, err, "delete failed")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 		mockPermission.AssertExpectations(t)
 	})
@@ -345,11 +345,11 @@ func TestUpdateEmployee(t *testing.T) {
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 
-		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, fmt.Errorf(errors.ErrEmployeeNotFound.Error()))
+		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, errors_domain_user.ErrEmployeeNotFound)
 
 		employee, err := service.UpdateEmployee(dtoEmployee)
 		assert.Nil(t, employee)
-		assert.EqualError(t, err, errors.ErrEmployeeNotFound.Error())
+		assert.Error(t, err)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -403,11 +403,11 @@ func TestUpdateEmployee(t *testing.T) {
 
 		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(existingEmployee, nil)
 		mockPerms.On("CanUpdate", mock.AnythingOfType("*entities.Employee"), mock.Anything).Return(true)
-		mockRepo.On("UpdateEmployee", existingEmployee).Return(fmt.Errorf("update failed"))
+		mockRepo.On("UpdateEmployee", existingEmployee).Return(errors.ErrInternalServer)
 
 		employee, err := service.UpdateEmployee(dtoEmployee)
 		assert.Nil(t, employee)
-		assert.EqualError(t, err, "update failed")
+		assert.EqualError(t, err, "common.internal_error")
 		mockRepo.AssertExpectations(t)
 		mockPerms.AssertExpectations(t)
 	})

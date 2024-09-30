@@ -11,6 +11,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
@@ -50,7 +51,7 @@ func TestUserAuth(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler le cas où le client n'est pas trouvé
-		mockClient.On("UserAuth", mock.Anything).Return(nil, "", errors.ErrClientNotFound)
+		mockClient.On("UserAuth", mock.Anything).Return(nil, "", errors_domain_user.ErrClientNotFound)
 
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &email,
@@ -173,7 +174,7 @@ func TestCredentialUpdate(t *testing.T) {
 	t.Run("password validation error", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler une erreur lors de la validation du mot de passe
-		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, errors.ErrValidationNotFound)
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, errors_domain_user.ErrValidationNotFound)
 
 		validationDTO := &transfert.Validation{
 			Token: luhn.Pointer().PointerString(),
@@ -186,13 +187,13 @@ func TestCredentialUpdate(t *testing.T) {
 
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
-		assert.Equal(t, errors.ErrValidationNotFound, response)
+		assert.Equal(t, errors_domain_user.ErrValidationNotFound, response)
 	})
 
 	t.Run("validation already validated", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler le cas où la validation a déjà été effectuée
-		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, errors.ErrValidationAlreadyValidated)
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, errors_domain_user.ErrValidationAlreadyValidated)
 
 		validationDTO := &transfert.Validation{
 			Token: luhn.Pointer().PointerString(),
@@ -205,13 +206,13 @@ func TestCredentialUpdate(t *testing.T) {
 
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusConflict, statusCode)
-		assert.Equal(t, errors.ErrValidationAlreadyValidated, response)
+		assert.Equal(t, errors_domain_user.ErrValidationAlreadyValidated, response)
 	})
 
 	t.Run("validation expired", func(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler le cas où la validation a expiré
-		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, errors.ErrValidationExpired)
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, errors_domain_user.ErrValidationExpired)
 
 		validationDTO := &transfert.Validation{
 			Token: luhn.Pointer().PointerString(),
@@ -224,7 +225,7 @@ func TestCredentialUpdate(t *testing.T) {
 
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusGone, statusCode)
-		assert.Equal(t, errors.ErrValidationExpired, response)
+		assert.Equal(t, errors_domain_user.ErrValidationExpired, response)
 	})
 
 	t.Run("successful password update", func(t *testing.T) {
@@ -251,7 +252,7 @@ func TestCredentialUpdate(t *testing.T) {
 		mockClient := new(DomainUserService)
 		// Simuler une erreur lors de la mise à jour du mot de passe
 		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(&entities.Validation{}, nil)
-		mockClient.On("PasswordUpdate", mock.Anything).Return(errors.ErrInternalServer.WithData("update error"))
+		mockClient.On("PasswordUpdate", mock.Anything).Return(errors.ErrInternalServer)
 
 		validationDTO := &transfert.Validation{
 			Token: luhn.Pointer().PointerString(),

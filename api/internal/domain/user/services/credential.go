@@ -7,6 +7,7 @@ import (
 	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail/template"
@@ -24,12 +25,12 @@ func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, st
 	})
 
 	if err != nil {
-		return nil, "", errors.FromErr(err, errors.ErrInternalServer) // Erreur si les credentials ne sont pas trouvés
+		return nil, "", err
 	}
 
 	// Comparer les hashs si les credentials existent
 	if !credential.CompareHash(*dtoCredential.Password) {
-		return nil, "", errors.ErrCredentialNotFound
+		return nil, "", errors_domain_user.ErrCredentialNotFound
 	}
 
 	client, _, err := s.repo.ReadUser(&transfert.User{
@@ -37,7 +38,7 @@ func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, st
 	})
 
 	if err != nil {
-		return nil, "", errors.ErrUserNotFound
+		return nil, "", errors_domain_user.ErrUserNotFound
 	}
 
 	if client != nil {
@@ -57,7 +58,7 @@ func (s *UserService) PasswordUpdate(dto *transfert.Credential) errors.ErrorInte
 	})
 
 	if err != nil {
-		return errors.ErrClientNotFound
+		return err
 	}
 
 	if !s.security.CanUpdate(credential) {
@@ -66,13 +67,13 @@ func (s *UserService) PasswordUpdate(dto *transfert.Credential) errors.ErrorInte
 
 	password, err := hash.Hash(aws.String(*credential.Email+":"+*dto.Password), hash.BCRYPT)
 	if err != nil {
-		return errors.ErrUnauthorized
+		return err
 	}
 
 	credential.Password = password
 
 	if err := s.repo.UpdateCredential(credential); err != nil {
-		return errors.FromErr(err, errors.ErrInternalServer)
+		return err
 	}
 
 	return nil
@@ -88,7 +89,7 @@ func (s *UserService) ValidationRecover(dtoValidation *transfert.Validation, dto
 	})
 
 	if err != nil {
-		return errors.ErrUserNotFound
+		return err
 	}
 
 	client, employee, err := s.repo.ReadUser(&transfert.User{
@@ -96,7 +97,7 @@ func (s *UserService) ValidationRecover(dtoValidation *transfert.Validation, dto
 	})
 
 	if err != nil {
-		return errors.ErrUserNotFound
+		return err
 	}
 
 	if client != nil {
@@ -109,7 +110,7 @@ func (s *UserService) ValidationRecover(dtoValidation *transfert.Validation, dto
 
 	validation, err := s.repo.CreateValidation(dtoValidation)
 	if err != nil {
-		return errors.FromErr(err, errors.ErrInternalServer)
+		return err
 	}
 
 	if validation.Type != entities.PhoneValidation {
@@ -132,7 +133,7 @@ func (s *UserService) ValidationRecover(dtoValidation *transfert.Validation, dto
 func (s *UserService) sendMail(credential *entities.Credential, validation *entities.Validation, templateName string) errors.ErrorInterface {
 	tpl := template.NewTemplate(templateName)
 	if tpl == nil {
-		return errors.ErrTemplateNotFound.WithData(templateName)
+		return errors.ErrMailTemplateNotFound
 	}
 
 	text, html, err := tpl.Inject(template.Data{
@@ -141,7 +142,7 @@ func (s *UserService) sendMail(credential *entities.Credential, validation *enti
 	})
 
 	if err != nil {
-		return errors.FromErr(err, errors.ErrInternalServer)
+		return err
 	}
 
 	subject := "The Tip Top"
@@ -192,21 +193,21 @@ func (s *UserService) validateClientAndValidation(dtoValidation *transfert.Valid
 
 	validation, err := s.repo.ReadValidation(dtoValidation)
 	if err != nil {
-		return nil, errors.ErrValidationNotFound
+		return nil, err
 	}
 
 	if validation.ExpiresAt.Before(time.Now()) {
-		return nil, errors.ErrValidationExpired
+		return nil, errors_domain_user.ErrValidationExpired
 	}
 
 	if validation.Validated {
-		return nil, errors.ErrValidationAlreadyValidated
+		return nil, errors_domain_user.ErrValidationAlreadyValidated
 	}
 
 	validation.Validated = true
 
 	if err := s.repo.UpdateValidation(validation); err != nil {
-		return nil, errors.FromErr(err, errors.ErrInternalServer)
+		return nil, err
 	}
 
 	return validation, nil

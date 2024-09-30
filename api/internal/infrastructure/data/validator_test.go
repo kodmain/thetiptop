@@ -15,11 +15,11 @@ func TestValidator_Check(t *testing.T) {
 	successControl := func(value any, name string) errors.ErrorInterface {
 		stringValue, ok := value.(*string)
 		if !ok {
-			return errors.ErrBadRequest.WithData("value is not a string")
+			return errors.ErrBadRequest
 		}
 
 		if value == nil || *stringValue == "" {
-			return errors.ErrBadRequest.WithData("value is empty")
+			return errors.ErrBadRequest
 		}
 		return nil
 	}

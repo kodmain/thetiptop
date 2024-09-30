@@ -8,41 +8,52 @@ var (
 	registredErrors = make(map[string]*Error)
 
 	// Common errors
-	ErrNoDto          = new(http.StatusBadRequest, "common.no_dto")
-	ErrNoData         = new(http.StatusBadRequest, "common.no_data")
-	ErrUnknown        = new(http.StatusInternalServerError, "common.unknown")
-	ErrUnauthorized   = new(http.StatusUnauthorized, "common.unauthorized")
-	ErrBadRequest     = new(http.StatusBadRequest, "common.bad_request")
-	ErrInternalServer = new(http.StatusInternalServerError, "common.internal_error")
+	ErrNoDto          = New(http.StatusBadRequest, "common.no_dto")
+	ErrNoData         = New(http.StatusBadRequest, "common.no_data")
+	ErrUnauthorized   = New(http.StatusUnauthorized, "common.unauthorized")
+	ErrBadRequest     = New(http.StatusBadRequest, "common.bad_request")
+	ErrForbidden      = New(http.StatusForbidden, "common.forbidden")
+	ErrNotFound       = New(http.StatusNotFound, "common.not_found")
+	ErrInternalServer = New(http.StatusInternalServerError, "common.internal_error")
 
-	// User errors
-	ErrUserNotFound = new(http.StatusNotFound, "user.not_found")
+	// Hash errors
+	ErrHashAlgoUnknown = New(http.StatusInternalServerError, "hash.algo_unknown")
+	ErrHashMismatch    = New(http.StatusUnauthorized, "hash.mismatch")
 
-	// Client errors
-	ErrClientNotValidate      = new(http.StatusBadRequest, "client.not_validate")
-	ErrClientNotFound         = new(http.StatusNotFound, "client.not_found")
-	ErrClientAlreadyExists    = new(http.StatusConflict, "client.already_exists")
-	ErrClientAlreadyValidated = new(http.StatusConflict, "client.already_validated")
+	// Validator errors
+	ErrValueRequired                     = New(http.StatusBadRequest, "validator.required")
+	ErrValueIsNotString                  = New(http.StatusBadRequest, "validator.is_not_string")
+	ErrValueIsNotInt                     = New(http.StatusBadRequest, "validator.is_not_int")
+	ErrValueIsNotNumber                  = New(http.StatusBadRequest, "validator.is_not_number")
+	ErrValueIsNotBool                    = New(http.StatusBadRequest, "validator.is_not_bool")
+	ErrValueBoolMustBeTrue               = New(http.StatusBadRequest, "validator.bool_must_be_true")
+	ErrValueBoolMustBeFalse              = New(http.StatusBadRequest, "validator.bool_must_be_false")
+	ErrValueIsNotFloat                   = New(http.StatusBadRequest, "validator.is_not_float")
+	ErrValueIsNotEmail                   = New(http.StatusBadRequest, "validator.is_not_email")
+	ErrValueIsNotPassword                = New(http.StatusBadRequest, "validator.is_not_password")
+	ErrValuePasswordIsToShort            = New(http.StatusBadRequest, "validator.password_is_to_short")
+	ErrValuePasswordIsToLong             = New(http.StatusBadRequest, "validator.password_is_to_long")
+	ErrValuePasswordMustIncludeLowercase = New(http.StatusBadRequest, "validator.password_must_include_lowercase")
+	ErrValuePasswordMustIncludeUppercase = New(http.StatusBadRequest, "validator.password_must_include_uppercase")
+	ErrValuePasswordMustIncludeNumber    = New(http.StatusBadRequest, "validator.password_must_include_number")
+	ErrValuePasswordMustIncludeSpecial   = New(http.StatusBadRequest, "validator.password_must_include_special")
+	ErrValueIsNotPhone                   = New(http.StatusBadRequest, "validator.is_not_phone")
+	ErrValueIsNotID                      = New(http.StatusBadRequest, "validator.is_not_id")
+	ErrValueIsNotLuhn                    = New(http.StatusBadRequest, "validator.is_not_luhn")
+	ErrValueIsNotURL                     = New(http.StatusBadRequest, "validator.is_not_url")
+	ErrValueIsNotDate                    = New(http.StatusBadRequest, "validator.is_not_date")
+	ErrValueIsNotTime                    = New(http.StatusBadRequest, "validator.is_not_time")
+	ErrValueIsNotUUID                    = New(http.StatusBadRequest, "validator.is_not_uuid")
 
-	// Employee errors
-	ErrEmployeeNotValidate      = new(http.StatusBadRequest, "employee.not_validate")
-	ErrEmployeeNotFound         = new(http.StatusNotFound, "employee.not_found")
-	ErrEmployeeAlreadyExists    = new(http.StatusConflict, "employee.already_exists")
-	ErrEmployeeAlreadyValidated = new(http.StatusConflict, "employee.already_validated")
-
-	// Credential errors
-	ErrCredentialNotFound      = new(http.StatusNotFound, "credential.not_found")
-	ErrCredentialAlreadyExists = new(http.StatusConflict, "credential.already_exists")
+	// Auth errors
+	ErrAuthInvalidToken = New(http.StatusBadRequest, "auth.invalid_token")
+	ErrAuthFailed       = New(http.StatusUnauthorized, "auth.failed")
+	ErrAuthBadFormat    = New(http.StatusBadRequest, "auth.bad_format")
+	ErrAuthForbidden    = New(http.StatusForbidden, "auth.forbidden")
 
 	// Mail errors
-	ErrMailSendFailed = new(http.StatusInternalServerError, "mail.send_failed")
-
-	// Validation errors
-	ErrValidationNotFound         = new(http.StatusNotFound, "validation.not_found")
-	ErrValidationTokenNotFound    = new(http.StatusNotFound, "validation.token_not_found")
-	ErrValidationAlreadyValidated = new(http.StatusConflict, "validation.already_validated")
-	ErrValidationExpired          = new(http.StatusGone, "validation.expired")
+	ErrMailSendFailed = New(http.StatusInternalServerError, "mail.send_failed")
 
 	// Template errors
-	ErrTemplateNotFound = new(http.StatusNotFound, "template.not_found")
+	ErrMailTemplateNotFound = New(http.StatusNotFound, "template.mail.not_found")
 )

@@ -8,6 +8,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/services"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -41,7 +42,7 @@ func TestRegisterEmployee(t *testing.T) {
 
 	t.Run("employee already exists", func(t *testing.T) {
 		mockService := new(DomainUserService)
-		mockService.On("RegisterEmployee", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Employee")).Return(nil, errors.ErrCredentialAlreadyExists)
+		mockService.On("RegisterEmployee", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Employee")).Return(nil, errors_domain_user.ErrCredentialAlreadyExists)
 
 		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
 			Email:    &email,
@@ -53,14 +54,14 @@ func TestRegisterEmployee(t *testing.T) {
 
 	t.Run("server error during registration", func(t *testing.T) {
 		mockService := new(DomainUserService)
-		mockService.On("RegisterEmployee", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Employee")).Return(nil, errors.ErrInternalServer.WithData("server error"))
+		mockService.On("RegisterEmployee", mock.AnythingOfType("*transfert.Credential"), mock.AnythingOfType("*transfert.Employee")).Return(nil, errors.ErrInternalServer)
 
 		statusCode, response := services.RegisterEmployee(mockService, &transfert.Credential{
 			Email:    &email,
 			Password: &password,
 		}, &transfert.Employee{})
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Error(t, response.(errors.ErrorInterface))
+		assert.Error(t, response.(*errors.Error))
 	})
 }
 
@@ -72,7 +73,7 @@ func TestDeleteEmployee(t *testing.T) {
 		statusCode, response := services.DeleteEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Error(t, response.(errors.ErrorInterface))
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("should return 404 if employee not found", func(t *testing.T) {
@@ -80,12 +81,12 @@ func TestDeleteEmployee(t *testing.T) {
 		employeeID := "123e4567-e89b-12d3-a456-426614174000"
 		dtoEmployee := &transfert.Employee{ID: &employeeID}
 
-		mockService.On("DeleteEmployee", dtoEmployee).Return(errors.ErrEmployeeNotFound)
+		mockService.On("DeleteEmployee", dtoEmployee).Return(errors_domain_user.ErrEmployeeNotFound)
 
 		statusCode, response := services.DeleteEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
-		assert.Equal(t, errors.ErrEmployeeNotFound, response)
+		assert.Equal(t, errors_domain_user.ErrEmployeeNotFound, response)
 		mockService.AssertExpectations(t)
 	})
 
@@ -94,12 +95,12 @@ func TestDeleteEmployee(t *testing.T) {
 		employeeID := "123e4567-e89b-12d3-a456-426614174000"
 		dtoEmployee := &transfert.Employee{ID: &employeeID}
 
-		mockService.On("DeleteEmployee", dtoEmployee).Return(errors.ErrInternalServer.WithData("internal error"))
+		mockService.On("DeleteEmployee", dtoEmployee).Return(errors.ErrInternalServer)
 
 		statusCode, response := services.DeleteEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Error(t, response.(errors.ErrorInterface))
+		assert.Error(t, response.(*errors.Error))
 		mockService.AssertExpectations(t)
 	})
 
@@ -125,7 +126,7 @@ func TestUpdateEmployee(t *testing.T) {
 			ID: nil, // ID manquant
 		})
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Error(t, response.(errors.ErrorInterface))
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("successful employee update", func(t *testing.T) {
@@ -145,13 +146,13 @@ func TestUpdateEmployee(t *testing.T) {
 
 	t.Run("employee update error", func(t *testing.T) {
 		mockService := new(DomainUserService)
-		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, errors.ErrInternalServer.WithData("update error"))
+		mockService.On("UpdateEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, errors.ErrInternalServer)
 
 		statusCode, response := services.UpdateEmployee(mockService, &transfert.Employee{
 			ID: aws.String("123e4567-e89b-12d3-a456-426614174000"),
 		})
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Error(t, response.(errors.ErrorInterface))
+		assert.Error(t, response.(*errors.Error))
 		mockService.AssertExpectations(t)
 	})
 }
@@ -164,7 +165,7 @@ func TestGetEmployee(t *testing.T) {
 		statusCode, response := services.GetEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Error(t, response.(errors.ErrorInterface))
+		assert.Error(t, response.(*errors.Error))
 	})
 
 	t.Run("employee not found", func(t *testing.T) {
@@ -173,12 +174,12 @@ func TestGetEmployee(t *testing.T) {
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
 		}
 
-		mockService.On("GetEmployee", dtoEmployee).Return(nil, errors.ErrEmployeeNotFound)
+		mockService.On("GetEmployee", dtoEmployee).Return(nil, errors_domain_user.ErrEmployeeNotFound)
 
 		statusCode, response := services.GetEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
-		assert.Equal(t, errors.ErrEmployeeNotFound, response)
+		assert.Equal(t, errors_domain_user.ErrEmployeeNotFound, response)
 		mockService.AssertExpectations(t)
 	})
 
@@ -188,12 +189,12 @@ func TestGetEmployee(t *testing.T) {
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
 		}
 
-		mockService.On("GetEmployee", dtoEmployee).Return(nil, errors.ErrInternalServer.WithData("random error"))
+		mockService.On("GetEmployee", dtoEmployee).Return(nil, errors.ErrInternalServer)
 
 		statusCode, response := services.GetEmployee(mockService, dtoEmployee)
 
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Error(t, response.(errors.ErrorInterface))
+		assert.Error(t, response.(*errors.Error))
 		mockService.AssertExpectations(t)
 	})
 
