@@ -31,7 +31,7 @@ jobs:
           token: ${{ github.token }}
           branch: main
           skipInvalidTags: true
-          noVersionBumpBehavior: current
+          noVersionBumpBehavior: patch
           noNewCommitBehavior: current
           patchList: 'vendor, update, fix, bugfix, perf, refactor, test, tests, chore, ci, docs, improve, style, build, revert, improvement, enhancement, coverage, clean'
 
@@ -105,7 +105,7 @@ jobs:
           token: ${{ github.token }}
           branch: main
           skipInvalidTags: true
-          noVersionBumpBehavior: current
+          noVersionBumpBehavior: patch
           noNewCommitBehavior: current
           patchList: 'vendor, update, fix, bugfix, perf, refactor, test, tests, chore, ci, docs, improve, style, build, revert, improvement, enhancement, coverage, clean'
 
