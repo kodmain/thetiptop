@@ -195,6 +195,26 @@ func TestReadCredential(t *testing.T) {
 		// Vérification des attentes
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
+
+	// Cas où le credential n'existe pas
+	t.Run("credential not found", func(t *testing.T) {
+		dto := &transfert.Credential{
+			Email: aws.String("non-existing-email@world.com"),
+		}
+
+		mock.ExpectQuery(`SELECT \* FROM "credentials" WHERE "credentials"\."email" = \$1 AND "credentials"\."deleted_at" IS NULL ORDER BY "credentials"\."id" LIMIT \$2`).
+			WithArgs(dto.Email, 1).
+			WillReturnError(fmt.Errorf("some client error"))
+
+		entity, err := repo.ReadCredential(dto)
+
+		assert.NotNil(t, err)
+		assert.Nil(t, entity)
+		assert.EqualError(t, err, "common.internal_error")
+
+		// Vérification des attentes
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
 }
 
 // TestUpdateCredential teste la mise à jour des credentials

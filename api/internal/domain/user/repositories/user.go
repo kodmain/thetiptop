@@ -81,7 +81,7 @@ func (r *UserRepository) ReadUser(obj *transfert.User) (*entities.Client, *entit
 		return nil, nil, errors_domain_user.ErrUserNotFound
 	}
 
-	return nil, nil, errors.ErrInternalServer
+	return nil, nil, errors.ErrInternalServer.Log(resultClient.Error)
 }
 
 func (r *UserRepository) CreateCredential(obj *transfert.Credential) (*entities.Credential, errors.ErrorInterface) {
@@ -89,7 +89,7 @@ func (r *UserRepository) CreateCredential(obj *transfert.Credential) (*entities.
 
 	password, err := hash.Hash(aws.String(*obj.Email+":"+*obj.Password), hash.BCRYPT)
 	if err != nil {
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(err)
 	}
 
 	credential.Password = password
@@ -100,7 +100,7 @@ func (r *UserRepository) CreateCredential(obj *transfert.Credential) (*entities.
 			return nil, errors_domain_user.ErrCredentialAlreadyExists
 		}
 
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return credential, nil
@@ -115,7 +115,7 @@ func (r *UserRepository) ReadCredential(obj *transfert.Credential) (*entities.Cr
 			return nil, errors_domain_user.ErrCredentialNotFound
 		}
 
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return credential, nil
@@ -123,7 +123,7 @@ func (r *UserRepository) ReadCredential(obj *transfert.Credential) (*entities.Cr
 
 func (r *UserRepository) UpdateCredential(entity *entities.Credential) errors.ErrorInterface {
 	if result := r.store.Engine.Save(entity); result.Error != nil {
-		return errors.ErrInternalServer
+		return errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return nil
@@ -134,7 +134,7 @@ func (r *UserRepository) DeleteCredential(obj *transfert.Credential) errors.Erro
 	result := r.store.Engine.Where(obj).Delete(credential)
 
 	if result.Error != nil {
-		return errors.ErrInternalServer
+		return errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return nil
@@ -145,7 +145,7 @@ func (r *UserRepository) CreateClient(obj *transfert.Client) (*entities.Client, 
 
 	result := r.store.Engine.Create(client)
 	if result.Error != nil {
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return client, nil
@@ -160,7 +160,7 @@ func (r *UserRepository) ReadClient(obj *transfert.Client) (*entities.Client, er
 			return nil, errors_domain_user.ErrClientNotFound
 		}
 
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return client, nil
@@ -168,7 +168,7 @@ func (r *UserRepository) ReadClient(obj *transfert.Client) (*entities.Client, er
 
 func (r *UserRepository) UpdateClient(entity *entities.Client) errors.ErrorInterface {
 	if result := r.store.Engine.Save(entity); result.Error != nil {
-		return errors.ErrInternalServer
+		return errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return nil
@@ -179,7 +179,7 @@ func (r *UserRepository) DeleteClient(obj *transfert.Client) errors.ErrorInterfa
 	result := r.store.Engine.Delete(client)
 
 	if result.Error != nil {
-		return errors.ErrInternalServer
+		return errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return nil
@@ -190,7 +190,7 @@ func (r *UserRepository) CreateValidation(obj *transfert.Validation) (*entities.
 	result := r.store.Engine.Create(validation)
 
 	if result.Error != nil {
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return validation, nil
@@ -205,7 +205,7 @@ func (r *UserRepository) ReadValidation(obj *transfert.Validation) (*entities.Va
 			return nil, errors_domain_user.ErrValidationNotFound
 		}
 
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return validation, nil
@@ -213,7 +213,7 @@ func (r *UserRepository) ReadValidation(obj *transfert.Validation) (*entities.Va
 
 func (r *UserRepository) UpdateValidation(entity *entities.Validation) errors.ErrorInterface {
 	if result := r.store.Engine.Save(entity); result.Error != nil {
-		return errors.ErrInternalServer
+		return errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return nil
@@ -224,7 +224,7 @@ func (r *UserRepository) DeleteValidation(obj *transfert.Validation) errors.Erro
 	result := r.store.Engine.Where(obj).Delete(validation)
 
 	if result.Error != nil {
-		return errors.ErrInternalServer
+		return errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return nil
@@ -235,7 +235,7 @@ func (r *UserRepository) CreateEmployee(obj *transfert.Employee) (*entities.Empl
 
 	result := r.store.Engine.Create(employee)
 	if result.Error != nil {
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return employee, nil
@@ -249,7 +249,7 @@ func (r *UserRepository) ReadEmployee(obj *transfert.Employee) (*entities.Employ
 		if result.Error.Error() == "record not found" {
 			return nil, errors_domain_user.ErrEmployeeNotFound
 		}
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return employee, nil
@@ -257,7 +257,7 @@ func (r *UserRepository) ReadEmployee(obj *transfert.Employee) (*entities.Employ
 
 func (r *UserRepository) UpdateEmployee(entity *entities.Employee) errors.ErrorInterface {
 	if result := r.store.Engine.Save(entity); result.Error != nil {
-		return errors.ErrInternalServer
+		return errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return nil
@@ -268,7 +268,7 @@ func (r *UserRepository) DeleteEmployee(obj *transfert.Employee) errors.ErrorInt
 	result := r.store.Engine.Where(obj).Delete(employee)
 
 	if result.Error != nil {
-		return errors.ErrInternalServer
+		return errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return nil

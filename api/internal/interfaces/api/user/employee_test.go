@@ -9,7 +9,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,8 +48,6 @@ func TestEmployee(t *testing.T) {
 				}
 
 				RegisteredEmployee, status, err := request("POST", EMPLOYEE_REGISTER, "", encoding, values)
-				RegisteredEmployeeString := string(RegisteredEmployee)
-				logger.Info("RegisteredEmployeeString: ", RegisteredEmployeeString)
 
 				employee := entities.Employee{}
 				json.Unmarshal(RegisteredEmployee, &employee)
@@ -173,9 +170,7 @@ func TestEmployee(t *testing.T) {
 					assert.Equal(t, user.statusUP, status)
 
 					t.Run("Delete/"+encodingName, func(t *testing.T) {
-						DeletedEmployee, status, err := request("DELETE", urlwithcid, authorization, encoding, nil)
-						DeletedEmployeeString := string(DeletedEmployee)
-						logger.Info(DeletedEmployeeString)
+						_, status, err := request("DELETE", urlwithcid, authorization, encoding, nil)
 						assert.Nil(t, err)
 						assert.Equal(t, user.statusDel, status)
 					})
