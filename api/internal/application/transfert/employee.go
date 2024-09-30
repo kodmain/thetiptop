@@ -1,10 +1,8 @@
 package transfert
 
 import (
-	"fmt"
-
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 )
 
 type Employee struct {
@@ -12,7 +10,7 @@ type Employee struct {
 	CredentialID *string `json:"credential_id" xml:"credential_id" form:"credential_id"`
 }
 
-func (e *Employee) Check(validator data.Validator) error {
+func (e *Employee) Check(validator data.Validator) errors.ErrorInterface {
 	return validator.Check(data.Object{
 		"id":            e.ID,
 		"credential_id": e.CredentialID,
@@ -21,7 +19,7 @@ func (e *Employee) Check(validator data.Validator) error {
 
 func NewEmployee(obj data.Object, mandatory data.Validator) (*Employee, error) {
 	if obj == nil {
-		return nil, fmt.Errorf(errors.ErrNoData)
+		return nil, errors.ErrNoData
 	}
 
 	c := &Employee{}

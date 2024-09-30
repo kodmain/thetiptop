@@ -27,7 +27,7 @@ const docTemplate = `{
                     "Client"
                 ],
                 "summary": "Update a client.",
-                "operationId": "user.UpdateClient",
+                "operationId": "jwt.Auth =\u003e user.UpdateClient",
                 "parameters": [
                     {
                         "type": "string",
@@ -43,6 +43,13 @@ const docTemplate = `{
                         "description": "Newsletter",
                         "name": "newsletter",
                         "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -144,7 +151,7 @@ const docTemplate = `{
                     "Client"
                 ],
                 "summary": "Get a client by ID.",
-                "operationId": "user.GetClient",
+                "operationId": "jwt.Auth =\u003e user.GetClient",
                 "parameters": [
                     {
                         "type": "string",
@@ -152,6 +159,13 @@ const docTemplate = `{
                         "description": "Client ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -178,7 +192,7 @@ const docTemplate = `{
                     "Client"
                 ],
                 "summary": "Delete a client by ID.",
-                "operationId": "user.DeleteClient",
+                "operationId": "jwt.Auth =\u003e user.DeleteClient",
                 "parameters": [
                     {
                         "type": "string",
@@ -186,6 +200,13 @@ const docTemplate = `{
                         "description": "Client ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -205,6 +226,22 @@ const docTemplate = `{
                 }
             }
         },
+        "/code/error": {
+            "get": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Error"
+                ],
+                "summary": "List all code errors.",
+                "operationId": "code.ListErrors",
+                "responses": {}
+            }
+        },
         "/employee": {
             "put": {
                 "consumes": [
@@ -217,7 +254,7 @@ const docTemplate = `{
                     "Employee"
                 ],
                 "summary": "Update a employee.",
-                "operationId": "user.UpdateEmployee",
+                "operationId": "jwt.Auth =\u003e user.UpdateEmployee",
                 "parameters": [
                     {
                         "type": "string",
@@ -233,6 +270,13 @@ const docTemplate = `{
                         "description": "Newsletter",
                         "name": "newsletter",
                         "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -318,7 +362,7 @@ const docTemplate = `{
                     "Employee"
                 ],
                 "summary": "Get a employee by ID.",
-                "operationId": "user.GetEmployee",
+                "operationId": "jwt.Auth =\u003e user.GetEmployee",
                 "parameters": [
                     {
                         "type": "string",
@@ -326,6 +370,13 @@ const docTemplate = `{
                         "description": "Employee ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -352,7 +403,7 @@ const docTemplate = `{
                     "Employee"
                 ],
                 "summary": "Delete a client by ID.",
-                "operationId": "user.DeleteEmployee",
+                "operationId": "jwt.Auth =\u003e user.DeleteEmployee",
                 "parameters": [
                     {
                         "type": "string",
@@ -360,6 +411,13 @@ const docTemplate = `{
                         "description": "Employee ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -517,7 +575,7 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "Update a client/employees password.",
-                "operationId": "user.CredentialUpdate",
+                "operationId": "jwt.Auth =\u003e user.CredentialUpdate",
                 "parameters": [
                     {
                         "type": "string",

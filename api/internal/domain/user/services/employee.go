@@ -1,22 +1,21 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
+	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 )
 
-func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoEmployee *transfert.Employee) (*entities.Employee, error) {
+func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	if dtoCredential == nil || dtoEmployee == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
+		return nil, errors.ErrNoDto
 	}
 
 	_, err := s.repo.ReadCredential(dtoCredential)
 	if err == nil {
-		return nil, fmt.Errorf(errors.ErrEmployeeAlreadyExists)
+		return nil, errors_domain_user.ErrEmployeeAlreadyExists
 	}
 
 	credential, err := s.repo.CreateCredential(dtoCredential)
@@ -24,12 +23,12 @@ func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoE
 		return nil, err
 	}
 
+	dtoEmployee.CredentialID = &credential.ID
+
 	employee, err := s.repo.CreateEmployee(dtoEmployee)
 	if err != nil {
 		return nil, err
 	}
-
-	employee.CredentialID = &credential.ID
 
 	employee.Validations = append(employee.Validations, &entities.Validation{
 		EmployeeID: &employee.ID,
@@ -49,28 +48,46 @@ func (s *UserService) RegisterEmployee(dtoCredential *transfert.Credential, dtoE
 	return employee, nil
 }
 
-func (s *UserService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
-	// Vérifier si le DTO de l'employé est valide
+func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	if dtoEmployee == nil {
-		return nil, fmt.Errorf(errors.ErrNoDto)
+		return nil, errors.ErrNoDto
 	}
 
-	// Lire l'employé depuis le repository
-	employee, err := s.repo.ReadEmployee(dtoEmployee)
+	employee, err := s.repo.ReadEmployee(&transfert.Employee{
+		ID: dtoEmployee.ID,
+	})
+
 	if err != nil {
-		return nil, fmt.Errorf(errors.ErrEmployeeNotFound)
+		return nil, err
+	}
+
+	if !s.security.CanUpdate(employee) {
+		return nil, errors.ErrUnauthorized
+	}
+
+	data.UpdateEntityWithDto(employee, dtoEmployee)
+
+	if err := s.repo.UpdateEmployee(employee); err != nil {
+		return nil, err
 	}
 
 	return employee, nil
 }
 
-func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) error {
-	// Vérifier si le DTO de l'employé est valide
-	if dtoEmployee == nil || dtoEmployee.ID == nil {
-		return fmt.Errorf(errors.ErrNoDto)
+func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) errors.ErrorInterface {
+	if dtoEmployee == nil {
+		return errors.ErrNoDto
 	}
 
-	// Supprimer l'employé du repository
+	employee, err := s.repo.ReadEmployee(dtoEmployee)
+	if err != nil {
+		return err
+	}
+
+	if !s.security.CanDelete(employee) {
+		return errors.ErrUnauthorized
+	}
+
 	if err := s.repo.DeleteEmployee(dtoEmployee); err != nil {
 		return err
 	}
@@ -78,21 +95,18 @@ func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) error {
 	return nil
 }
 
-func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, error) {
-	employee, err := s.repo.ReadEmployee(&transfert.Employee{
-		ID: dtoEmployee.ID,
-	})
+func (s *UserService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
+	if dtoEmployee == nil {
+		return nil, errors.ErrNoDto
+	}
 
+	employee, err := s.repo.ReadEmployee(dtoEmployee)
 	if err != nil {
-		return nil, fmt.Errorf(errors.ErrEmployeeNotFound)
-	}
-
-	if err := data.UpdateEntityWithDto(employee, dtoEmployee); err != nil {
 		return nil, err
 	}
 
-	if err := s.repo.UpdateEmployee(employee); err != nil {
-		return nil, err
+	if !s.security.CanRead(employee) {
+		return nil, errors.ErrUnauthorized
 	}
 
 	return employee, nil

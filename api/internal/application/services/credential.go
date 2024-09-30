@@ -1,35 +1,34 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
 func UserAuth(service services.UserServiceInterface, credentialDTO *transfert.Credential) (int, any) {
-	err := credentialDTO.Check(data.Validator{
+	if err := credentialDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
+	}); err != nil {
+		return err.Code(), err
+	}
+
+	credentialID, role, err := service.UserAuth(credentialDTO)
+	if err != nil {
+		return err.Code(), err
+	}
+
+	accessToken, refreshToken, err := serializer.FromID(*credentialID, map[string]any{
+		"role": role,
 	})
 
 	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
-	}
-
-	userID, err := service.UserAuth(credentialDTO)
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
-	}
-
-	accessToken, refreshToken, err := serializer.FromID(*userID)
-	if err != nil {
-		return fiber.StatusInternalServerError, err.Error()
+		return err.Code(), err
 	}
 
 	return fiber.StatusOK, fiber.Map{
@@ -39,21 +38,23 @@ func UserAuth(service services.UserServiceInterface, credentialDTO *transfert.Cr
 }
 
 func UserAuthRenew(refresh *serializer.Token) (int, any) {
+	var err errors.ErrorInterface = errors.ErrAuthInvalidToken
 	if refresh == nil {
-		return fiber.StatusBadRequest, fmt.Errorf("invalid token").Error()
+		return err.Code(), err
 	}
 
+	err = errors.ErrUnauthorized
 	if refresh.Type != serializer.REFRESH {
-		return fiber.StatusBadRequest, fmt.Errorf("invalid token type").Error()
+		return err.Code(), err
 	}
 
 	if refresh.HasExpired() {
-		return fiber.StatusUnauthorized, fmt.Errorf("refresh token has expired").Error()
+		return err.Code(), err
 	}
 
-	accessToken, refreshToken, err := serializer.FromID(refresh.ID)
+	accessToken, refreshToken, err := serializer.FromID(refresh.ID, refresh.Data)
 	if err != nil {
-		return fiber.StatusInternalServerError, err.Error()
+		return err.Code(), err
 	}
 
 	return fiber.StatusOK, fiber.Map{
@@ -63,21 +64,17 @@ func UserAuthRenew(refresh *serializer.Token) (int, any) {
 }
 
 func CredentialUpdate(service services.UserServiceInterface, validationDTO *transfert.Validation, credentialDTO *transfert.Credential) (int, any) {
-	err := validationDTO.Check(data.Validator{
+	if err := validationDTO.Check(data.Validator{
 		"token": {validator.Required, validator.Luhn},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
-	err = credentialDTO.Check(data.Validator{
+	if err := credentialDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
 	validation, err := service.PasswordValidation(validationDTO, &transfert.Credential{
@@ -85,57 +82,32 @@ func CredentialUpdate(service services.UserServiceInterface, validationDTO *tran
 	})
 
 	if err != nil {
-		status := fiber.StatusInternalServerError
-		switch err.Error() {
-		case errors.ErrValidationNotFound:
-			status = fiber.StatusNotFound
-		case errors.ErrValidationAlreadyValidated:
-			status = fiber.StatusConflict
-		case errors.ErrValidationExpired:
-			status = fiber.StatusGone
-		}
-
-		return status, err.Error()
+		return err.Code(), err
 	}
 
-	err = service.PasswordUpdate(credentialDTO)
-	if err != nil {
-		return fiber.StatusInternalServerError, err.Error()
+	if err := service.PasswordUpdate(credentialDTO); err != nil {
+		return err.Code(), err
 	}
 
 	return fiber.StatusOK, validation
 }
 
 func MailValidation(service services.UserServiceInterface, dtoValidation *transfert.Validation, dtoCredential *transfert.Credential) (int, any) {
-	err := dtoValidation.Check(data.Validator{
+	if err := dtoValidation.Check(data.Validator{
 		"token": {validator.Required, validator.Luhn},
-	})
-
-	if err != nil {
+	}); err != nil {
 		return fiber.StatusBadRequest, err.Error()
 	}
 
-	err = dtoCredential.Check(data.Validator{
+	if err := dtoCredential.Check(data.Validator{
 		"email": {validator.Required, validator.Email},
-	})
-
-	if err != nil {
+	}); err != nil {
 		return fiber.StatusBadRequest, err.Error()
 	}
 
 	validation, err := service.MailValidation(dtoValidation, dtoCredential)
 	if err != nil {
-		status := fiber.StatusInternalServerError
-		switch err.Error() {
-		case errors.ErrValidationNotFound:
-			status = fiber.StatusNotFound
-		case errors.ErrValidationAlreadyValidated:
-			status = fiber.StatusConflict
-		case errors.ErrValidationExpired:
-			status = fiber.StatusGone
-		}
-
-		return status, err.Error()
+		return err.Code(), err
 	}
 
 	return fiber.StatusOK, validation
@@ -143,28 +115,20 @@ func MailValidation(service services.UserServiceInterface, dtoValidation *transf
 }
 
 func ValidationRecover(service services.UserServiceInterface, dtoCredential *transfert.Credential, dtoValidation *transfert.Validation) (int, any) {
-	err := dtoCredential.Check(data.Validator{
+	if err := dtoCredential.Check(data.Validator{
 		"email": {validator.Required, validator.Email},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
-	err = dtoValidation.Check(data.Validator{
+	if err := dtoValidation.Check(data.Validator{
 		"type": {validator.Required},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
-	if err = service.ValidationRecover(dtoValidation, dtoCredential); err != nil {
-		if err.Error() == errors.ErrUserNotFound {
-			return fiber.StatusNotFound, err.Error()
-		}
-
-		return fiber.StatusBadRequest, err.Error()
+	if err := service.ValidationRecover(dtoValidation, dtoCredential); err != nil {
+		return err.Code(), err
 	}
 
 	return fiber.StatusNoContent, nil

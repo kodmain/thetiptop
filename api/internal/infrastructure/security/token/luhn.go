@@ -1,12 +1,13 @@
 package token
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 )
 
 const (
@@ -35,7 +36,7 @@ func (l Luhn) Pointer() *Luhn {
 }
 
 // Validate retourne une erreur si la chaîne ne passe pas le test de Luhn.
-func (l Luhn) Validate() error {
+func (l Luhn) Validate() errors.ErrorInterface {
 	number := string(l)
 	p := len(number) % 2
 	sum, err := calculateLuhnSum(number, p)
@@ -45,7 +46,7 @@ func (l Luhn) Validate() error {
 
 	// Si le total modulo 10 n'est pas égal à 0, alors le nombre est invalide.
 	if sum%10 != 0 {
-		return errors.New("invalid number")
+		return errors.ErrValueIsNotLuhn
 	}
 
 	return nil
@@ -83,11 +84,11 @@ func Generate(length int) Luhn {
 }
 
 // calculateLuhnSum calcule la somme de Luhn pour un nombre donné avec une parité donnée.
-func calculateLuhnSum(number string, parity int) (int64, error) {
+func calculateLuhnSum(number string, parity int) (int64, errors.ErrorInterface) {
 	var sum int64
 	for i, d := range number {
 		if d < asciiZero || d > asciiTen {
-			return 0, errors.New("invalid digit")
+			return 0, errors.ErrValueIsNotNumber
 		}
 
 		d = d - asciiZero
