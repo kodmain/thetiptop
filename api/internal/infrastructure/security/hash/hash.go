@@ -43,7 +43,7 @@ func Hash(data *string, algo HashAlgo) (*string, errors.ErrorInterface) {
 	case BCRYPT:
 		return hashWithBcrypt(data)
 	default:
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(errors.ErrHashAlgoUnknown)
 	}
 
 	hashed := hex.EncodeToString(hashedData)
@@ -98,7 +98,7 @@ func hashWithAlgo(h hash.Hash, data *string) []byte {
 func hashWithBcrypt(data *string) (*string, errors.ErrorInterface) {
 	hashedData, err := bcrypt.GenerateFromPassword([]byte(*data), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, errors.ErrInternalServer
+		return nil, errors.ErrInternalServer.Log(err)
 	}
 
 	hashed := string(hashedData)

@@ -1,13 +1,25 @@
 package errors
 
+import "github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+
 type ErrorInterface interface {
 	Error() string
 	Code() int
+	Log(error) *Error
 }
 
 type Error struct {
 	code    int
 	message string
+	logged  bool
+}
+
+func (e *Error) Log(err error) *Error {
+	if !e.logged {
+		e.logged = logger.Error(err)
+	}
+
+	return e
 }
 
 func (e *Error) Code() int {
@@ -17,23 +29,6 @@ func (e *Error) Code() int {
 func (e *Error) Error() string {
 	return e.message
 }
-
-/*
-func FromErr(err error, code ErrorInterface) ErrorInterface {
-	if err == nil {
-		return nil
-	}
-
-	if e, ok := err.(ErrorInterface); ok {
-		return e
-	}
-
-	return &Error{
-		code:    code.Code(),
-		message: err.Error(),
-	}
-}
-*/
 
 func New(code int, message string) *Error {
 	err := &Error{
