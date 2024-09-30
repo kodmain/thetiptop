@@ -109,13 +109,13 @@ func (t *Template) Inject(data Data) ([]byte, []byte, errors.ErrorInterface) {
 
 	if t.Html != nil {
 		if err := t.Html.Execute(&html, data); err != nil {
-			return nil, nil, errors.ErrInternalServer
+			return nil, nil, errors.ErrInternalServer.Log(err)
 		}
 	}
 
 	if t.Text != nil {
 		if err := t.Text.Execute(&text, data); err != nil {
-			return nil, nil, errors.ErrInternalServer
+			return nil, nil, errors.ErrInternalServer.Log(err)
 		}
 	}
 
