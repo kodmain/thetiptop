@@ -226,6 +226,22 @@ const docTemplate = `{
                 }
             }
         },
+        "/code/error": {
+            "get": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Error"
+                ],
+                "summary": "List all code errors.",
+                "operationId": "code.ListErrors",
+                "responses": {}
+            }
+        },
         "/employee": {
             "put": {
                 "consumes": [

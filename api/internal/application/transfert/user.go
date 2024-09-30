@@ -1,10 +1,8 @@
 package transfert
 
 import (
-	"fmt"
-
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 )
 
 type User struct {
@@ -35,7 +33,7 @@ func (c *User) Check(validator data.Validator) error {
 
 func NewUser(obj data.Object, mandatory data.Validator) (*User, error) {
 	if obj == nil {
-		return nil, fmt.Errorf(errors.ErrNoData)
+		return nil, errors.ErrNoData
 	}
 
 	c := &User{}

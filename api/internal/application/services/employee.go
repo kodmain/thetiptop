@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
@@ -21,25 +20,15 @@ import (
 // - any: The response object, which can be an error message in case of failure, or nil for successful deletion
 func DeleteEmployee(service services.UserServiceInterface, dtoEmployee *transfert.Employee) (int, any) {
 	// Validation of the employee ID
-	err := dtoEmployee.Check(data.Validator{
+	if err := dtoEmployee.Check(data.Validator{
 		"id": {validator.Required, validator.ID},
-	})
-
-	// Return 400 if validation fails
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
 	// Attempt to delete the employee using the service
-	err = service.DeleteEmployee(dtoEmployee)
-	if err != nil {
-		// Handle specific error cases like employee not found
-		if err.Error() == errors.ErrEmployeeNotFound {
-			return fiber.StatusNotFound, err.Error()
-		}
-
-		// Return 500 for any internal server errors
-		return fiber.StatusInternalServerError, err.Error()
+	if err := service.DeleteEmployee(dtoEmployee); err != nil {
+		return err.Code(), err
 	}
 
 	// Return 204 if the deletion is successful with no content
@@ -47,66 +36,50 @@ func DeleteEmployee(service services.UserServiceInterface, dtoEmployee *transfer
 }
 
 func GetEmployee(service services.UserServiceInterface, dtoEmployee *transfert.Employee) (int, any) {
-	err := dtoEmployee.Check(data.Validator{
+	if err := dtoEmployee.Check(data.Validator{
 		"id": {validator.Required, validator.ID},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
 	employee, err := service.GetEmployee(dtoEmployee)
 	if err != nil {
-		if err.Error() == errors.ErrEmployeeNotFound {
-			return fiber.StatusNotFound, err.Error()
-		}
-
-		return fiber.StatusInternalServerError, err.Error()
+		return err.Code(), err
 	}
 
 	return fiber.StatusOK, employee
 }
 
 func UpdateEmployee(service services.UserServiceInterface, employeeDTO *transfert.Employee) (int, any) {
-	err := employeeDTO.Check(data.Validator{
+	if err := employeeDTO.Check(data.Validator{
 		"id": {validator.Required, validator.ID},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
 	employee, err := service.UpdateEmployee(employeeDTO)
 	if err != nil {
-		return fiber.StatusInternalServerError, err.Error()
+		return err.Code(), err
 	}
 
 	return fiber.StatusOK, employee
 }
 
 func RegisterEmployee(service services.UserServiceInterface, credentialDTO *transfert.Credential, employeeDTO *transfert.Employee) (int, any) {
-	err := credentialDTO.Check(data.Validator{
+	if err := credentialDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	}); err != nil {
+		return err.Code(), err
 	}
 
-	err = employeeDTO.Check(data.Validator{})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err.Error()
+	if err := employeeDTO.Check(data.Validator{}); err != nil {
+		return err.Code(), err
 	}
 
 	credential, err := service.RegisterEmployee(credentialDTO, employeeDTO)
 	if err != nil {
-		if err.Error() == errors.ErrCredentialAlreadyExists {
-			return fiber.StatusConflict, err.Error()
-		}
-
-		return fiber.StatusInternalServerError, err.Error()
+		return err.Code(), err
 	}
 
 	return fiber.StatusCreated, credential

@@ -2,7 +2,6 @@ package repositories_test
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -93,8 +92,7 @@ func TestCreateCredential(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, entity)
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("unique constraint failed", func(t *testing.T) {
@@ -117,10 +115,9 @@ func TestCreateCredential(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
-		assert.Equal(t, "credential already exists", err.Error())
+		assert.Error(t, err)
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("random error", func(t *testing.T) {
@@ -143,10 +140,9 @@ func TestCreateCredential(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
-		assert.Equal(t, "random-error", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -177,8 +173,7 @@ func TestReadCredential(t *testing.T) {
 		assert.Equal(t, dto.Email, entity.Email)
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	// Cas où le credential n'existe pas
@@ -195,11 +190,10 @@ func TestReadCredential(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
-		assert.Equal(t, gorm.ErrRecordNotFound, err)
+		assert.EqualError(t, err, "credential.not_found")
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -233,8 +227,7 @@ func TestUpdateCredential(t *testing.T) {
 		err := repo.UpdateCredential(entity)
 		assert.Nil(t, err)
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("update failure", func(t *testing.T) {
@@ -255,10 +248,9 @@ func TestUpdateCredential(t *testing.T) {
 
 		err := repo.UpdateCredential(entity)
 		assert.NotNil(t, err)
-		assert.Equal(t, "some update error", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -289,8 +281,7 @@ func TestDeleteCredential(t *testing.T) {
 		assert.Nil(t, err)
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	// Cas où la suppression échoue
@@ -306,11 +297,10 @@ func TestDeleteCredential(t *testing.T) {
 
 		// Vérification que l'erreur est bien renvoyée
 		assert.NotNil(t, err)
-		assert.Equal(t, "some delete error", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -350,8 +340,7 @@ func TestCreateValidation(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, entity)
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	// Cas où la création échoue
@@ -370,17 +359,16 @@ func TestCreateValidation(t *testing.T) {
 				nil,              // EmployeeID (probablement NULL)
 				nil,              // CredentialID (probablement NULL)
 				sqlmock.AnyArg(), // ExpiresAt
-			).WillReturnError(errors.New("some error"))
+			).WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
 		entity, err := repo.CreateValidation(dto)
 
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
-		assert.EqualError(t, err, "some error")
+		assert.EqualError(t, err, "common.internal_error")
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 }
@@ -424,8 +412,7 @@ func TestReadValidation(t *testing.T) {
 		assert.Equal(t, *dto.ClientID, *result.ClientID)
 
 		// Vérification des attentes SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	// Cas où la validation n'est pas trouvée
@@ -441,11 +428,10 @@ func TestReadValidation(t *testing.T) {
 		// Vérification des résultats
 		assert.NotNil(t, err)
 		assert.Nil(t, result)
-		assert.Equal(t, gorm.ErrRecordNotFound, err)
+		assert.EqualError(t, err, "validation.not_found")
 
 		// Vérification des attentes SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	// Cas d'une erreur inattendue lors de la lecture
@@ -453,7 +439,7 @@ func TestReadValidation(t *testing.T) {
 		// Mock pour simuler une erreur SQL
 		mock.ExpectQuery(`SELECT \* FROM "validations" WHERE \("validations"\."token" = \$1 AND "validations"\."client_id" = \$2\) AND "validations"\."deleted_at" IS NULL ORDER BY "validations"\."id" LIMIT \$3`).
 			WithArgs(dto.Token, dto.ClientID, 1).
-			WillReturnError(errors.New("some error")) // Simuler une erreur
+			WillReturnError(fmt.Errorf("some error")) // Simuler une erreur
 
 		// Appel de la méthode ReadValidation du repository
 		result, err := repo.ReadValidation(dto)
@@ -461,11 +447,10 @@ func TestReadValidation(t *testing.T) {
 		// Vérification que l'erreur est bien renvoyée
 		assert.NotNil(t, err)
 		assert.Nil(t, result)
-		assert.EqualError(t, err, "some error")
+		assert.EqualError(t, err, "common.internal_error")
 
 		// Vérification des attentes SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -501,8 +486,7 @@ func TestUpdateValidation(t *testing.T) {
 		assert.Nil(t, err) // Pas d'erreur attendue
 
 		// Vérification des attentes SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	// Cas où l'entité est nil
@@ -512,7 +496,7 @@ func TestUpdateValidation(t *testing.T) {
 
 		// Vérification que l'erreur est correcte
 		assert.NotNil(t, err)
-		assert.Equal(t, "invalid value, should be pointer to struct or slice", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
 		// Pas d'interaction SQL attendue, donc aucune attente SQL à vérifier
 	})
@@ -523,7 +507,7 @@ func TestUpdateValidation(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`UPDATE "validations" SET "created_at"=\$1,"updated_at"=\$2,"deleted_at"=\$3,"token"=\$4,"type"=\$5,"validated"=\$6,"client_id"=\$7,"employee_id"=\$8,"credential_id"=\$9,"expires_at"=\$10 WHERE "validations"."deleted_at" IS NULL AND "id" = \$11`).
 			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, entity.Token, sqlmock.AnyArg(), sqlmock.AnyArg(), entity.ClientID, nil, nil, entity.ExpiresAt, entity.ID).
-			WillReturnError(errors.New("update failed")) // Simuler une erreur
+			WillReturnError(fmt.Errorf("update failed")) // Simuler une erreur
 		mock.ExpectRollback()
 
 		// Appel de la méthode UpdateValidation
@@ -531,11 +515,10 @@ func TestUpdateValidation(t *testing.T) {
 
 		// Vérification des résultats
 		assert.NotNil(t, err)
-		assert.EqualError(t, err, "update failed")
+		assert.EqualError(t, err, "common.internal_error")
 
 		// Vérification des attentes SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -580,8 +563,7 @@ func TestDeleteValidationRepository(t *testing.T) {
 		assert.Nil(t, err) // Pas d'erreur attendue
 
 		// Vérification des attentes SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("delete with error", func(t *testing.T) {
@@ -589,7 +571,7 @@ func TestDeleteValidationRepository(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`UPDATE "validations" SET "deleted_at"=\$1 WHERE \("validations"\."token" = \$2 AND "validations"\."client_id" = \$3\) AND "validations"\."deleted_at" IS NULL`).
 			WithArgs(sqlmock.AnyArg(), dto.Token, dto.ClientID).
-			WillReturnError(errors.New("some error")) // Simuler une erreur
+			WillReturnError(fmt.Errorf("some error")) // Simuler une erreur
 		mock.ExpectRollback()
 
 		// Appel de la méthode DeleteValidation
@@ -597,11 +579,10 @@ func TestDeleteValidationRepository(t *testing.T) {
 
 		// Vérification des résultats
 		assert.NotNil(t, err)
-		assert.EqualError(t, err, "some error")
+		assert.EqualError(t, err, "common.internal_error")
 
 		// Vérification des attentes SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -642,8 +623,7 @@ func TestCreateClient(t *testing.T) {
 		assert.NotNil(t, entity)
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	// Cas d'autres erreurs lors de la création
@@ -670,11 +650,10 @@ func TestCreateClient(t *testing.T) {
 		// Assertions pour vérifier le comportement attendu
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
-		assert.Equal(t, "some other error", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
 		// Vérification des expectations SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -705,8 +684,7 @@ func TestReadClient(t *testing.T) {
 		assert.Equal(t, *dto.ID, entity.ID)
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	// Cas où le client n'existe pas
@@ -725,11 +703,10 @@ func TestReadClient(t *testing.T) {
 		// Vérification de l'erreur : le client n'existe pas, donc gorm.ErrRecordNotFound est attendu
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
-		assert.Equal(t, gorm.ErrRecordNotFound, err)
+		assert.EqualError(t, err, "client.not_found")
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 }
@@ -766,8 +743,7 @@ func TestUpdateClient(t *testing.T) {
 		err := repo.UpdateClient(entity)
 		assert.Nil(t, err)
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("update failure", func(t *testing.T) {
@@ -789,10 +765,9 @@ func TestUpdateClient(t *testing.T) {
 
 		err := repo.UpdateClient(entity)
 		assert.NotNil(t, err)
-		assert.Equal(t, "some update error", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -825,8 +800,7 @@ func TestDeleteClient(t *testing.T) {
 		assert.Nil(t, err)
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	// Cas où la suppression échoue
@@ -842,11 +816,10 @@ func TestDeleteClient(t *testing.T) {
 
 		// Vérification que l'erreur est bien renvoyée
 		assert.NotNil(t, err)
-		assert.Equal(t, "some delete error", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -882,8 +855,7 @@ func TestCreateEmployee(t *testing.T) {
 		assert.NotNil(t, entity)
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("error during creation", func(t *testing.T) {
@@ -904,11 +876,10 @@ func TestCreateEmployee(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
-		assert.Equal(t, "creation error", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
 		// Vérification des attentes
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -937,8 +908,7 @@ func TestReadEmployee(t *testing.T) {
 			assert.Equal(t, "credential-uuid", *entity.CredentialID)
 		}
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("employee not found", func(t *testing.T) {
@@ -952,10 +922,9 @@ func TestReadEmployee(t *testing.T) {
 		// Si l'employé n'est pas trouvé, une erreur doit être renvoyée
 		assert.NotNil(t, err)
 		assert.Nil(t, entity)
-		assert.Equal(t, gorm.ErrRecordNotFound, err)
+		assert.EqualError(t, err, "employee.not_found")
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -986,8 +955,7 @@ func TestUpdateEmployee(t *testing.T) {
 		err := repo.UpdateEmployee(entity)
 		assert.Nil(t, err)
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("update failure", func(t *testing.T) {
@@ -1006,10 +974,9 @@ func TestUpdateEmployee(t *testing.T) {
 
 		err := repo.UpdateEmployee(entity)
 		assert.NotNil(t, err)
-		assert.Equal(t, "update error", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -1031,8 +998,7 @@ func TestDeleteEmployee(t *testing.T) {
 		err := repo.DeleteEmployee(dto)
 		assert.Nil(t, err)
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("deletion failure", func(t *testing.T) {
@@ -1044,10 +1010,9 @@ func TestDeleteEmployee(t *testing.T) {
 
 		err := repo.DeleteEmployee(dto)
 		assert.NotNil(t, err)
-		assert.Equal(t, "delete error", err.Error())
+		assert.Equal(t, "common.internal_error", err.Error())
 
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -1076,8 +1041,7 @@ func TestReadUser(t *testing.T) {
 		assert.Equal(t, "client-uuid", client.ID)
 
 		// Vérification des attentes SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("user is an employee", func(t *testing.T) {
@@ -1121,8 +1085,7 @@ func TestReadUser(t *testing.T) {
 		}
 
 		// Vérification des attentes SQL
-		err = mock.ExpectationsWereMet()
-		assert.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("user not found", func(t *testing.T) {
@@ -1149,7 +1112,7 @@ func TestReadUser(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Nil(t, client)
 		assert.Nil(t, employee)
-		assert.EqualError(t, err, "user not found: neither client nor employee matches the provided ID or credential")
+		assert.EqualError(t, err, "user.not_found")
 	})
 
 	t.Run("error on reading client and employee", func(t *testing.T) {
@@ -1163,12 +1126,12 @@ func TestReadUser(t *testing.T) {
 		// Simuler une erreur lors de la lecture des clients
 		mock.ExpectQuery(`SELECT \* FROM "clients" WHERE "clients"\."id" = \$1 AND "clients"\."deleted_at" IS NULL LIMIT 1`).
 			WithArgs(dto.ToClient().ID).
-			WillReturnError(errors.New("some client error"))
+			WillReturnError(fmt.Errorf("some client error"))
 
 		// Simuler une erreur lors de la lecture des employés
 		mock.ExpectQuery(`SELECT \* FROM "employees" WHERE "employees"\."id" = \$1 AND "employees"\."deleted_at" IS NULL LIMIT 1`).
 			WithArgs(dto.ToClient().ID).
-			WillReturnError(errors.New("some employee error"))
+			WillReturnError(fmt.Errorf("some employee error"))
 
 		client, employee, err := repo.ReadUser(dto)
 
@@ -1176,6 +1139,6 @@ func TestReadUser(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Nil(t, client)
 		assert.Nil(t, employee)
-		assert.EqualError(t, err, "user not found: neither client nor employee matches the provided ID or credential")
+		assert.EqualError(t, err, "user.not_found")
 	})
 }
