@@ -111,20 +111,20 @@ func TestParser(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, status)
 	assert.Equal(t, "No token", string(content))
 
-	token, refresh, err := jwt.FromID("hello")
+	token, refresh, err := jwt.FromID("hello", nil)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 	assert.NotEmpty(t, refresh)
 
 	content, status, err = request("GET", restricted, token, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, status)
+	assert.Equal(t, http.StatusBadRequest, status)
 	assert.Equal(t, "Invalid Authorization header format", string(content))
 
 	content, status, err = request("GET", restricted, bearer+"Oki"+token, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
-	assert.Equal(t, "Invalid token: token is malformed: could not JSON decode header: invalid character ':' looking for beginning of value", string(content))
+	assert.Equal(t, "auth.failed", string(content))
 
 	content, status, err = request("GET", restricted, bearer+token, nil)
 	assert.NoError(t, err)
@@ -136,9 +136,9 @@ func TestParser(t *testing.T) {
 	content, status, err = request("GET", restricted, bearer+token, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
-	assert.Equal(t, "Invalid token: token has invalid claims: token is expired", string(content))
+	assert.Equal(t, "auth.failed", string(content))
 
-	realToken, refreshToken, err := jwt.FromID("hello")
+	realToken, refreshToken, err := jwt.FromID("hello", nil)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, realToken)
 	assert.NotEmpty(t, refreshToken)
@@ -150,30 +150,8 @@ func TestParser(t *testing.T) {
 	content, status, err = request("GET", restricted, bearer+realToken, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, status)
-	assert.Equal(t, "Invalid token: token signature is invalid: signature is invalid", string(content))
+	assert.Equal(t, "auth.failed", string(content))
 
 	err = stop()
 	assert.NoError(t, err)
 }
-
-/*
-func TestAuthNoToken(t *testing.T) {
-	c := &fiber.Ctx{}
-
-	err := jwt.Auth(c)
-
-	assert.Error(t, err)
-	assert.Equal(t, fiber.StatusUnauthorized, err.(*fiber.Error).Code)
-}
-
-/*
-func TestParser(t *testing.T) {
-	c := &fiber.Ctx{}
-	c.Set("Authorization", "Bearer token")
-
-	err := Parser(c)
-
-	assert.NoError(t, err)
-	assert.NotNil(t, c.Locals("token"))
-}
-*/

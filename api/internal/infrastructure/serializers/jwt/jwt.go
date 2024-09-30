@@ -1,10 +1,10 @@
 package jwt
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/password"
 )
 
@@ -68,17 +68,10 @@ func New(t *JWT) error {
 	return nil
 }
 
-func FromID(id string, datas ...map[string]any) (string, string, error) {
-	var data map[string]any
-	if len(datas) > 1 {
-		return "", "", fmt.Errorf("too many data passe one argument only")
-	} else if len(datas) == 1 {
-		data = datas[0]
-	}
-
+func FromID(id string, data map[string]any) (string, string, errors.ErrorInterface) {
 	location, err := time.LoadLocation(instance.TZ)
 	if err != nil {
-		return "", "", err
+		return "", "", errors.ErrAuthInvalidToken
 	}
 
 	now := time.Now().In(location)
@@ -95,7 +88,7 @@ func FromID(id string, datas ...map[string]any) (string, string, error) {
 
 	refresh, err := token.SignedString([]byte(instance.Secret))
 	if err != nil {
-		return "", "", err
+		return "", "", errors.ErrAuthInvalidToken
 	}
 
 	token = jwt.NewWithClaims(jwt.SigningMethodHS256, Token{
@@ -109,27 +102,27 @@ func FromID(id string, datas ...map[string]any) (string, string, error) {
 
 	access, err := token.SignedString([]byte(instance.Secret))
 	if err != nil {
-		return "", "", err
+		return "", "", errors.ErrAuthInvalidToken
 	}
 
 	return access, refresh, nil
 }
 
-func TokenToClaims(tokenString string) (*Token, error) {
+func TokenToClaims(tokenString string) (*Token, errors.ErrorInterface) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method")
+			return nil, errors.ErrAuthFailed
 		}
 		return []byte(instance.Secret), nil
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrAuthFailed
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, fmt.Errorf("invalid token claims")
+		return nil, errors.ErrAuthFailed
 	}
 
 	return fromClaims(claims), nil

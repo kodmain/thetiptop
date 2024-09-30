@@ -1,10 +1,8 @@
 package transfert
 
 import (
-	"fmt"
-
-	"github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 )
 
 type Validation struct {
@@ -15,7 +13,7 @@ type Validation struct {
 	Type       *string `json:"type" xml:"type" form:"type"`
 }
 
-func (v *Validation) Check(validator data.Validator) error {
+func (v *Validation) Check(validator data.Validator) errors.ErrorInterface {
 	return validator.Check(data.Object{
 		"id":          v.ID,
 		"token":       v.Token,
@@ -27,7 +25,7 @@ func (v *Validation) Check(validator data.Validator) error {
 
 func NewValidation(obj data.Object, mandatory data.Validator) (*Validation, error) {
 	if obj == nil {
-		return nil, fmt.Errorf(errors.ErrNoData)
+		return nil, errors.ErrNoData
 	}
 
 	v := &Validation{}

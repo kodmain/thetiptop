@@ -6,9 +6,9 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
-	"errors"
 	"hash"
 
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,12 +24,11 @@ const (
 )
 
 // hash crée un hachage du mot de passe en fonction de l'algorithme spécifié
-func Hash(data *string, algo HashAlgo) (*string, error) {
+func Hash(data *string, algo HashAlgo) (*string, errors.ErrorInterface) {
 	var hashedData []byte
-	var err error
 
 	if data == nil {
-		return nil, errors.New("data is nil")
+		return nil, errors.ErrNoData
 	}
 
 	switch algo {
@@ -44,17 +43,17 @@ func Hash(data *string, algo HashAlgo) (*string, error) {
 	case BCRYPT:
 		return hashWithBcrypt(data)
 	default:
-		return nil, errors.New("unknown hash algorithm")
+		return nil, errors.ErrInternalServer
 	}
 
 	hashed := hex.EncodeToString(hashedData)
 
-	return &hashed, err
+	return &hashed, nil
 }
 
-func CompareHash(hashedData, data *string, algo HashAlgo) error {
+func CompareHash(hashedData, data *string, algo HashAlgo) errors.ErrorInterface {
 	if data == nil || hashedData == nil {
-		return errors.New("data is nil")
+		return errors.ErrNoData
 	}
 
 	switch algo {
@@ -67,15 +66,23 @@ func CompareHash(hashedData, data *string, algo HashAlgo) error {
 	case MD5:
 		return compareHash(hashedData, data, md5.New())
 	case BCRYPT:
-		return bcrypt.CompareHashAndPassword([]byte(*hashedData), []byte(*data))
+		return compareHashBcrypt(hashedData, data)
 	default:
-		return errors.New("unknown hash algorithm")
+		return errors.ErrHashAlgoUnknown
 	}
 }
 
-func compareHash(hashedData, data *string, h hash.Hash) error {
+func compareHashBcrypt(hashedData, data *string) errors.ErrorInterface {
+	if bcrypt.CompareHashAndPassword([]byte(*hashedData), []byte(*data)) != nil {
+		return errors.ErrUnauthorized
+	}
+
+	return nil
+}
+
+func compareHash(hashedData, data *string, h hash.Hash) errors.ErrorInterface {
 	if hex.EncodeToString(hashWithAlgo(h, data)) != *hashedData {
-		return errors.New("hashes do not match")
+		return errors.ErrUnauthorized
 	}
 
 	return nil
@@ -88,10 +95,10 @@ func hashWithAlgo(h hash.Hash, data *string) []byte {
 }
 
 // hashWithBcrypt utilise bcrypt pour hacher les données
-func hashWithBcrypt(data *string) (*string, error) {
+func hashWithBcrypt(data *string) (*string, errors.ErrorInterface) {
 	hashedData, err := bcrypt.GenerateFromPassword([]byte(*data), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrInternalServer
 	}
 
 	hashed := string(hashedData)
