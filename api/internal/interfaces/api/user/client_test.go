@@ -9,7 +9,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -146,13 +145,11 @@ func TestClient(t *testing.T) {
 						token := extractToken(email.HTML)
 						assert.NotEmpty(t, token)
 
-						output, status, err := request("PUT", USER_PASSWORD, authorization, encoding, map[string][]any{
+						_, status, err = request("PUT", USER_PASSWORD, authorization, encoding, map[string][]any{
 							"token":    {token},
 							"email":    {user.email},
 							"password": {GOOD_PASS_UPDATED},
 						})
-
-						logger.Info(string(output))
 
 						assert.Nil(t, err)
 						assert.Equal(t, http.StatusOK, status)
