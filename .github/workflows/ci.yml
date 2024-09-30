@@ -31,7 +31,8 @@ jobs:
           token: ${{ github.token }}
           branch: main
           skipInvalidTags: true
-          noNewCommitBehavior: 'current'
+          noVersionBumpBehavior: current
+          noNewCommitBehavior: current
           patchList: 'vendor, update, fix, bugfix, perf, refactor, test, tests, chore, ci, docs, improve, style, build, revert, improvement, enhancement, coverage, clean'
 
       - name: Setup Go
@@ -104,7 +105,8 @@ jobs:
           token: ${{ github.token }}
           branch: main
           skipInvalidTags: true
-          noNewCommitBehavior: 'current'
+          noVersionBumpBehavior: current
+          noNewCommitBehavior: current
           patchList: 'vendor, update, fix, bugfix, perf, refactor, test, tests, chore, ci, docs, improve, style, build, revert, improvement, enhancement, coverage, clean'
 
       - name: SonarScanner Analyze
