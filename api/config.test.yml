@@ -1,28 +1,36 @@
 services:
   client:
     database: default
+    mail: default
+  employee:
+    database: default
+    mail: default
 
 providers:
   mails:
     default:
-      username: secret 
+      username: secret
       password: secret
       host: localhost
       port: 1025
       expeditor: Whoami
       from: whoami@localhost
-    
+
   databases:
+    file:
+      protocol: sqlite
+      dbname: ${PWD}/db.sqlite
+      logger: true
     default:
       protocol: sqlite
-      dbname: ':memory:' # we need memory for test
-      #dbname: ${PWD}/../.build/db.sqlite #uncomment this line to use a file
+      dbname: ':memory:'
+      logger: true
 
 security:
   validation:
     expire: 30m
-  jwt: 
-    #tz: Europe/Paris
+  jwt:
+    tz: Europe/Paris
     secret: secret
     expire: 15
     refresh: 30

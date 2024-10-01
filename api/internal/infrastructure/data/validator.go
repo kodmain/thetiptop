@@ -1,13 +1,15 @@
 package data
 
-type Control func(*string) error
+import "github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
+
+type Control func(any, string) errors.ErrorInterface
 type Validator map[string][]Control
 
-func (d Validator) Check(obj Object) error {
+func (d Validator) Check(obj Object) errors.ErrorInterface {
 	for key, controls := range d {
 		value := obj.Get(key)
 		for _, control := range controls {
-			if err := control(value); err != nil {
+			if err := control(value, key); err != nil {
 				return err
 			}
 		}
