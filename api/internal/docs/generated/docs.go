@@ -15,77 +15,41 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/password/recover": {
-            "post": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Password"
-                ],
-                "operationId": "client.PasswordRecover",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Password recover"
-                    },
-                    "400": {
-                        "description": "Invalid email"
-                    },
-                    "404": {
-                        "description": "Client not found"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/password/update": {
+        "/client": {
             "put": {
                 "consumes": [
-                    "*/*"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Password"
+                    "Client"
                 ],
-                "operationId": "client.PasswordUpdate",
+                "summary": "Update a client.",
+                "operationId": "jwt.Auth =\u003e user.UpdateClient",
                 "parameters": [
                     {
                         "type": "string",
-                        "format": "email",
-                        "description": "Email address",
-                        "name": "email",
+                        "format": "uuid",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Newsletter",
+                        "name": "newsletter",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Password",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Token",
-                        "name": "token",
-                        "in": "formData",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -111,86 +75,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/sign/in": {
-            "post": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Sign"
-                ],
-                "operationId": "client.SignIn",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "email",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Password",
-                        "name": "password",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Client signed in"
-                    },
-                    "400": {
-                        "description": "Invalid email or password"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/sign/renew": {
-            "get": {
-                "consumes": [
-                    "*/*"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Sign"
-                ],
-                "operationId": "client.SignRenew",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "With the bearer started",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "JWT token renewed"
-                    },
-                    "400": {
-                        "description": "Invalid token"
-                    },
-                    "401": {
-                        "description": "Token expired"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/sign/up": {
+        "/client/register": {
             "post": {
                 "consumes": [
                     "multipart/form-data"
@@ -199,13 +84,15 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Sign"
+                    "Client"
                 ],
-                "operationId": "client.SignUp",
+                "summary": "Register a client.",
+                "operationId": "user.RegisterClient",
                 "parameters": [
                     {
                         "type": "string",
                         "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
                         "description": "Email address",
                         "name": "email",
                         "in": "formData",
@@ -213,8 +100,25 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "default": "Aa1@azetyuiop",
                         "description": "Password",
                         "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "CGU",
+                        "name": "cgu",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Newsletter",
+                        "name": "newsletter",
                         "in": "formData",
                         "required": true
                     }
@@ -235,50 +139,297 @@ const docTemplate = `{
                 }
             }
         },
-        "/sign/validation": {
-            "put": {
+        "/client/{id}": {
+            "get": {
                 "consumes": [
-                    "*/*"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Sign"
+                    "Client"
                 ],
-                "operationId": "client.SignValidation",
+                "summary": "Get a client by ID.",
+                "operationId": "jwt.Auth =\u003e user.GetClient",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Token",
-                        "name": "token",
-                        "in": "formData",
+                        "format": "uuid",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "format": "email",
-                        "description": "Email address",
-                        "name": "email",
-                        "in": "formData",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Client details"
+                    },
+                    "400": {
+                        "description": "Invalid client ID"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Client"
+                ],
+                "summary": "Delete a client by ID.",
+                "operationId": "jwt.Auth =\u003e user.DeleteClient",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
                 "responses": {
                     "204": {
-                        "description": "Client email validate"
+                        "description": "Client deleted"
                     },
                     "400": {
-                        "description": "Invalid email or token"
+                        "description": "Invalid client ID"
                     },
                     "404": {
                         "description": "Client not found"
                     },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/code/error": {
+            "get": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Error"
+                ],
+                "summary": "List all code errors.",
+                "operationId": "code.ListErrors",
+                "responses": {}
+            }
+        },
+        "/employee": {
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee"
+                ],
+                "summary": "Update a employee.",
+                "operationId": "jwt.Auth =\u003e user.UpdateEmployee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Newsletter",
+                        "name": "newsletter",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Password updated"
+                    },
+                    "400": {
+                        "description": "Invalid email, password or token"
+                    },
+                    "404": {
+                        "description": "Employee not found"
+                    },
                     "409": {
-                        "description": "Client already validated"
+                        "description": "Employee already validated"
                     },
                     "410": {
                         "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/employee/register": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee"
+                ],
+                "summary": "Register a employee.",
+                "operationId": "user.RegisterEmployee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Aa1@azetyuiop",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Employee created"
+                    },
+                    "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "409": {
+                        "description": "Employee already exists"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/employee/{id}": {
+            "get": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee"
+                ],
+                "summary": "Get a employee by ID.",
+                "operationId": "jwt.Auth =\u003e user.GetEmployee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Employee details"
+                    },
+                    "400": {
+                        "description": "Invalid employee ID"
+                    },
+                    "404": {
+                        "description": "Employee not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employee"
+                ],
+                "summary": "Delete a client by ID.",
+                "operationId": "jwt.Auth =\u003e user.DeleteEmployee",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Employee ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Employee deleted"
+                    },
+                    "400": {
+                        "description": "Invalid employee ID"
+                    },
+                    "404": {
+                        "description": "Employee not found"
                     },
                     "500": {
                         "description": "Internal server error"
@@ -326,6 +477,243 @@ const docTemplate = `{
                         "description": "OK"
                     }
                 }
+            }
+        },
+        "/user/auth": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Authenticate a client/employees.",
+                "operationId": "user.UserAuth",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Aa1@azetyuiop",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Client signed in"
+                    },
+                    "400": {
+                        "description": "Invalid email or password"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/auth/renew": {
+            "get": {
+                "consumes": [
+                    "*/*",
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Renew JWT for a client/employees.",
+                "operationId": "user.UserAuthRenew",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "With the bearer started",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JWT token renewed"
+                    },
+                    "400": {
+                        "description": "Invalid token"
+                    },
+                    "401": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/password": {
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update a client/employees password.",
+                "operationId": "jwt.Auth =\u003e user.CredentialUpdate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "Aa1@azetyuiop",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Token",
+                        "name": "token",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Password updated"
+                    },
+                    "400": {
+                        "description": "Invalid email, password or token"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "409": {
+                        "description": "Client already validated"
+                    },
+                    "410": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/register/validation": {
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Validate a client/employees email.",
+                "operationId": "user.MailValidation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token",
+                        "name": "token",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Client email validate"
+                    },
+                    "400": {
+                        "description": "Invalid email or token"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "409": {
+                        "description": "Client already validated"
+                    },
+                    "410": {
+                        "description": "Token expired"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/user/validation/renew": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Recover a client/employees validation type.",
+                "operationId": "user.ValidationRecover",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "email",
+                        "default": "user-thetiptop@yopmail.com",
+                        "description": "Email address",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "mail",
+                            "password",
+                            "phone"
+                        ],
+                        "type": "string",
+                        "description": "Type of validation",
+                        "name": "type",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {}
             }
         }
     }

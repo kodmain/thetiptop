@@ -33,15 +33,16 @@ func TestFromID(t *testing.T) {
 
 	id := "exampleID"
 
-	token, err := jwt.FromID(id)
+	access, refresh, err := jwt.FromID(id, nil)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, token)
+	assert.NotEmpty(t, access)
+	assert.NotEmpty(t, refresh)
 
-	claims, err := jwt.TokenToClaims(token)
+	claims, err := jwt.TokenToClaims(access)
 	assert.NoError(t, err)
 	assert.Equal(t, id, claims.ID)
 
-	claims, err = jwt.TokenToClaims("fail" + token + "fail")
+	claims, err = jwt.TokenToClaims("fail" + access + "fail")
 	assert.Error(t, err)
 	assert.Nil(t, claims)
 }

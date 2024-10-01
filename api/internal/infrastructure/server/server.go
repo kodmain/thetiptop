@@ -4,6 +4,7 @@ package server
 import (
 	"crypto/tls"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -48,6 +49,9 @@ func (server *Server) Stop() error {
 // It creates a new version of the API router, adds the provided API to the router's namespace, and registers the new router with the server's main `app` instance.
 func (server *Server) Register(handlers map[string]fiber.Handler) {
 	for url, pathItem := range interfaces.Mapping.Paths {
+		// Remplacer {property} par :property dans l'URL
+		url = replaceCurlyBracesWithColons(url)
+
 		for _, method := range methods {
 			if operationID, exist := getOperationID(pathItem, method); exist {
 				handlersToRegister := getHandlers(operationID, handlers)
@@ -60,6 +64,13 @@ func (server *Server) Register(handlers map[string]fiber.Handler) {
 			}
 		}
 	}
+}
+
+// replaceCurlyBracesWithColons remplace toutes les occurences {property} par :property
+func replaceCurlyBracesWithColons(url string) string {
+	// Utilisation d'une expression régulière pour remplacer {property} par :property
+	re := regexp.MustCompile(`\{([a-zA-Z0-9_]+)\}`)
+	return re.ReplaceAllString(url, ":$1")
 }
 
 func wrapLastHandler(handlers []fiber.Handler) []fiber.Handler {

@@ -1,179 +1,90 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/transfert"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
-	"github.com/kodmain/thetiptop/api/internal/domain/client/services"
+	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
-	serializer "github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
-func SignUp(service services.ClientServiceInterface, clientDTO *transfert.Client) (int, any) {
-	err := clientDTO.Check(data.Validator{
-		"email":    {validator.Required, validator.Email},
-		"password": {validator.Required, validator.Password},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err
+// DeleteClient deletes a client by ID
+// This function checks the client's ID, validates it, and proceeds to delete the client from the system
+//
+// Parameters:
+// - service: services.UserServiceInterface The service responsible for client management
+// - dtoClient: *transfert.Client The DTO that contains the client's data to be deleted
+//
+// Returns:
+// - int: The HTTP status code indicating success or failure of the operation
+// - any: The response object, which can be an error message in case of failure, or nil for successful deletion
+func DeleteClient(service services.UserServiceInterface, dtoClient *transfert.Client) (int, any) {
+	// Validation of the client ID
+	if err := dtoClient.Check(data.Validator{
+		"id": {validator.Required, validator.ID},
+	}); err != nil {
+		return err.Code(), err
 	}
 
-	client, err := service.SignUp(clientDTO)
-	if err != nil {
-		if err.Error() == errors.ErrClientAlreadyExists {
-			return fiber.StatusConflict, err
-		}
-
-		return fiber.StatusInternalServerError, err
+	// Attempt to delete the client using the service
+	if err := service.DeleteClient(dtoClient); err != nil {
+		return err.Code(), err
 	}
 
-	return fiber.StatusCreated, client
-}
-
-func SignIn(service services.ClientServiceInterface, clientDTO *transfert.Client) (int, any) {
-	err := clientDTO.Check(data.Validator{
-		"email":    {validator.Required, validator.Email},
-		"password": {validator.Required, validator.Password},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err
-	}
-
-	client, err := service.SignIn(clientDTO)
-	if err != nil {
-		return fiber.StatusBadRequest, err
-	}
-
-	token, err := serializer.FromID(client.ID)
-	if err != nil {
-		return fiber.StatusInternalServerError, err
-	}
-
-	return fiber.StatusOK, token
-}
-
-func SignRenew(refresh *serializer.Token) (int, any) {
-	if refresh == nil {
-		return fiber.StatusBadRequest, fmt.Errorf("invalid token")
-	}
-
-	if refresh.Type != serializer.REFRESH {
-		return fiber.StatusBadRequest, fmt.Errorf("invalid token type")
-	}
-
-	if refresh.HasExpired() {
-		return fiber.StatusUnauthorized, fmt.Errorf("refresh token has expired")
-	}
-
-	refreshToken, err := serializer.FromID(refresh.ID)
-	if err != nil {
-		return fiber.StatusInternalServerError, err
-	}
-
-	return fiber.StatusOK, refreshToken
-}
-
-func SignValidation(service services.ClientServiceInterface, validationDTO *transfert.Validation, clientDTO *transfert.Client) (int, any) {
-	err := validationDTO.Check(data.Validator{
-		"token": {validator.Required, validator.Luhn},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err
-	}
-
-	err = clientDTO.Check(data.Validator{
-		"email": {validator.Required, validator.Email},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err
-	}
-
-	validation, err := service.SignValidation(validationDTO, clientDTO)
-	if err != nil {
-		status := fiber.StatusInternalServerError
-		switch err.Error() {
-		case errors.ErrValidationNotFound:
-			status = fiber.StatusNotFound
-		case errors.ErrValidationAlreadyValidated:
-			status = fiber.StatusConflict
-		case errors.ErrValidationExpired:
-			status = fiber.StatusGone
-		}
-
-		return status, err
-	}
-
-	return fiber.StatusOK, validation
-
-}
-
-func PasswordRecover(service services.ClientServiceInterface, clientDTO *transfert.Client) (int, any) {
-	err := clientDTO.Check(data.Validator{
-		"email": {validator.Required, validator.Email},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err
-	}
-
-	if err = service.PasswordRecover(clientDTO); err != nil {
-		if err.Error() == errors.ErrClientNotFound {
-			return fiber.StatusNotFound, err
-		}
-
-		return fiber.StatusBadRequest, err
-	}
-
+	// Return 204 if the deletion is successful with no content
 	return fiber.StatusNoContent, nil
 }
 
-func PasswordUpdate(service services.ClientServiceInterface, validationDTO *transfert.Validation, clientDTO *transfert.Client) (int, any) {
-	err := validationDTO.Check(data.Validator{
-		"token": {validator.Required, validator.Luhn},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err
+func GetClient(service services.UserServiceInterface, dtoClient *transfert.Client) (int, any) {
+	if err := dtoClient.Check(data.Validator{
+		"id": {validator.Required, validator.ID},
+	}); err != nil {
+		return err.Code(), err
 	}
 
-	err = clientDTO.Check(data.Validator{
+	client, err := service.GetClient(dtoClient)
+	if err != nil {
+		return err.Code(), err
+	}
+
+	return fiber.StatusOK, client
+}
+
+func UpdateClient(service services.UserServiceInterface, clientDTO *transfert.Client) (int, any) {
+	if err := clientDTO.Check(data.Validator{
+		"id":         {validator.Required, validator.ID},
+		"newsletter": {validator.IsBool},
+	}); err != nil {
+		return err.Code(), err
+	}
+
+	client, err := service.UpdateClient(clientDTO)
+	if err != nil {
+		return err.Code(), err
+	}
+
+	return fiber.StatusOK, client
+}
+
+func RegisterClient(service services.UserServiceInterface, credentialDTO *transfert.Credential, clientDTO *transfert.Client) (int, any) {
+	if err := credentialDTO.Check(data.Validator{
 		"email":    {validator.Required, validator.Email},
 		"password": {validator.Required, validator.Password},
-	})
-
-	if err != nil {
-		return fiber.StatusBadRequest, err
+	}); err != nil {
+		return err.Code(), err
 	}
 
-	validation, err := service.PasswordValidation(validationDTO, &transfert.Client{
-		Email: clientDTO.Email,
-	})
-
-	if err != nil {
-		status := fiber.StatusInternalServerError
-		switch err.Error() {
-		case errors.ErrValidationNotFound:
-			status = fiber.StatusNotFound
-		case errors.ErrValidationAlreadyValidated:
-			status = fiber.StatusConflict
-		case errors.ErrValidationExpired:
-			status = fiber.StatusGone
-		}
-
-		return status, err
+	if err := clientDTO.Check(data.Validator{
+		"newsletter": {validator.Required, validator.IsBool},
+		"cgu":        {validator.Required, validator.IsBool, validator.IsTrue},
+	}); err != nil {
+		return err.Code(), err
 	}
 
-	err = service.PasswordUpdate(clientDTO)
+	credential, err := service.RegisterClient(credentialDTO, clientDTO)
 	if err != nil {
-		return fiber.StatusInternalServerError, err
+		return err.Code(), err
 	}
 
-	return fiber.StatusOK, validation
+	return fiber.StatusCreated, credential
 }

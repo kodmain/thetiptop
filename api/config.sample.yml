@@ -1,0 +1,47 @@
+services:
+  client:
+    database: default
+    mail: default
+  employee:
+    database: default
+    mail: default
+
+providers:
+  mails:
+    default:
+      username: secret
+      password: secret
+      host: localhost
+      port: 1025
+      expeditor: Whoami
+      from: whoami@localhost
+
+  databases:
+    mysql:
+      protocol: mysql # Peut être 'mysql', 'postgres', ou 'sqlite'
+      host: 127.0.0.1 # Hôte de la base de données
+      port: '3306' # Port de la base de données (3306 pour MySQL, 5432 pour PostgreSQL)
+      user: toor # Nom d'utilisateur de la base de données
+      password: toor # Mot de passe de la base de données
+      dbname: thetiptop # Nom de la base de données (ou chemin pour SQLite)
+      # Paramètres spécifiques pour la connexion à la base de données (en fonction du SGBD utilisé)
+      logger: false # Active ou désactive les logs de la base de données false par défaut
+      options:
+        charset: utf8mb4 # Option spécifique à MySQL
+    file:
+      protocol: sqlite
+      dbname: ${PWD}/db.sqlite #uncomment this line to use a file
+      logger: false # Active ou désactive les logs de la base de données false par défaut
+    default:
+      protocol: sqlite
+      dbname: ':memory:' # we need memory for test
+      logger: false # Active ou désactive les logs de la base de données false par défaut
+
+security:
+  validation:
+    expire: 30m
+  jwt:
+    tz: Europe/Paris
+    secret: secret
+    expire: 15
+    refresh: 30
