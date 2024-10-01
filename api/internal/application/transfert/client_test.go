@@ -12,57 +12,60 @@ import (
 
 func TestNewClient(t *testing.T) {
 	tests := []struct {
-		name     string
-		email    *string
-		password *string
-		wantErr  bool
+		name       string
+		newsletter *bool
+		cgu        *bool
+		wantErr    bool
 	}{
 		{
-			name:     "Valid client",
-			email:    aws.String("hello@kodmain.com"),
-			password: aws.String("Abc123!@#"),
-			wantErr:  false,
+			name:       "Valid client",
+			newsletter: aws.Bool(false),
+			cgu:        aws.Bool(true),
+			wantErr:    false,
 		},
 		{
-			name:     "Invalid client",
-			email:    aws.String("invalid"),
-			password: aws.String(""),
-			wantErr:  true,
+			name:       "Invalid client",
+			newsletter: aws.Bool(true),
+			cgu:        aws.Bool(false),
+			wantErr:    true,
 		},
 	}
 
+	// Test with nil object and nil validator
 	client, err := transfert.NewClient(nil, nil)
 	assert.Error(t, err)
 	assert.Nil(t, client)
 
+	// Test with empty object and nil validator
 	client, err = transfert.NewClient(data.Object{}, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
 
+	// Iterate through test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			obj := data.Object{
-				"email":    tt.email,
-				"password": tt.password,
+				"newsletter": tt.newsletter,
+				"cgu":        tt.cgu,
 			}
 
 			client, err := transfert.NewClient(obj, data.Validator{
-				"email":    {validator.Email},
-				"password": {validator.Password},
+				"newsletter": {validator.IsFalse},
+				"cgu":        {validator.IsTrue},
 			})
 
 			if tt.wantErr {
 				assert.Error(t, err)
+				assert.Nil(t, client)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.email, client.Email)
-				assert.Equal(t, tt.password, client.Password)
+				assert.NotNil(t, client)
 
+				// Validate client with the same validators
 				err := client.Check(data.Validator{
-					"email":    {validator.Email},
-					"password": {validator.Password},
+					"newsletter": {validator.IsFalse},
+					"cgu":        {validator.IsTrue},
 				})
-
 				assert.NoError(t, err)
 			}
 		})

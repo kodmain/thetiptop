@@ -11,7 +11,11 @@
         "connectionId": "kodmain",
         "projectKey": "kodmain_thetiptop"
 	},
+	"yaml.validate": true,
 	"yaml.schemas": {
-		"https://json.schemastore.org/yamllint.json": "file:///Users/florent/Documents/thetiptop/api/config.test.yml"
-	}
+    	"https://json.schemastore.org/yamllint.json": [
+			"**/*.yml"
+		]
+	},
+	"cmake.ignoreCMakeListsMissing": true
 }
