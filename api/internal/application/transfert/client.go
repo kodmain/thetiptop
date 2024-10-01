@@ -1,27 +1,29 @@
 package transfert
 
 import (
-	"fmt"
-
-	"github.com/kodmain/thetiptop/api/internal/domain/client/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 )
 
 type Client struct {
-	Email    *string `json:"email" xml:"email" form:"email"`
-	Password *string `json:"password" xml:"password" form:"password"`
+	ID           *string `json:"id" xml:"id" form:"id"`
+	Newsletter   *bool   `json:"newsletter" xml:"newsletter" form:"newsletter"`
+	CGU          *bool   `json:"cgu" xml:"cgu" form:"cgu"`
+	CredentialID *string `json:"credential_id" xml:"credential_id" form:"credential_id"`
 }
 
-func (c *Client) Check(validator data.Validator) error {
+func (c *Client) Check(validator data.Validator) errors.ErrorInterface {
 	return validator.Check(data.Object{
-		"email":    c.Email,
-		"password": c.Password,
+		"id":            c.ID,
+		"newsletter":    c.Newsletter,
+		"cgu":           c.CGU,
+		"credential_id": c.CredentialID,
 	})
 }
 
 func NewClient(obj data.Object, mandatory data.Validator) (*Client, error) {
 	if obj == nil {
-		return nil, fmt.Errorf(errors.ErrNoData)
+		return nil, errors.ErrNoData
 	}
 
 	c := &Client{}

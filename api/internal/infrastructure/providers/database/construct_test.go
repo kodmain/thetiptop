@@ -23,6 +23,7 @@ func TestConfigNew(t *testing.T) {
 		"memory": {
 			Protocol: database.SQLite,
 			DBname:   CONF_MEMORY,
+			Logger:   true,
 		},
 		"mysql": {
 			Protocol: database.MySQL,
