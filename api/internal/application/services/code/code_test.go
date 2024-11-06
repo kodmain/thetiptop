@@ -1,10 +1,10 @@
-package services_test
+package code_test
 
 import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/api/internal/application/services"
+	"github.com/kodmain/thetiptop/api/internal/application/services/code"
 	"github.com/kodmain/thetiptop/api/internal/domain/code/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/stretchr/testify/assert"
@@ -44,7 +44,7 @@ func TestListErrors_Success(t *testing.T) {
 	mockService.On("ListErrors").Return(mockErrorMap, nil)
 
 	// Appel de la fonction à tester
-	status, result := services.ListErrors(mockService)
+	status, result := code.ListErrors(mockService)
 
 	// Vérification du statut et des résultats
 	assert.Equal(t, fiber.StatusOK, status)
@@ -66,7 +66,7 @@ func TestListErrors_Error(t *testing.T) {
 	mockService.On("ListErrors").Return(nil, mockError)
 
 	// Appel de la fonction à tester
-	status, result := services.ListErrors(mockService)
+	status, result := code.ListErrors(mockService)
 
 	// Vérification du statut et des résultats
 	assert.Equal(t, mockError.Code(), status)

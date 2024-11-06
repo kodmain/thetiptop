@@ -5,8 +5,8 @@ import (
 
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/security"
-	"github.com/kodmain/thetiptop/api/internal/application/services"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
 

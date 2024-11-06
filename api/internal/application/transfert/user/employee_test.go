@@ -3,7 +3,7 @@ package transfert_test
 import (
 	"testing"
 
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 	"github.com/stretchr/testify/assert"
 )
