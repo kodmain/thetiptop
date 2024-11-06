@@ -43,7 +43,6 @@ func New(databases map[string]*Config) error {
 		mutex.Lock()
 		if _, ok := instances[key]; ok {
 			mutex.Unlock()
-			errs = append(errs, fmt.Errorf("database already exists"))
 			continue
 		}
 		mutex.Unlock()
