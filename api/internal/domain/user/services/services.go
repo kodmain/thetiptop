@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"

@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/application/validator"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"

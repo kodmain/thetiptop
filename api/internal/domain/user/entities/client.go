@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"gorm.io/gorm"
 )
 

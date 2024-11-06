@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
