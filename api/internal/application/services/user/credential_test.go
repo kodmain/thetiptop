@@ -20,7 +20,8 @@ import (
 )
 
 func TestUserAuth(t *testing.T) {
-	config.Load(aws.String("../../../config.test.yml"))
+	err := config.Load(aws.String("../../../../config.test.yml"))
+	assert.NoError(t, err)
 
 	t.Run("invalid syntax password", func(t *testing.T) {
 		mockClient := new(DomainUserService)
@@ -80,7 +81,8 @@ func TestUserAuth(t *testing.T) {
 }
 
 func TestUserAuthRenew(t *testing.T) {
-	config.Load(aws.String("../../../config.test.yml"))
+	err := config.Load(aws.String("../../../../config.test.yml"))
+	assert.NoError(t, err)
 
 	t.Run("invalid token - nil", func(t *testing.T) {
 		// Cas où le jeton est nil
