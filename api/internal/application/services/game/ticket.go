@@ -7,9 +7,14 @@ import (
 )
 
 func Lucky(service services.GameServiceInterface) (int, any) {
-	return fiber.StatusNoContent, nil
+	ticket, err := service.Lucky()
+	if err != nil {
+		return err.Code(), err
+	}
+
+	return fiber.StatusOK, ticket
 }
 
-func Validate(service services.GameServiceInterface, dtoTicket transfert.Ticket) (int, any) {
+func Validate(service services.GameServiceInterface, dtoTicket *transfert.Ticket) (int, any) {
 	return fiber.StatusNoContent, nil
 }

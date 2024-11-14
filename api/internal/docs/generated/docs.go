@@ -437,6 +437,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/game/lucky": {
+            "get": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Get a lucky ticket.",
+                "operationId": "game.Lucky",
+                "responses": {}
+            }
+        },
+        "/game/reveal": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Reveal the prize of a ticket.",
+                "operationId": "game.Reveal",
+                "responses": {}
+            }
+        },
         "/status/healthcheck": {
             "get": {
                 "description": "get the status of server.",
