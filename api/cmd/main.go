@@ -10,7 +10,9 @@ import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application"
+	"github.com/kodmain/thetiptop/api/internal/application/hook"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
+	"github.com/kodmain/thetiptop/api/internal/domain/game/events"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
@@ -26,13 +28,18 @@ var Helper *cobra.Command = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("loading configuration")
+		hook.Call(hook.EventOnConfig)
 		generated.SwaggerInfo.Version = env.BUILD_VERSION
 		logger.SetLevel(levels.DEBUG)
+		hook.Register(hook.EventOnDBInit, func() {
+			hook.Call(events.DomainGameInit)
+		})
 
 		return config.Load(env.CONFIG_URI)
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("starting application")
+		hook.Call(hook.EventOnStart)
 		srv := server.Create()
 		srv.Register(interfaces.Endpoints)
 		return srv.Start()

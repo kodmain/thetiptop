@@ -9,6 +9,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/docs"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/api/code"
+	"github.com/kodmain/thetiptop/api/internal/interfaces/api/game"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/api/user"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/status"
 	"github.com/swaggo/swag"
@@ -22,6 +23,8 @@ func init() {
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
 		"code.ListErrors":        code.ListErrors,
+		"game.Lucky":             game.Lucky,
+		"game.Reveal":            game.Reveal,
 		"jwt.Auth":               jwt.Auth,
 		"status.HealthCheck":     status.HealthCheck,
 		"status.IP":              status.IP,

@@ -294,6 +294,28 @@ paths:
       summary: Register a employee.
       tags:
       - Employee
+  /game/lucky:
+    get:
+      consumes:
+      - multipart/form-data
+      operationId: game.Lucky
+      produces:
+      - application/json
+      responses: {}
+      summary: Get a lucky ticket.
+      tags:
+      - Game
+  /game/reveal:
+    post:
+      consumes:
+      - multipart/form-data
+      operationId: game.Reveal
+      produces:
+      - application/json
+      responses: {}
+      summary: Reveal the prize of a ticket.
+      tags:
+      - Game
   /status/healthcheck:
     get:
       consumes:

@@ -10,6 +10,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
+	"gorm.io/gorm"
 )
 
 var user sync.Once
@@ -20,31 +21,31 @@ type UserRepository struct {
 
 type UserRepositoryInterface interface {
 	// user
-	ReadUser(obj *transfert.User) (*entities.Client, *entities.Employee, errors.ErrorInterface)
+	ReadUser(obj *transfert.User, options ...database.Option) (*entities.Client, *entities.Employee, errors.ErrorInterface)
 
 	// client
-	CreateClient(obj *transfert.Client) (*entities.Client, errors.ErrorInterface)
-	ReadClient(obj *transfert.Client) (*entities.Client, errors.ErrorInterface)
-	UpdateClient(entity *entities.Client) errors.ErrorInterface
-	DeleteClient(obj *transfert.Client) errors.ErrorInterface
+	CreateClient(obj *transfert.Client, options ...database.Option) (*entities.Client, errors.ErrorInterface)
+	ReadClient(obj *transfert.Client, options ...database.Option) (*entities.Client, errors.ErrorInterface)
+	UpdateClient(entity *entities.Client, options ...database.Option) errors.ErrorInterface
+	DeleteClient(obj *transfert.Client, options ...database.Option) errors.ErrorInterface
 
 	// employee
-	CreateEmployee(obj *transfert.Employee) (*entities.Employee, errors.ErrorInterface)
-	ReadEmployee(obj *transfert.Employee) (*entities.Employee, errors.ErrorInterface)
-	UpdateEmployee(entity *entities.Employee) errors.ErrorInterface
-	DeleteEmployee(obj *transfert.Employee) errors.ErrorInterface
+	CreateEmployee(obj *transfert.Employee, options ...database.Option) (*entities.Employee, errors.ErrorInterface)
+	ReadEmployee(obj *transfert.Employee, options ...database.Option) (*entities.Employee, errors.ErrorInterface)
+	UpdateEmployee(entity *entities.Employee, options ...database.Option) errors.ErrorInterface
+	DeleteEmployee(obj *transfert.Employee, options ...database.Option) errors.ErrorInterface
 
 	// validation
-	CreateValidation(obj *transfert.Validation) (*entities.Validation, errors.ErrorInterface)
-	ReadValidation(obj *transfert.Validation) (*entities.Validation, errors.ErrorInterface)
-	UpdateValidation(entity *entities.Validation) errors.ErrorInterface
-	DeleteValidation(obj *transfert.Validation) errors.ErrorInterface
+	CreateValidation(obj *transfert.Validation, options ...database.Option) (*entities.Validation, errors.ErrorInterface)
+	ReadValidation(obj *transfert.Validation, options ...database.Option) (*entities.Validation, errors.ErrorInterface)
+	UpdateValidation(entity *entities.Validation, options ...database.Option) errors.ErrorInterface
+	DeleteValidation(obj *transfert.Validation, options ...database.Option) errors.ErrorInterface
 
 	// Credential
-	CreateCredential(obj *transfert.Credential) (*entities.Credential, errors.ErrorInterface)
-	ReadCredential(obj *transfert.Credential) (*entities.Credential, errors.ErrorInterface)
-	UpdateCredential(entity *entities.Credential) errors.ErrorInterface
-	DeleteCredential(obj *transfert.Credential) errors.ErrorInterface
+	CreateCredential(obj *transfert.Credential, options ...database.Option) (*entities.Credential, errors.ErrorInterface)
+	ReadCredential(obj *transfert.Credential, options ...database.Option) (*entities.Credential, errors.ErrorInterface)
+	UpdateCredential(entity *entities.Credential, options ...database.Option) errors.ErrorInterface
+	DeleteCredential(obj *transfert.Credential, options ...database.Option) errors.ErrorInterface
 }
 
 func NewUserRepository(store *database.Database) *UserRepository {
@@ -58,25 +59,30 @@ func NewUserRepository(store *database.Database) *UserRepository {
 	return &UserRepository{store}
 }
 
-func (r *UserRepository) ReadUser(obj *transfert.User) (*entities.Client, *entities.Employee, errors.ErrorInterface) {
+func (r *UserRepository) applyOptions(query *gorm.DB, options ...database.Option) {
+	for _, option := range options {
+		option(query)
+	}
+}
+
+func (r *UserRepository) ReadUser(obj *transfert.User, options ...database.Option) (*entities.Client, *entities.Employee, errors.ErrorInterface) {
 	var client entities.Client
 	var employee entities.Employee
 
-	// Chercher dans la table des clients
-	resultClient := r.store.Engine.Where(obj.ToClient()).First(&client)
+	queryClient := r.store.Engine.Where(obj.ToClient())
+	r.applyOptions(queryClient, options...)
+	resultClient := queryClient.First(&client)
 	if resultClient.Error == nil {
-		// Si un client est trouvé, le retourner sans chercher d'employé
 		return &client, nil, nil
 	}
 
-	// Si aucun client trouvé, chercher dans la table des employés
-	resultEmployee := r.store.Engine.Where(obj.ToClient()).First(&employee)
+	queryEmployee := r.store.Engine.Where(obj.ToEmployee())
+	r.applyOptions(queryEmployee, options...)
+	resultEmployee := queryEmployee.First(&employee)
 	if resultEmployee.Error == nil {
-		// Si un employé est trouvé, le retourner
 		return nil, &employee, nil
 	}
 
-	// Si aucune des deux entités n'est trouvée, retourner une erreur
 	if resultClient.Error != nil && resultEmployee.Error != nil {
 		return nil, nil, errors_domain_user.ErrUserNotFound
 	}
@@ -84,7 +90,7 @@ func (r *UserRepository) ReadUser(obj *transfert.User) (*entities.Client, *entit
 	return nil, nil, errors.ErrInternalServer.Log(resultClient.Error)
 }
 
-func (r *UserRepository) CreateCredential(obj *transfert.Credential) (*entities.Credential, errors.ErrorInterface) {
+func (r *UserRepository) CreateCredential(obj *transfert.Credential, options ...database.Option) (*entities.Credential, errors.ErrorInterface) {
 	credential := entities.CreateCredential(obj)
 
 	password, err := hash.Hash(aws.String(*obj.Email+":"+*obj.Password), hash.BCRYPT)
@@ -94,156 +100,169 @@ func (r *UserRepository) CreateCredential(obj *transfert.Credential) (*entities.
 
 	credential.Password = password
 
-	result := r.store.Engine.Create(credential)
-	if result.Error != nil {
-		if result.Error.Error() == "UNIQUE constraint failed: credentials.email" {
+	query := r.store.Engine.Create(credential)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		if query.Error.Error() == "UNIQUE constraint failed: credentials.email" {
 			return nil, errors_domain_user.ErrCredentialAlreadyExists
 		}
-
-		return nil, errors.ErrInternalServer.Log(result.Error)
+		return nil, errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return credential, nil
 }
 
-func (r *UserRepository) ReadCredential(obj *transfert.Credential) (*entities.Credential, errors.ErrorInterface) {
+func (r *UserRepository) ReadCredential(obj *transfert.Credential, options ...database.Option) (*entities.Credential, errors.ErrorInterface) {
 	credential := entities.CreateCredential(obj)
-	result := r.store.Engine.Where(obj).First(credential)
+	query := r.store.Engine.Where(obj)
+	r.applyOptions(query, options...)
+	result := query.First(credential)
 
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors_domain_user.ErrCredentialNotFound
 		}
-
 		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return credential, nil
 }
 
-func (r *UserRepository) UpdateCredential(entity *entities.Credential) errors.ErrorInterface {
-	if result := r.store.Engine.Save(entity); result.Error != nil {
-		return errors.ErrInternalServer.Log(result.Error)
+func (r *UserRepository) UpdateCredential(entity *entities.Credential, options ...database.Option) errors.ErrorInterface {
+	query := r.store.Engine.Save(entity)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return nil
 }
 
-func (r *UserRepository) DeleteCredential(obj *transfert.Credential) errors.ErrorInterface {
+func (r *UserRepository) DeleteCredential(obj *transfert.Credential, options ...database.Option) errors.ErrorInterface {
 	credential := entities.CreateCredential(obj)
-	result := r.store.Engine.Where(obj).Delete(credential)
-
-	if result.Error != nil {
-		return errors.ErrInternalServer.Log(result.Error)
+	query := r.store.Engine.Where(obj).Delete(credential)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return nil
 }
 
-func (r *UserRepository) CreateClient(obj *transfert.Client) (*entities.Client, errors.ErrorInterface) {
+func (r *UserRepository) CreateClient(obj *transfert.Client, options ...database.Option) (*entities.Client, errors.ErrorInterface) {
 	client := entities.CreateClient(obj)
 
-	result := r.store.Engine.Create(client)
-	if result.Error != nil {
-		return nil, errors.ErrInternalServer.Log(result.Error)
+	query := r.store.Engine.Create(client)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return nil, errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return client, nil
 }
 
-func (r *UserRepository) ReadClient(obj *transfert.Client) (*entities.Client, errors.ErrorInterface) {
+func (r *UserRepository) ReadClient(obj *transfert.Client, options ...database.Option) (*entities.Client, errors.ErrorInterface) {
 	client := &entities.Client{}
-	result := r.store.Engine.Where(obj).First(client)
+	query := r.store.Engine.Where(obj)
+	r.applyOptions(query, options...)
+	result := query.First(client)
 
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors_domain_user.ErrClientNotFound
 		}
-
 		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return client, nil
 }
 
-func (r *UserRepository) UpdateClient(entity *entities.Client) errors.ErrorInterface {
-	if result := r.store.Engine.Save(entity); result.Error != nil {
-		return errors.ErrInternalServer.Log(result.Error)
+func (r *UserRepository) UpdateClient(entity *entities.Client, options ...database.Option) errors.ErrorInterface {
+	query := r.store.Engine.Save(entity)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return nil
 }
 
-func (r *UserRepository) DeleteClient(obj *transfert.Client) errors.ErrorInterface {
+func (r *UserRepository) DeleteClient(obj *transfert.Client, options ...database.Option) errors.ErrorInterface {
 	client := entities.CreateClient(obj)
-	result := r.store.Engine.Delete(client)
-
-	if result.Error != nil {
-		return errors.ErrInternalServer.Log(result.Error)
+	query := r.store.Engine.Where(obj).Delete(client)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return nil
 }
 
-func (r *UserRepository) CreateValidation(obj *transfert.Validation) (*entities.Validation, errors.ErrorInterface) {
+func (r *UserRepository) CreateValidation(obj *transfert.Validation, options ...database.Option) (*entities.Validation, errors.ErrorInterface) {
 	validation := entities.CreateValidation(obj)
-	result := r.store.Engine.Create(validation)
-
-	if result.Error != nil {
-		return nil, errors.ErrInternalServer.Log(result.Error)
+	query := r.store.Engine.Create(validation)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return nil, errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return validation, nil
 }
 
-func (r *UserRepository) ReadValidation(obj *transfert.Validation) (*entities.Validation, errors.ErrorInterface) {
+func (r *UserRepository) ReadValidation(obj *transfert.Validation, options ...database.Option) (*entities.Validation, errors.ErrorInterface) {
 	validation := entities.CreateValidation(obj)
-	result := r.store.Engine.Where(obj).First(validation)
+	query := r.store.Engine.Where(obj)
+	r.applyOptions(query, options...)
+	result := query.First(validation)
 
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return nil, errors_domain_user.ErrValidationNotFound
 		}
-
 		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 
 	return validation, nil
 }
 
-func (r *UserRepository) UpdateValidation(entity *entities.Validation) errors.ErrorInterface {
-	if result := r.store.Engine.Save(entity); result.Error != nil {
-		return errors.ErrInternalServer.Log(result.Error)
+func (r *UserRepository) UpdateValidation(entity *entities.Validation, options ...database.Option) errors.ErrorInterface {
+	query := r.store.Engine.Save(entity)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return nil
 }
 
-func (r *UserRepository) DeleteValidation(obj *transfert.Validation) errors.ErrorInterface {
+func (r *UserRepository) DeleteValidation(obj *transfert.Validation, options ...database.Option) errors.ErrorInterface {
 	validation := entities.CreateValidation(obj)
-	result := r.store.Engine.Where(obj).Delete(validation)
-
-	if result.Error != nil {
-		return errors.ErrInternalServer.Log(result.Error)
+	query := r.store.Engine.Where(obj).Delete(validation)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return nil
 }
 
-func (r *UserRepository) CreateEmployee(obj *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
+func (r *UserRepository) CreateEmployee(obj *transfert.Employee, options ...database.Option) (*entities.Employee, errors.ErrorInterface) {
 	employee := entities.CreateEmployee(obj)
 
-	result := r.store.Engine.Create(employee)
-	if result.Error != nil {
-		return nil, errors.ErrInternalServer.Log(result.Error)
+	query := r.store.Engine.Create(employee)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return nil, errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return employee, nil
 }
 
-func (r *UserRepository) ReadEmployee(obj *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
+func (r *UserRepository) ReadEmployee(obj *transfert.Employee, options ...database.Option) (*entities.Employee, errors.ErrorInterface) {
 	employee := entities.CreateEmployee(obj)
-	result := r.store.Engine.Where(obj).First(employee)
+	query := r.store.Engine.Where(obj)
+	r.applyOptions(query, options...)
+	result := query.First(employee)
 
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
@@ -255,20 +274,22 @@ func (r *UserRepository) ReadEmployee(obj *transfert.Employee) (*entities.Employ
 	return employee, nil
 }
 
-func (r *UserRepository) UpdateEmployee(entity *entities.Employee) errors.ErrorInterface {
-	if result := r.store.Engine.Save(entity); result.Error != nil {
-		return errors.ErrInternalServer.Log(result.Error)
+func (r *UserRepository) UpdateEmployee(entity *entities.Employee, options ...database.Option) errors.ErrorInterface {
+	query := r.store.Engine.Save(entity)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return nil
 }
 
-func (r *UserRepository) DeleteEmployee(obj *transfert.Employee) errors.ErrorInterface {
+func (r *UserRepository) DeleteEmployee(obj *transfert.Employee, options ...database.Option) errors.ErrorInterface {
 	employee := entities.CreateEmployee(obj)
-	result := r.store.Engine.Where(obj).Delete(employee)
-
-	if result.Error != nil {
-		return errors.ErrInternalServer.Log(result.Error)
+	query := r.store.Engine.Where(obj).Delete(employee)
+	r.applyOptions(query, options...)
+	if query.Error != nil {
+		return errors.ErrInternalServer.Log(query.Error)
 	}
 
 	return nil

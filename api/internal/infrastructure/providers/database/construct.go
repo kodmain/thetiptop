@@ -3,8 +3,12 @@ package database
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"sync"
+	"time"
 
+	"github.com/kodmain/thetiptop/api/internal/application/hook"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -71,13 +75,20 @@ func New(databases map[string]*Config) error {
 		}
 
 		if cfg.Logger {
-			gcfg.Logger = glogger.Default
+			gcfg.Logger = glogger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), glogger.Config{
+				SlowThreshold:             time.Second,
+				LogLevel:                  glogger.Warn,
+				IgnoreRecordNotFoundError: false,
+				Colorful:                  false,
+			})
 		}
 
 		db, err := gorm.Open(dial, gcfg)
 
 		if err != nil {
 			errs = append(errs, err)
+		} else {
+			hook.Call(hook.EventOnDBInit)
 		}
 
 		mutex.Lock()

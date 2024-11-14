@@ -53,7 +53,6 @@ func (client *Client) BeforeUpdate(tx *gorm.DB) error {
 
 func (client *Client) AfterFind(tx *gorm.DB) error {
 	tx.Find(&client.Validations, "client_id = ?", client.ID)
-	//tx.Find(&client.Credential, "client_id = ?", client.ID)
 	return nil
 }
 

@@ -137,7 +137,7 @@ tasks:
       - |
         go generate ./...
         swag init -g cmd/main.go -o ./internal/docs/generated
-        go run cmd/main.go --config config.test.yml
+        go run cmd/main.go --config config.local.yml
 
   api:arch:rebuild:
     dir: deploy/aws/api
