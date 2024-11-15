@@ -22,6 +22,14 @@ func NewLuhn(s string) Luhn {
 	return Luhn(s)
 }
 
+func NewLuhnP(s *string) Luhn {
+	if s == nil {
+		return Luhn("")
+	}
+
+	return Luhn(*s)
+}
+
 func (l Luhn) String() string {
 	return string(l)
 }

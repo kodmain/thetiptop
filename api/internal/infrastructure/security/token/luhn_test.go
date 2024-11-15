@@ -3,6 +3,7 @@ package token_test
 import (
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,6 +59,16 @@ func TestLuhn_String(t *testing.T) {
 
 	result := l.String()
 
+	assert.Equal(t, "79927398713", result)
+}
+
+func TestNewLuhnPointer(t *testing.T) {
+	l := token.NewLuhnP(nil)
+	result := l.String()
+	assert.Equal(t, "", result)
+
+	l = token.NewLuhnP(aws.String("79927398713"))
+	result = l.String()
 	assert.Equal(t, "79927398713", result)
 }
 

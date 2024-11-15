@@ -9,6 +9,7 @@ import (
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -16,9 +17,11 @@ func HydrateDBWithTickets() {
 	repo := repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT)))
 	require := 1500000
 	dispatch := map[string]int{
-		"X": 10,
-		"Y": 40,
-		"Z": 50,
+		"Infuseur à thé":                     60,
+		"Une boite de 100g de thé détox":     20,
+		"Une boite de 100g de thé signature": 10,
+		"Coffret découverte 39€":             6,
+		"Coffret découverte 69€":             4,
 	}
 
 	// Compter le nombre actuel de tickets pour chaque `prize`
@@ -52,11 +55,23 @@ func HydrateDBWithTickets() {
 	for prize, percent := range dispatch {
 		expected := int(math.Round(float64(require) * float64(percent) / 100.0))
 		ticketsPerPrize[prize] = expected - existingCounts[prize]
-		fmt.Println("Ticket per prize", ticketsPerPrize[prize])
+		fmt.Println(ticketsPerPrize[prize], "tickets for", prize, existingCounts[prize], "already exist")
 	}
 
 	modulo := 1000
 	fmt.Println("We need", remaining, "more tickets")
+
+	// Map pour stocker les tokens générés
+	tokenMap := make(map[string]bool)
+	generateUniqueToken := func() *string {
+		for {
+			token := token.Generate(12).PointerString()
+			if !tokenMap[*token] {
+				tokenMap[*token] = true
+				return token
+			}
+		}
+	}
 
 	// Initialiser la barre de progression avec le nombre total de tickets requis
 	bar := progressbar.NewOptions(require,
@@ -73,11 +88,11 @@ func HydrateDBWithTickets() {
 		if numTickets <= 0 {
 			continue // Passer au prochain `prize` si aucun ticket supplémentaire n'est nécessaire
 		}
-
 		tickets := []*transfert.Ticket{}
 		for i := 0; i < numTickets; i++ {
 			tickets = append(tickets, &transfert.Ticket{
 				Prize: aws.String(prize),
+				Token: generateUniqueToken(),
 			})
 
 			// Insérer par lot lorsque le modulo est atteint ou à la fin de la boucle
