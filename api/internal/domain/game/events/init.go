@@ -24,6 +24,18 @@ func HydrateDBWithTickets() {
 		"Coffret découverte 69€":             4,
 	}
 
+	// Charger les tokens existants depuis la base de données
+	tokenMap := make(map[string]bool)
+	existingTokens, err := repo.ReadTickets(&transfert.Ticket{})
+	if err != nil {
+		panic(fmt.Sprintf("Failed to fetch existing tokens: %v", err))
+	}
+	for _, existingToken := range existingTokens {
+		tokenMap[existingToken.Token.String()] = true
+	}
+
+	fmt.Printf("Loaded %d existing tokens from the database\n", len(tokenMap))
+
 	// Compter le nombre actuel de tickets pour chaque `prize`
 	existingCounts := make(map[string]int)
 	for prize := range dispatch {
@@ -61,8 +73,7 @@ func HydrateDBWithTickets() {
 	modulo := 1000
 	fmt.Println("We need", remaining, "more tickets")
 
-	// Map pour stocker les tokens générés
-	tokenMap := make(map[string]bool)
+	// Générateur de token unique
 	generateUniqueToken := func() *string {
 		for {
 			token := token.Generate(12).PointerString()
@@ -84,6 +95,7 @@ func HydrateDBWithTickets() {
 
 	bar.Add(totalExisting)
 
+	// Insérer les tickets pour chaque prize
 	for prize, numTickets := range ticketsPerPrize {
 		if numTickets <= 0 {
 			continue // Passer au prochain `prize` si aucun ticket supplémentaire n'est nécessaire
@@ -107,5 +119,4 @@ func HydrateDBWithTickets() {
 	}
 
 	fmt.Printf("\n%d tickets are ready\n", require)
-
 }

@@ -88,6 +88,33 @@ func (r *GameRepository) CreateTickets(objs []*transfert.Ticket, options ...data
 	return nil
 }
 
+// ReadTickets reads multiple tickets from the database
+// Finds and returns a list of tickets based on the provided transfer object and options
+//
+// Parameters:
+// - obj: *transfert.Ticket - The ticket transfer object with search parameters
+// - options: ...database.Option - Additional options to customize the query
+//
+// Returns:
+// - []*entities.Ticket: A slice of found ticket entities
+// - errors.ErrorInterface: The error interface if an error occurs
+func (r *GameRepository) ReadTickets(obj *transfert.Ticket, options ...database.Option) ([]*entities.Ticket, errors.ErrorInterface) {
+	var tickets []*entities.Ticket
+
+	query := r.store.Engine.Where(obj)
+	for _, option := range options {
+		option(query)
+	}
+
+	result := query.Find(&tickets)
+
+	if result.Error != nil {
+		return nil, errors.ErrInternalServer.Log(result.Error)
+	}
+
+	return tickets, nil
+}
+
 // ReadTicket reads a ticket from the database
 // Finds and returns a ticket based on the provided transfer object and options
 //
