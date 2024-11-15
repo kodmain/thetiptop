@@ -1,6 +1,10 @@
 package hook
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/kodmain/thetiptop/api/env"
+)
 
 type Handler func()
 
@@ -29,9 +33,11 @@ func Register(event Event, handler Handler) {
 }
 
 func Call(event Event) {
-	mu.Lock()
-	for _, handler := range handlers[event] {
-		go handler.call()
+	if !env.IsTest() {
+		mu.Lock()
+		for _, handler := range handlers[event] {
+			go handler.call()
+		}
+		mu.Unlock()
 	}
-	mu.Unlock()
 }

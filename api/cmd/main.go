@@ -32,7 +32,7 @@ var Helper *cobra.Command = &cobra.Command{
 		generated.SwaggerInfo.Version = env.BUILD_VERSION
 		logger.SetLevel(levels.DEBUG)
 		hook.Register(hook.EventOnDBInit, func() {
-			hook.Call(events.DomainGameInit)
+			events.HydrateDBWithTickets()
 		})
 
 		return config.Load(env.CONFIG_URI)

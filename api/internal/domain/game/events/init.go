@@ -6,22 +6,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
-	"github.com/kodmain/thetiptop/api/internal/application/hook"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/schollz/progressbar/v3"
 )
-
-const (
-	DomainGameInit = "domain_game_init"
-)
-
-func init() {
-	hook.Register(DomainGameInit, func() {
-		HydrateDBWithTickets()
-	})
-}
 
 func HydrateDBWithTickets() {
 	repo := repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT)))
