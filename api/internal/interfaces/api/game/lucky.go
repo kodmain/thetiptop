@@ -13,12 +13,12 @@ import (
 
 // @Tags		Game
 // @Accept		multipart/form-data
-// @Summary		Get a lucky ticket.
+// @Summary		Get a random ticket.
 // @Produce		application/json
-// @Router		/game/lucky [get]
-// @Id			game.Lucky
-func Lucky(ctx *fiber.Ctx) error {
-	status, response := game.Lucky(
+// @Router		/game/ticket/random [get]
+// @Id			game.GetTicket
+func GetTicket(ctx *fiber.Ctx) error {
+	status, response := game.GetRandomTicket(
 		services.Game(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
@@ -30,17 +30,17 @@ func Lucky(ctx *fiber.Ctx) error {
 
 // @Tags		Game
 // @Accept		multipart/form-data
-// @Summary	  	Reveal the prize of a ticket.
+// @Summary	  	Update a ticket.
 // @Produce		application/json
-// @Router		/game/reveal [post]
-// @Id			game.Reveal
-func Reveal(ctx *fiber.Ctx) error {
+// @Router		/game/ticket [put]
+// @Id			game.UpdateTicket
+func UpdateTicket(ctx *fiber.Ctx) error {
 	dtoTicket := &transfert.Ticket{}
 	if err := ctx.BodyParser(dtoTicket); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	status, response := game.Validate(
+	status, response := game.UpdateTicket(
 		services.Game(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),

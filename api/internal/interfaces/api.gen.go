@@ -23,8 +23,8 @@ func init() {
 var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
 		"code.ListErrors":        code.ListErrors,
-		"game.Lucky":             game.Lucky,
-		"game.Reveal":            game.Reveal,
+		"game.GetTicket":         game.GetTicket,
+		"game.UpdateTicket":      game.UpdateTicket,
 		"jwt.Auth":               jwt.Auth,
 		"status.HealthCheck":     status.HealthCheck,
 		"status.IP":              status.IP,

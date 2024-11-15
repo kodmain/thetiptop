@@ -6,7 +6,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/domain/game/services"
 )
 
-func Lucky(service services.GameServiceInterface) (int, any) {
+func GetRandomTicket(service services.GameServiceInterface) (int, any) {
 	ticket, err := service.Lucky()
 	if err != nil {
 		return err.Code(), err
@@ -15,6 +15,6 @@ func Lucky(service services.GameServiceInterface) (int, any) {
 	return fiber.StatusOK, ticket
 }
 
-func Validate(service services.GameServiceInterface, dtoTicket *transfert.Ticket) (int, any) {
+func UpdateTicket(service services.GameServiceInterface, dtoTicket *transfert.Ticket) (int, any) {
 	return fiber.StatusNoContent, nil
 }

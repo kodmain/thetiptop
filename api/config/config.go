@@ -39,6 +39,12 @@ type Config struct {
 		} `yaml:"validation"`
 		JWT *jwt.JWT `yaml:"jwt"`
 	} `yaml:"security"`
+	Project struct {
+		Tickets struct {
+			Required int            `yaml:"required"`
+			Types    map[string]int `yaml:"types"`
+		} `yaml:"tickets"`
+	} `yaml:"project"`
 }
 
 // Get Retrieve the value from cfg based on the provided key

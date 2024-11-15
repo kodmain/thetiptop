@@ -15,14 +15,8 @@ import (
 
 func HydrateDBWithTickets() {
 	repo := repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT)))
-	require := 1500000
-	dispatch := map[string]int{
-		"Infuseur à thé":                     60,
-		"Une boite de 100g de thé détox":     20,
-		"Une boite de 100g de thé signature": 10,
-		"Coffret découverte 39€":             6,
-		"Coffret découverte 69€":             4,
-	}
+	require := config.Get("project.tickets.required", 10000).(int)
+	dispatch := config.Get("project.tickets.types", map[string]int{}).(map[string]int)
 
 	// Charger les tokens existants depuis la base de données
 	tokenMap := make(map[string]bool)
