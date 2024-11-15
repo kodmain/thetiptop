@@ -18,7 +18,7 @@ type Ticket struct {
 
 	// Additional fields
 	ClientID *string    `gorm:"type:varchar(36);index" json:"client_id"`
-	Token    token.Luhn `gorm:"type:varchar(16);index" json:"token"`
+	Token    token.Luhn `gorm:"type:varchar(16);uniqueIndex" json:"token"`
 	Prize    *string    `gorm:"type:varchar(36);index" json:"prize"`
 }
 
@@ -26,6 +26,7 @@ func CreateTicket(obj *transfert.Ticket) *Ticket {
 	t := &Ticket{
 		ClientID: obj.ClientID,
 		Prize:    obj.Prize,
+		Token:    token.NewLuhnP(obj.Token),
 	}
 
 	if obj.ID != nil {
@@ -47,7 +48,6 @@ func (ticket *Ticket) BeforeCreate(tx *gorm.DB) error {
 	}
 
 	ticket.ID = id.String()
-	ticket.Token = token.Generate(12)
 
 	return nil
 }
