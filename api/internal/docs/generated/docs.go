@@ -437,7 +437,23 @@ const docTemplate = `{
                 }
             }
         },
-        "/game/lucky": {
+        "/game/ticket": {
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Update a ticket.",
+                "operationId": "game.UpdateTicket",
+                "responses": {}
+            }
+        },
+        "/game/ticket/random": {
             "get": {
                 "consumes": [
                     "multipart/form-data"
@@ -448,24 +464,8 @@ const docTemplate = `{
                 "tags": [
                     "Game"
                 ],
-                "summary": "Get a lucky ticket.",
-                "operationId": "game.Lucky",
-                "responses": {}
-            }
-        },
-        "/game/reveal": {
-            "post": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Game"
-                ],
-                "summary": "Reveal the prize of a ticket.",
-                "operationId": "game.Reveal",
+                "summary": "Get a random ticket.",
+                "operationId": "game.GetTicket",
                 "responses": {}
             }
         },

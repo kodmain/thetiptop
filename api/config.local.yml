@@ -33,3 +33,13 @@ security:
     secret: secret
     expire: 15
     refresh: 30
+
+project:
+  tickets:
+    required: 1500000
+    types:
+      "Infuseur à thé": 60
+      "Une boite de 100g de thé détox": 20
+      "Une boite de 100g de thé signature": 10
+      "Coffret découverte 39€": 6
+      "Coffret découverte 69€": 4
