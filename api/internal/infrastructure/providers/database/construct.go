@@ -77,9 +77,10 @@ func New(databases map[string]*Config) error {
 		if cfg.Logger {
 			gcfg.Logger = glogger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), glogger.Config{
 				SlowThreshold:             time.Second,
-				LogLevel:                  glogger.Warn,
+				LogLevel:                  glogger.Info,
 				IgnoreRecordNotFoundError: false,
 				Colorful:                  false,
+				ParameterizedQueries:      false,
 			})
 		}
 

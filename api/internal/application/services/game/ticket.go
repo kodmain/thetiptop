@@ -7,7 +7,7 @@ import (
 )
 
 func GetRandomTicket(service services.GameServiceInterface) (int, any) {
-	ticket, err := service.Lucky()
+	ticket, err := service.GetRandomTicket()
 	if err != nil {
 		return err.Code(), err
 	}

@@ -12,6 +12,13 @@ func GroupBy(column string) Option {
 	}
 }
 
+// Where retourne une Option qui ajoute une clause WHERE
+func Where(query interface{}, args ...interface{}) Option {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where(query, args...)
+	}
+}
+
 // Limit retourne une Option qui ajoute une clause LIMIT
 func Limit(limit int) Option {
 	return func(db *gorm.DB) *gorm.DB {

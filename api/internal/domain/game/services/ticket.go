@@ -4,10 +4,11 @@ import (
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 )
 
-func (s *GameService) Lucky() (*entities.Ticket, errors.ErrorInterface) {
-	ticket, err := s.repo.ReadTicket(&transfert.Ticket{})
+func (s *GameService) GetRandomTicket() (*entities.Ticket, errors.ErrorInterface) {
+	ticket, err := s.repo.ReadTicket(&transfert.Ticket{}, database.Where("client_id IS NULL"), database.Order("RANDOM()"))
 	if err != nil {
 		return nil, err
 	}
