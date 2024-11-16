@@ -17,6 +17,6 @@ func Game(security security.PermissionInterface, repo repositories.GameRepositor
 }
 
 type GameServiceInterface interface {
-	Lucky() (*entities.Ticket, errors.ErrorInterface)
+	GetRandomTicket() (*entities.Ticket, errors.ErrorInterface)
 	Validate() (bool, errors.ErrorInterface)
 }
