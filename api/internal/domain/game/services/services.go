@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
@@ -18,5 +19,5 @@ func Game(security security.PermissionInterface, repo repositories.GameRepositor
 
 type GameServiceInterface interface {
 	GetRandomTicket() (*entities.Ticket, errors.ErrorInterface)
-	Validate() (bool, errors.ErrorInterface)
+	UpdateTicket(*transfert.Ticket) (*entities.Ticket, errors.ErrorInterface)
 }

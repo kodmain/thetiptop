@@ -190,22 +190,22 @@ func (m *PermissionMock) IsGranted(roles ...string) bool {
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanRead(ressource entities.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanRead(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanCreate(ressource entities.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanCreate(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanUpdate(ressource entities.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanUpdate(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanDelete(ressource entities.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanDelete(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }

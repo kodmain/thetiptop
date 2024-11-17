@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/kodmain/thetiptop/api/internal/application/security"
-	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,7 +22,7 @@ func (e *MockEntity) IsPublic() bool {
 	return e.Public
 }
 
-func CustomRule(p *security.UserAccess, r entities.Entity) bool {
+func CustomRule(p *security.UserAccess, r database.Entity) bool {
 	// Example custom rule: allow if the entity owner ID ends with "xyz"
 	return r.GetOwnerID() == "owner-xyz"
 }
@@ -53,7 +53,7 @@ func TestCanRead(t *testing.T) {
 	tests := []struct {
 		name       string
 		userAccess *security.UserAccess
-		entity     entities.Entity
+		entity     database.Entity
 		expected   bool
 	}{
 		{"Public entity", &security.UserAccess{}, &MockEntity{Public: true}, true},
@@ -75,7 +75,7 @@ func TestCanCreate(t *testing.T) {
 	tests := []struct {
 		name       string
 		userAccess *security.UserAccess
-		entity     entities.Entity
+		entity     database.Entity
 		expected   bool
 	}{
 		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntity{OwnerID: "owner-id"}, true},
@@ -96,7 +96,7 @@ func TestCanUpdate(t *testing.T) {
 	tests := []struct {
 		name       string
 		userAccess *security.UserAccess
-		entity     entities.Entity
+		entity     database.Entity
 		expected   bool
 	}{
 		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntity{OwnerID: "owner-id"}, true},
@@ -117,7 +117,7 @@ func TestCanDelete(t *testing.T) {
 	tests := []struct {
 		name       string
 		userAccess *security.UserAccess
-		entity     entities.Entity
+		entity     database.Entity
 		expected   bool
 	}{
 		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntity{OwnerID: "owner-id"}, true},
