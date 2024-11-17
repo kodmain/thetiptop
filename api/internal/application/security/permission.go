@@ -1,16 +1,16 @@
 package security
 
 import (
-	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 )
 
 type PermissionInterface interface {
 	IsGranted(roles ...string) bool
-	CanRead(ressource entities.Entity, rules ...Rule) bool
-	CanCreate(ressource entities.Entity, rules ...Rule) bool
-	CanUpdate(ressource entities.Entity, rules ...Rule) bool
-	CanDelete(ressource entities.Entity, rules ...Rule) bool
+	CanRead(ressource database.Entity, rules ...Rule) bool
+	CanCreate(ressource database.Entity, rules ...Rule) bool
+	CanUpdate(ressource database.Entity, rules ...Rule) bool
+	CanDelete(ressource database.Entity, rules ...Rule) bool
 }
 
 type UserAccess struct {
@@ -18,7 +18,7 @@ type UserAccess struct {
 	Role         string
 }
 
-type Rule func(p *UserAccess, r entities.Entity) bool
+type Rule func(p *UserAccess, entity database.Entity) bool
 
 func (p *UserAccess) IsGranted(roles ...string) bool {
 	for _, role := range roles {
@@ -30,7 +30,7 @@ func (p *UserAccess) IsGranted(roles ...string) bool {
 	return false
 }
 
-func (p *UserAccess) CanRead(ressource entities.Entity, rules ...Rule) bool {
+func (p *UserAccess) CanRead(ressource database.Entity, rules ...Rule) bool {
 	if p.CredentialID == ressource.GetOwnerID() && p.CredentialID != "" {
 		return true
 	}
@@ -48,7 +48,7 @@ func (p *UserAccess) CanRead(ressource entities.Entity, rules ...Rule) bool {
 	return false
 }
 
-func (p *UserAccess) CanCreate(ressource entities.Entity, rules ...Rule) bool {
+func (p *UserAccess) CanCreate(ressource database.Entity, rules ...Rule) bool {
 	if p.CredentialID == ressource.GetOwnerID() && p.CredentialID != "" {
 		return true
 	}
@@ -62,7 +62,7 @@ func (p *UserAccess) CanCreate(ressource entities.Entity, rules ...Rule) bool {
 	return false
 }
 
-func (p *UserAccess) CanUpdate(ressource entities.Entity, rules ...Rule) bool {
+func (p *UserAccess) CanUpdate(ressource database.Entity, rules ...Rule) bool {
 	if p.CredentialID == ressource.GetOwnerID() && p.CredentialID != "" {
 		return true
 	}
@@ -76,7 +76,7 @@ func (p *UserAccess) CanUpdate(ressource entities.Entity, rules ...Rule) bool {
 	return false
 }
 
-func (p *UserAccess) CanDelete(ressource entities.Entity, rules ...Rule) bool {
+func (p *UserAccess) CanDelete(ressource database.Entity, rules ...Rule) bool {
 	if p.CredentialID == ressource.GetOwnerID() && p.CredentialID != "" {
 		return true
 	}

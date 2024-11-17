@@ -16,5 +16,11 @@ func GetRandomTicket(service services.GameServiceInterface) (int, any) {
 }
 
 func UpdateTicket(service services.GameServiceInterface, dtoTicket *transfert.Ticket) (int, any) {
-	return fiber.StatusNoContent, nil
+	ticket, err := service.UpdateTicket(dtoTicket)
+
+	if err != nil {
+		return err.Code(), err
+	}
+
+	return fiber.StatusOK, ticket
 }

@@ -4,8 +4,8 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
 	"github.com/kodmain/thetiptop/api/internal/domain/code/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/code/services"
-	user "github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -53,22 +53,22 @@ func (m *PermissionMock) IsGranted(roles ...string) bool {
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanRead(ressource user.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanRead(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanCreate(ressource user.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanCreate(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanUpdate(ressource user.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanUpdate(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanDelete(ressource user.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanDelete(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }

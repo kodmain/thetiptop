@@ -46,3 +46,8 @@ func StructToMap(input any) map[string]any {
 
 	return result
 }
+
+type Entity interface {
+	GetOwnerID() string
+	IsPublic() bool
+}

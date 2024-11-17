@@ -36,6 +36,18 @@ func CreateTicket(obj *transfert.Ticket) *Ticket {
 	return t
 }
 
+func (ticket *Ticket) IsPublic() bool {
+	return false
+}
+
+func (ticket *Ticket) GetOwnerID() string {
+	if ticket.ClientID == nil {
+		return ""
+	}
+
+	return *ticket.ClientID
+}
+
 func (ticket *Ticket) BeforeUpdate(tx *gorm.DB) error {
 	ticket.UpdatedAt = time.Now()
 	return nil
