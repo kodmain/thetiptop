@@ -13,8 +13,10 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/hook"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/events"
+	"github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/spf13/cobra"
@@ -32,7 +34,11 @@ var Helper *cobra.Command = &cobra.Command{
 		generated.SwaggerInfo.Version = env.BUILD_VERSION
 		logger.SetLevel(levels.DEBUG)
 		hook.Register(hook.EventOnDBInit, func() {
-			events.HydrateDBWithTickets()
+			events.HydrateDBWithTickets(
+				repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
+				config.Get("project.tickets.required", 10000).(int),
+				config.Get("project.tickets.types", map[string]int{}).(map[string]int),
+			)
 		})
 
 		return config.Load(env.CONFIG_URI)

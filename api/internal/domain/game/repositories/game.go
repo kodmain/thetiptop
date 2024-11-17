@@ -21,6 +21,7 @@ type GameRepositoryInterface interface {
 	CreateTicket(obj *transfert.Ticket, options ...database.Option) (*entities.Ticket, errors.ErrorInterface)
 	CreateTickets(objs []*transfert.Ticket, options ...database.Option) errors.ErrorInterface
 	ReadTicket(obj *transfert.Ticket, options ...database.Option) (*entities.Ticket, errors.ErrorInterface)
+	ReadTickets(obj *transfert.Ticket, options ...database.Option) ([]*entities.Ticket, errors.ErrorInterface)
 	UpdateTicket(entity *entities.Ticket, options ...database.Option) errors.ErrorInterface
 	DeleteTicket(obj *transfert.Ticket, options ...database.Option) errors.ErrorInterface
 	CountTicket(obj *transfert.Ticket, options ...database.Option) (int, errors.ErrorInterface)
