@@ -33,13 +33,16 @@ var Helper *cobra.Command = &cobra.Command{
 		hook.Call(hook.EventOnConfig)
 		generated.SwaggerInfo.Version = env.BUILD_VERSION
 		logger.SetLevel(levels.DEBUG)
-		hook.Register(hook.EventOnDBInit, func() {
+
+		var callBack hook.Handler = func() {
 			events.HydrateDBWithTickets(
 				repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 				config.Get("project.tickets.required", 10000).(int),
 				config.Get("project.tickets.types", map[string]int{}).(map[string]int),
 			)
-		})
+		}
+
+		hook.Register(hook.EventOnDBInit, callBack)
 
 		return config.Load(env.CONFIG_URI)
 	},
