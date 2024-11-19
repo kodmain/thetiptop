@@ -22,8 +22,14 @@ var (
 	AWS_PROFILE *string = &DEFAULT_AWS_PROFILE
 	PORT_HTTP   *int    = &DEFAULT_PORT_HTTP
 	PORT_HTTPS  *int    = &DEFAULT_PORT_HTTPS
+
+	forceTest = false
 )
 
+func ForceTest() {
+	forceTest = true
+}
+
 func IsTest() bool {
-	return strings.HasSuffix(os.Args[0], ".test")
+	return strings.HasSuffix(os.Args[0], ".test") && !forceTest
 }

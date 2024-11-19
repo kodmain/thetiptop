@@ -26,7 +26,7 @@ var (
 	mu       sync.Mutex
 )
 
-func Register(event Event, handler Handler) {
+func Register(event Event, handler HookHandler) {
 	mu.Lock()
 	handlers[event] = append(handlers[event], handler)
 	mu.Unlock()
@@ -35,9 +35,19 @@ func Register(event Event, handler Handler) {
 func Call(event Event) {
 	if !env.IsTest() {
 		mu.Lock()
+		defer mu.Unlock()
+
+		// Liste temporaire pour les gestionnaires restants
+		var remainingHandlers []HookHandler
+
 		for _, handler := range handlers[event] {
 			go handler.call()
+			if !handler.IsOnce() {
+				remainingHandlers = append(remainingHandlers, handler)
+			}
 		}
-		mu.Unlock()
+
+		// Remplacer les gestionnaires par la liste mise à jour
+		handlers[event] = remainingHandlers
 	}
 }
