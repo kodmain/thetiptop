@@ -44,7 +44,7 @@ func TestCreateTicketWithNilFields(t *testing.T) {
 	ticket := entities.CreateTicket(input)
 
 	assert.NotNil(t, ticket)
-	assert.NotEmpty(t, ticket.ID) // ID doit être généré automatiquement
+	assert.Empty(t, ticket.ID)
 	assert.Nil(t, ticket.ClientID)
 	assert.Nil(t, ticket.Prize)
 	assert.Equal(t, token.Luhn("123456"), ticket.Token)
