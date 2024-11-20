@@ -114,8 +114,8 @@ func generateAndInsertTickets(repo repositories.GameRepositoryInterface, tickets
 				if err := repo.CreateTickets(tickets); err != nil {
 					panic(fmt.Sprintf("Failed to insert tickets for %s: %v", prize, err))
 				}
-				tickets = []*transfert.Ticket{}
 				bar.Add(len(tickets))
+				tickets = []*transfert.Ticket{}
 			}
 		}
 	}
