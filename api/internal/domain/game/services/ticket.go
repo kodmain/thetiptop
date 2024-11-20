@@ -17,6 +17,18 @@ func (s *GameService) GetRandomTicket() (*entities.Ticket, errors.ErrorInterface
 	return ticket, nil
 }
 
+func (s *GameService) GetTickets() ([]*entities.Ticket, errors.ErrorInterface) {
+	tickets, err := s.repo.ReadTickets(&transfert.Ticket{
+		ClientID: s.security.GetCredentialID(),
+	})
+
+	if err != nil {
+		return nil, errors.ErrNoData
+	}
+
+	return tickets, nil
+}
+
 func (s *GameService) UpdateTicket(dto *transfert.Ticket) (*entities.Ticket, errors.ErrorInterface) {
 	ticket, err := s.repo.ReadTicket(dto, database.Where("client_id IS NULL"))
 

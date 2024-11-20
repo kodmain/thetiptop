@@ -115,6 +115,15 @@ func (m *PermissionMock) CanDelete(ressource database.Entity, rules ...security.
 	return args.Bool(0)
 }
 
+func (m *PermissionMock) GetCredentialID() *string {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(*string)
+}
+
 func setup() (*services.GameService, *GameRepositoryMock, *PermissionMock) {
 	mockRepository := new(GameRepositoryMock)
 	mockSecurity := new(PermissionMock)

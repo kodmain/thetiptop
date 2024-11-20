@@ -3,6 +3,7 @@ package security_test
 import (
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/internal/application/security"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
@@ -25,6 +26,14 @@ func (e *MockEntity) IsPublic() bool {
 func CustomRule(p *security.UserAccess, r database.Entity) bool {
 	// Example custom rule: allow if the entity owner ID ends with "xyz"
 	return r.GetOwnerID() == "owner-xyz"
+}
+
+func TestGetCredentialID(t *testing.T) {
+	p := &security.UserAccess{CredentialID: "test-id"}
+	assert.Equal(t, aws.String("test-id"), p.GetCredentialID())
+
+	p = &security.UserAccess{}
+	assert.Nil(t, p.GetCredentialID())
 }
 
 func TestIsGranted(t *testing.T) {

@@ -37,6 +37,44 @@ func Test_GetRandomTicket(t *testing.T) {
 	})
 }
 
+func Test_GetTickets(t *testing.T) {
+	t.Run("Should return tickets", func(t *testing.T) {
+		service, repo, permission := setup()
+
+		credentialID := "valid-credential-id"
+
+		permission.On("GetCredentialID").Return(&credentialID)
+		repo.On("ReadTickets", mock.Anything, mock.Anything).Return([]*entities.Ticket{{ID: "123"}}, nil)
+
+		// Appeler la méthode testée
+		tickets, err := service.GetTickets()
+		assert.Nil(t, err)        // Vérifie qu'il n'y a pas d'erreur
+		assert.NotNil(t, tickets) // Vérifie que des tickets sont retournés
+		assert.Len(t, tickets, 1) // Vérifie le nombre de tickets
+
+		// Vérifications des attentes
+		repo.AssertExpectations(t)
+		permission.AssertExpectations(t)
+	})
+
+	t.Run("Should return error when repository return error", func(t *testing.T) {
+		service, repo, permission := setup()
+
+		credentialID := "valid-credential-id"
+
+		permission.On("GetCredentialID").Return(&credentialID)
+		repo.On("ReadTickets", mock.Anything, mock.Anything).Return(nil, errors.ErrNoData)
+
+		tickets, err := service.GetTickets()
+		assert.NotNil(t, err)
+		assert.Nil(t, tickets)
+		assert.Equal(t, errors.ErrNoData, err)
+
+		repo.AssertExpectations(t)
+		permission.AssertExpectations(t)
+	})
+}
+
 func Test_UpdateTicket(t *testing.T) {
 	cid := aws.String("client-123")
 	t.Run("Should update ticket successfully", func(t *testing.T) {

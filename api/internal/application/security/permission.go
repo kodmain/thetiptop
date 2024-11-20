@@ -7,6 +7,7 @@ import (
 
 type PermissionInterface interface {
 	IsGranted(roles ...string) bool
+	GetCredentialID() *string
 	CanRead(ressource database.Entity, rules ...Rule) bool
 	CanCreate(ressource database.Entity, rules ...Rule) bool
 	CanUpdate(ressource database.Entity, rules ...Rule) bool
@@ -19,6 +20,14 @@ type UserAccess struct {
 }
 
 type Rule func(p *UserAccess, entity database.Entity) bool
+
+func (p *UserAccess) GetCredentialID() *string {
+	if p.CredentialID == "" {
+		return nil
+	}
+
+	return &p.CredentialID
+}
 
 func (p *UserAccess) IsGranted(roles ...string) bool {
 	for _, role := range roles {
