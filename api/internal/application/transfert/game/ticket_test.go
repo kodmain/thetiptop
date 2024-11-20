@@ -12,61 +12,79 @@ import (
 
 func TestNewTicket(t *testing.T) {
 	tests := []struct {
-		name       string
-		newsletter *bool
-		cgu        *bool
-		wantErr    bool
+		name      string
+		inputData data.Object
+		wantErr   bool
 	}{
 		{
-			name:       "Valid client",
-			newsletter: aws.Bool(false),
-			cgu:        aws.Bool(true),
-			wantErr:    false,
+			name: "Valid ticket",
+			inputData: data.Object{
+				"id":        aws.String("123"),
+				"prize":     aws.String("Gold"),
+				"client_id": aws.String("456"),
+				"token":     aws.String("abc123"),
+			},
+			wantErr: false,
 		},
 		{
-			name:       "Invalid client",
-			newsletter: aws.Bool(true),
-			cgu:        aws.Bool(false),
-			wantErr:    true,
+			name: "Invalid ticket - missing ID",
+			inputData: data.Object{
+				"prize":     aws.String("Gold"),
+				"client_id": aws.String("456"),
+				"token":     aws.String("abc123"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "Invalid ticket - missing Token",
+			inputData: data.Object{
+				"id":        aws.String("123"),
+				"prize":     aws.String("Gold"),
+				"client_id": aws.String("456"),
+			},
+			wantErr: true,
 		},
 	}
 
-	// Test with nil object and nil validator
-	client, err := transfert.NewTicket(nil, nil)
-	assert.Error(t, err)
-	assert.Nil(t, client)
+	// Test for nil object and nil validator
+	t.Run("Nil object and validator", func(t *testing.T) {
+		ticket, err := transfert.NewTicket(nil, nil)
+		assert.Error(t, err, "expected error when object is nil")
+		assert.Nil(t, ticket, "expected ticket to be nil")
+	})
 
-	// Test with empty object and nil validator
-	client, err = transfert.NewTicket(data.Object{}, nil)
-	assert.NoError(t, err)
-	assert.NotNil(t, client)
+	// Test for empty object with nil validator
+	t.Run("Empty object and nil validator", func(t *testing.T) {
+		ticket, err := transfert.NewTicket(data.Object{}, nil)
+		assert.NoError(t, err, "expected no error for empty object")
+		assert.NotNil(t, ticket, "expected ticket to be created")
+	})
 
 	// Iterate through test cases
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			obj := data.Object{
-				"newsletter": tt.newsletter,
-				"cgu":        tt.cgu,
-			}
-
-			client, err := transfert.NewTicket(obj, data.Validator{
-				"newsletter": {validator.IsFalse},
-				"cgu":        {validator.IsTrue},
+			ticket, err := transfert.NewTicket(tt.inputData, data.Validator{
+				"id":        {validator.Required},
+				"prize":     {validator.Required},
+				"client_id": {validator.Required},
+				"token":     {validator.Required},
 			})
 
 			if tt.wantErr {
-				assert.Error(t, err)
-				assert.Nil(t, client)
+				assert.Error(t, err, "expected error for invalid input")
+				assert.Nil(t, ticket, "expected ticket to be nil for invalid input")
 			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, client)
+				assert.NoError(t, err, "expected no error for valid input")
+				assert.NotNil(t, ticket, "expected valid ticket to be created")
 
-				// Validate client with the same validators
-				err := client.Check(data.Validator{
-					"newsletter": {validator.IsFalse},
-					"cgu":        {validator.IsTrue},
+				// Validate the ticket object with the same validators
+				err := ticket.Check(data.Validator{
+					"id":        {validator.Required},
+					"prize":     {validator.Required},
+					"client_id": {validator.Required},
+					"token":     {validator.Required},
 				})
-				assert.NoError(t, err)
+				assert.NoError(t, err, "expected ticket validation to pass")
 			}
 		})
 	}
