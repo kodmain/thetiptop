@@ -32,8 +32,8 @@ func GetTicket(ctx *fiber.Ctx) error {
 // @Accept		multipart/form-data
 // @Summary		Get a random ticket.
 // @Produce		application/json
-// @Router		/game/ticket/random [get]
-// @Id			game.GetTicket
+// @Router		/game/ticket [get]
+// @Id			game.GetTickets
 func GetTickets(ctx *fiber.Ctx) error {
 	status, response := game.GetTickets(
 		services.Game(
