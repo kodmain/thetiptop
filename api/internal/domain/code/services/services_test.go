@@ -48,6 +48,15 @@ type PermissionMock struct {
 	mock.Mock
 }
 
+func (m *PermissionMock) GetCredentialID() *string {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(*string)
+}
+
 func (m *PermissionMock) IsGranted(roles ...string) bool {
 	args := m.Called(roles)
 	return args.Bool(0)

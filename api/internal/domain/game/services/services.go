@@ -18,6 +18,7 @@ func Game(security security.PermissionInterface, repo repositories.GameRepositor
 }
 
 type GameServiceInterface interface {
+	GetTickets() ([]*entities.Ticket, errors.ErrorInterface)
 	GetRandomTicket() (*entities.Ticket, errors.ErrorInterface)
 	UpdateTicket(*transfert.Ticket) (*entities.Ticket, errors.ErrorInterface)
 }

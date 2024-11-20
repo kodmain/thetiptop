@@ -30,6 +30,23 @@ func GetTicket(ctx *fiber.Ctx) error {
 
 // @Tags		Game
 // @Accept		multipart/form-data
+// @Summary		Get a random ticket.
+// @Produce		application/json
+// @Router		/game/ticket/random [get]
+// @Id			game.GetTicket
+func GetTickets(ctx *fiber.Ctx) error {
+	status, response := game.GetTickets(
+		services.Game(
+			security.NewUserAccess(ctx.Locals("token")),
+			repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
+		),
+	)
+
+	return ctx.Status(status).JSON(response)
+}
+
+// @Tags		Game
+// @Accept		multipart/form-data
 // @Summary	  	Update a ticket.
 // @Produce		application/json
 // @Router		/game/ticket [put]
