@@ -2,7 +2,10 @@ package services_test
 
 import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
+	"github.com/kodmain/thetiptop/api/internal/domain/game/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/services"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/stretchr/testify/mock"
 )
@@ -10,6 +13,76 @@ import (
 // GameRepositoryMock est le mock pour GameRepositoryInterface
 type GameRepositoryMock struct {
 	mock.Mock
+}
+
+// CreateTicket simule la création d'un ticket.
+func (m *GameRepositoryMock) CreateTicket(obj *transfert.Ticket, options ...database.Option) (*entities.Ticket, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1).(errors.ErrorInterface)
+	}
+
+	return args.Get(0).(*entities.Ticket), nil
+}
+
+// CreateTickets simule la création de plusieurs tickets.
+func (m *GameRepositoryMock) CreateTickets(objs []*transfert.Ticket, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(objs, options)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Error(0).(errors.ErrorInterface)
+}
+
+// ReadTicket simule la lecture d'un ticket.
+func (m *GameRepositoryMock) ReadTicket(obj *transfert.Ticket, options ...database.Option) (*entities.Ticket, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1).(errors.ErrorInterface)
+	}
+
+	return args.Get(0).(*entities.Ticket), nil
+}
+
+// ReadTickets simule la lecture de plusieurs tickets.
+func (m *GameRepositoryMock) ReadTickets(obj *transfert.Ticket, options ...database.Option) ([]*entities.Ticket, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1).(errors.ErrorInterface)
+	}
+
+	return args.Get(0).([]*entities.Ticket), nil
+}
+
+// UpdateTicket simule la mise à jour d'un ticket.
+func (m *GameRepositoryMock) UpdateTicket(entity *entities.Ticket, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(entity, options)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Error(0).(errors.ErrorInterface)
+}
+
+// DeleteTicket simule la suppression d'un ticket.
+func (m *GameRepositoryMock) DeleteTicket(obj *transfert.Ticket, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Error(0).(errors.ErrorInterface)
+}
+
+// CountTicket simule le comptage des tickets.
+func (m *GameRepositoryMock) CountTicket(obj *transfert.Ticket, options ...database.Option) (int, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return 0, args.Error(1).(errors.ErrorInterface)
+	}
+
+	return args.Int(0), nil
 }
 
 // PermissionMock est le mock pour PermissionInterface
@@ -42,13 +115,11 @@ func (m *PermissionMock) CanDelete(ressource database.Entity, rules ...security.
 	return args.Bool(0)
 }
 
-func PermissionLock() {}
-
-func setup() *GameRepositoryMock {
+func setup() (*services.GameService, *GameRepositoryMock, *PermissionMock) {
 	mockRepository := new(GameRepositoryMock)
 	mockSecurity := new(PermissionMock)
 
 	service := services.Game(mockSecurity, mockRepository)
 
-	return service, mockRepository
+	return service, mockRepository, mockSecurity
 }

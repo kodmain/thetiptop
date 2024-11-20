@@ -114,7 +114,7 @@ func buildGormConfig(enableLogger bool) *gorm.Config {
 	if enableLogger {
 		config.Logger = glogger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), glogger.Config{
 			SlowThreshold:             time.Second,
-			LogLevel:                  glogger.Info,
+			LogLevel:                  glogger.Warn,
 			IgnoreRecordNotFoundError: false,
 			Colorful:                  false,
 			ParameterizedQueries:      false,
