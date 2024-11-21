@@ -295,10 +295,20 @@ paths:
       tags:
       - Employee
   /game/ticket:
+    get:
+      consumes:
+      - multipart/form-data
+      operationId: jwt.Auth => game.GetTickets
+      produces:
+      - application/json
+      responses: {}
+      summary: Get a random ticket.
+      tags:
+      - Game
     put:
       consumes:
       - multipart/form-data
-      operationId: game.UpdateTicket
+      operationId: jwt.Auth => game.UpdateTicket
       produces:
       - application/json
       responses: {}
@@ -309,10 +319,12 @@ paths:
     get:
       consumes:
       - multipart/form-data
-      operationId: game.GetTicket
+      operationId: jwt.Auth => game.GetTicket
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Get a random ticket.
       tags:
       - Game
@@ -507,4 +519,10 @@ paths:
       summary: Recover a client/employees validation type.
       tags:
       - User
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

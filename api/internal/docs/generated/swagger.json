@@ -431,22 +431,6 @@
             }
         },
         "/game/ticket": {
-            "put": {
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Game"
-                ],
-                "summary": "Update a ticket.",
-                "operationId": "game.UpdateTicket",
-                "responses": {}
-            }
-        },
-        "/game/ticket/random": {
             "get": {
                 "consumes": [
                     "multipart/form-data"
@@ -458,7 +442,42 @@
                     "Game"
                 ],
                 "summary": "Get a random ticket.",
-                "operationId": "game.GetTicket",
+                "operationId": "jwt.Auth =\u003e game.GetTickets",
+                "responses": {}
+            },
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Update a ticket.",
+                "operationId": "jwt.Auth =\u003e game.UpdateTicket",
+                "responses": {}
+            }
+        },
+        "/game/ticket/random": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Get a random ticket.",
+                "operationId": "jwt.Auth =\u003e game.GetTicket",
                 "responses": {}
             }
         },
@@ -740,6 +759,14 @@
                 ],
                 "responses": {}
             }
+        }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

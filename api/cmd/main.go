@@ -22,6 +22,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var callBack hook.Handler = func() {
+	events.HydrateDBWithTickets(
+		repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
+		config.Get("project.tickets.required", 10000).(int),
+		config.Get("project.tickets.types", map[string]int{}).(map[string]int),
+	)
+}
+
 // Helper use Cobra package to create a CLI and give Args gesture
 var Helper *cobra.Command = &cobra.Command{
 	Use:                   "thetiptop",
@@ -33,15 +41,6 @@ var Helper *cobra.Command = &cobra.Command{
 		hook.Call(hook.EventOnConfig)
 		generated.SwaggerInfo.Version = env.BUILD_VERSION
 		logger.SetLevel(levels.DEBUG)
-
-		var callBack hook.Handler = func() {
-			events.HydrateDBWithTickets(
-				repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
-				config.Get("project.tickets.required", 10000).(int),
-				config.Get("project.tickets.types", map[string]int{}).(map[string]int),
-			)
-		}
-
 		hook.Register(hook.EventOnDBInit, callBack)
 
 		return config.Load(env.CONFIG_URI)
@@ -78,6 +77,10 @@ var versionCmd = &cobra.Command{
 // @description	TheTipTop API
 // @host		localhost
 // @BasePath
+// @SecurityDefinitions.apiKey 	Bearer
+// @in 							header
+// @name 						Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func main() {
 	env.CONFIG_URI = Helper.Flags().String("config", env.DEFAULT_CONFIG_URI, "URI de la configuration")
 	env.AWS_PROFILE = Helper.Flags().String("profile", env.DEFAULT_AWS_PROFILE, "Profil AWS")

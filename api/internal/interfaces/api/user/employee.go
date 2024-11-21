@@ -63,6 +63,7 @@ func RegisterEmployee(ctx *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/employee [put]
 // @Id			jwt.Auth => user.UpdateEmployee
+// @Security 	Bearer
 func UpdateEmployee(ctx *fiber.Ctx) error {
 	dtoEmployee := &transfert.Employee{}
 	if err := ctx.BodyParser(dtoEmployee); err != nil {
@@ -92,6 +93,7 @@ func UpdateEmployee(ctx *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/employee/{id} [get]
 // @Id			jwt.Auth => user.GetEmployee
+// @Security 	Bearer
 func GetEmployee(ctx *fiber.Ctx) error {
 	EmployeeID := ctx.Params("id")
 
@@ -127,6 +129,7 @@ func GetEmployee(ctx *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/employee/{id} [delete]
 // @Id			jwt.Auth => user.DeleteEmployee
+// @Security 	Bearer
 func DeleteEmployee(ctx *fiber.Ctx) error {
 	EmployeeID := ctx.Params("id")
 
