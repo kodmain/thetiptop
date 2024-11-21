@@ -16,7 +16,8 @@ import (
 // @Summary		Get a random ticket.
 // @Produce		application/json
 // @Router		/game/ticket/random [get]
-// @Id			game.GetTicket
+// @Id			jwt.Auth => game.GetTicket
+// @Security 	Bearer
 func GetTicket(ctx *fiber.Ctx) error {
 	status, response := game.GetRandomTicket(
 		services.Game(
@@ -33,7 +34,8 @@ func GetTicket(ctx *fiber.Ctx) error {
 // @Summary		Get a random ticket.
 // @Produce		application/json
 // @Router		/game/ticket [get]
-// @Id			game.GetTickets
+// @Id			jwt.Auth => game.GetTickets
+// @Security 	Bearer
 func GetTickets(ctx *fiber.Ctx) error {
 	status, response := game.GetTickets(
 		services.Game(
@@ -50,7 +52,8 @@ func GetTickets(ctx *fiber.Ctx) error {
 // @Summary	  	Update a ticket.
 // @Produce		application/json
 // @Router		/game/ticket [put]
-// @Id			game.UpdateTicket
+// @Id			jwt.Auth => game.UpdateTicket
+// @Security 	Bearer
 func UpdateTicket(ctx *fiber.Ctx) error {
 	dtoTicket := &transfert.Ticket{}
 	if err := ctx.BodyParser(dtoTicket); err != nil {

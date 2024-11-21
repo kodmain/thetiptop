@@ -55,3 +55,13 @@ func TestVersionCmd(t *testing.T) {
 	cmd.SetErr(b)
 	cmd.Run(cmd, nil)
 }
+
+func TestMain(t *testing.T) {
+	env.CONFIG_URI = aws.String("../config.test.yml")
+	env.PORT_HTTP = aws.Int(8080)
+	env.PORT_HTTPS = aws.Int(8443)
+	env.AWS_PROFILE = aws.String("test")
+
+	main()
+	callBack()
+}

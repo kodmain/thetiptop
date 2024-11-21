@@ -81,6 +81,7 @@ func UserAuthRenew(ctx *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/user/password [put]
 // @Id			jwt.Auth => user.CredentialUpdate
+// @Security 	Bearer
 func CredentialUpdate(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := ctx.BodyParser(dtoCredential); err != nil {
