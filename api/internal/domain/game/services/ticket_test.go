@@ -62,7 +62,6 @@ func Test_GetTickets(t *testing.T) {
 		// Configuration des mocks
 		mockRepo.On("ReadTickets", mock.Anything, mock.Anything).Return([]*entities.Ticket{{ID: "123"}}, nil)
 		mockPerms.On("GetCredentialID").Return(&credentialID)
-		mockPerms.On("IsGrantedByRules", mock.Anything).Return(true) // Correction ici
 
 		// Appeler la méthode testée
 		tickets, err := service.GetTickets()
@@ -85,7 +84,6 @@ func Test_GetTickets(t *testing.T) {
 		// Configuration des mocks
 		mockPerms.On("GetCredentialID").Return(&credentialID)
 		mockRepo.On("ReadTickets", mock.Anything, mock.Anything).Return(nil, errors.ErrNoData)
-		mockPerms.On("IsGrantedByRules", mock.Anything).Return(true)
 
 		// Appeler la méthode testée
 		tickets, err := service.GetTickets()
