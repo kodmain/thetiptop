@@ -22,10 +22,6 @@ func (s *GameService) GetRandomTicket() (*entities.Ticket, errors.ErrorInterface
 }
 
 func (s *GameService) GetTickets() ([]*entities.Ticket, errors.ErrorInterface) {
-	if !s.security.IsGrantedByRules() {
-		return nil, errors.ErrUnauthorized
-	}
-
 	tickets, err := s.repo.ReadTickets(&transfert.Ticket{
 		ClientID: s.security.GetCredentialID(),
 	})

@@ -27,6 +27,18 @@ func Test_GetRandomTicket(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("Should return error when unauthorized", func(t *testing.T) {
+		service, _, mockPerms := setup()
+
+		mockPerms.On("IsGrantedByRoles", []security.Role{user.ROLE_EMPLOYEE}).Return(false)
+
+		ticket, err := service.GetRandomTicket()
+		assert.NotNil(t, err)
+		assert.Nil(t, ticket)
+
+		mockPerms.AssertExpectations(t)
+	})
+
 	t.Run("Should return error when repository return error", func(t *testing.T) {
 		service, mockRepo, mockPerms := setup()
 
@@ -91,25 +103,28 @@ func Test_GetTickets(t *testing.T) {
 
 func Test_UpdateTicket(t *testing.T) {
 	cid := aws.String("client-123")
-	t.Run("Should return tickets", func(t *testing.T) {
+	t.Run("Should return updated ticket", func(t *testing.T) {
 		service, mockRepo, mockPerms := setup()
 
-		credentialID := "valid-credential-id"
+		dto := &transfert.Ticket{
+			ClientID: cid,
+		}
 
-		// Configuration des mocks
-		mockRepo.On("ReadTickets", mock.Anything, mock.Anything).Return([]*entities.Ticket{{ID: "123"}}, nil)
-		mockPerms.On("GetCredentialID").Return(&credentialID)
-		mockPerms.On("IsGrantedByRules", mock.Anything).Return(true) // Correction ici
+		ticket := &entities.Ticket{
+			ID:       "ticket-123",
+			ClientID: cid,
+		}
 
-		// Appeler la méthode testée
-		tickets, err := service.GetTickets()
+		mockRepo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
+		mockPerms.On("CanUpdate", ticket, mock.Anything).Return(true)
+		mockRepo.On("UpdateTicket", ticket, mock.Anything).Return(nil)
 
-		// Assertions
-		assert.Nil(t, err)        // Vérifie qu'il n'y a pas d'erreur
-		assert.NotNil(t, tickets) // Vérifie que des tickets sont retournés
-		assert.Len(t, tickets, 1) // Vérifie le nombre de tickets
+		updatedTicket, err := service.UpdateTicket(dto)
+		assert.Nil(t, err)
+		assert.NotNil(t, updatedTicket)
 
-		// Vérifications des attentes
+		assert.Equal(t, ticket, updatedTicket)
+
 		mockRepo.AssertExpectations(t)
 		mockPerms.AssertExpectations(t)
 	})
