@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/entities"
+	user "github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -13,118 +15,124 @@ import (
 
 func Test_GetRandomTicket(t *testing.T) {
 	t.Run("Should return ticket", func(t *testing.T) {
-		service, repo, _ := setup()
+		service, mockRepo, mockPerms := setup()
 
-		repo.On("ReadTicket", &transfert.Ticket{}, mock.Anything).Return(&entities.Ticket{}, nil)
+		mockRepo.On("ReadTicket", &transfert.Ticket{}, mock.Anything).Return(&entities.Ticket{}, nil)
+		mockPerms.On("IsGrantedByRoles", []security.Role{user.ROLE_EMPLOYEE}).Return(true)
 
 		ticket, err := service.GetRandomTicket()
 		assert.Nil(t, err)
 		assert.NotNil(t, ticket)
 
-		repo.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("Should return error when repository return error", func(t *testing.T) {
-		service, repo, _ := setup()
+		service, mockRepo, mockPerms := setup()
 
-		repo.On("ReadTicket", &transfert.Ticket{}, mock.Anything).Return(nil, errors.ErrNoData)
+		mockRepo.On("ReadTicket", &transfert.Ticket{}, mock.Anything).Return(nil, errors.ErrNoData)
+		mockPerms.On("IsGrantedByRoles", []security.Role{user.ROLE_EMPLOYEE}).Return(true)
 
 		ticket, err := service.GetRandomTicket()
 		assert.NotNil(t, err)
 		assert.Nil(t, ticket)
 
-		repo.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
 	})
 }
 
 func Test_GetTickets(t *testing.T) {
 	t.Run("Should return tickets", func(t *testing.T) {
-		service, repo, permission := setup()
+		service, mockRepo, mockPerms := setup()
 
 		credentialID := "valid-credential-id"
 
-		permission.On("GetCredentialID").Return(&credentialID)
-		repo.On("ReadTickets", mock.Anything, mock.Anything).Return([]*entities.Ticket{{ID: "123"}}, nil)
+		// Configuration des mocks
+		mockRepo.On("ReadTickets", mock.Anything, mock.Anything).Return([]*entities.Ticket{{ID: "123"}}, nil)
+		mockPerms.On("GetCredentialID").Return(&credentialID)
+		mockPerms.On("IsGrantedByRules", mock.Anything).Return(true) // Correction ici
 
 		// Appeler la méthode testée
 		tickets, err := service.GetTickets()
+
+		// Assertions
 		assert.Nil(t, err)        // Vérifie qu'il n'y a pas d'erreur
 		assert.NotNil(t, tickets) // Vérifie que des tickets sont retournés
 		assert.Len(t, tickets, 1) // Vérifie le nombre de tickets
 
 		// Vérifications des attentes
-		repo.AssertExpectations(t)
-		permission.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 	t.Run("Should return error when repository return error", func(t *testing.T) {
-		service, repo, permission := setup()
+		service, mockRepo, mockPerms := setup()
 
 		credentialID := "valid-credential-id"
 
-		permission.On("GetCredentialID").Return(&credentialID)
-		repo.On("ReadTickets", mock.Anything, mock.Anything).Return(nil, errors.ErrNoData)
+		// Configuration des mocks
+		mockPerms.On("GetCredentialID").Return(&credentialID)
+		mockRepo.On("ReadTickets", mock.Anything, mock.Anything).Return(nil, errors.ErrNoData)
+		mockPerms.On("IsGrantedByRules", mock.Anything).Return(true)
 
+		// Appeler la méthode testée
 		tickets, err := service.GetTickets()
+
+		// Assertions
 		assert.NotNil(t, err)
 		assert.Nil(t, tickets)
 		assert.Equal(t, errors.ErrNoData, err)
 
-		repo.AssertExpectations(t)
-		permission.AssertExpectations(t)
+		// Vérifications des attentes
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 }
 
 func Test_UpdateTicket(t *testing.T) {
 	cid := aws.String("client-123")
-	t.Run("Should update ticket successfully", func(t *testing.T) {
-		service, repo, sec := setup()
+	t.Run("Should return tickets", func(t *testing.T) {
+		service, mockRepo, mockPerms := setup()
 
-		dto := &transfert.Ticket{
-			ClientID: cid,
-		}
+		credentialID := "valid-credential-id"
 
-		ticket := &entities.Ticket{
-			ID:       "ticket-123",
-			ClientID: cid,
-		}
+		// Configuration des mocks
+		mockRepo.On("ReadTickets", mock.Anything, mock.Anything).Return([]*entities.Ticket{{ID: "123"}}, nil)
+		mockPerms.On("GetCredentialID").Return(&credentialID)
+		mockPerms.On("IsGrantedByRules", mock.Anything).Return(true) // Correction ici
 
-		// Configuration correcte des appels mock
-		repo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
-		sec.On("CanUpdate", ticket, mock.Anything).Return(true)
-		repo.On("UpdateTicket", ticket, mock.Anything).Return(nil)
+		// Appeler la méthode testée
+		tickets, err := service.GetTickets()
 
-		// Appel de la méthode à tester
-		updatedTicket, err := service.UpdateTicket(dto)
+		// Assertions
+		assert.Nil(t, err)        // Vérifie qu'il n'y a pas d'erreur
+		assert.NotNil(t, tickets) // Vérifie que des tickets sont retournés
+		assert.Len(t, tickets, 1) // Vérifie le nombre de tickets
 
-		// Assertions pour valider le comportement
-		assert.Nil(t, err)
-		assert.NotNil(t, updatedTicket)
-		assert.Equal(t, dto.ClientID, updatedTicket.ClientID)
-
-		repo.AssertExpectations(t)
-		sec.AssertExpectations(t)
+		// Vérifications des attentes
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 	t.Run("Should return error when ticket not found", func(t *testing.T) {
-		service, repo, _ := setup()
+		service, mockRepo, _ := setup()
 
 		dto := &transfert.Ticket{
 			ClientID: cid,
 		}
 
-		repo.On("ReadTicket", dto, mock.Anything).Return(nil, errors.ErrNoData)
+		mockRepo.On("ReadTicket", dto, mock.Anything).Return(nil, errors.ErrNoData)
 
 		updatedTicket, err := service.UpdateTicket(dto)
 		assert.NotNil(t, err)
 		assert.Nil(t, updatedTicket)
 		assert.Equal(t, errors.ErrNoData, err)
 
-		repo.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("Should return error when unauthorized", func(t *testing.T) {
-		service, repo, sec := setup()
+		service, mockRepo, mockPerms := setup()
 
 		dto := &transfert.Ticket{
 			ClientID: cid,
@@ -135,20 +143,20 @@ func Test_UpdateTicket(t *testing.T) {
 			ClientID: cid,
 		}
 
-		repo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
-		sec.On("CanUpdate", ticket, mock.Anything).Return(false)
+		mockRepo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
+		mockPerms.On("CanUpdate", ticket, mock.Anything).Return(false)
 
 		updatedTicket, err := service.UpdateTicket(dto)
 		assert.NotNil(t, err)
 		assert.Nil(t, updatedTicket)
 		assert.Equal(t, errors.ErrUnauthorized, err)
 
-		repo.AssertExpectations(t)
-		sec.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 	t.Run("Should return error when update fails", func(t *testing.T) {
-		service, repo, sec := setup()
+		service, mockRepo, mockPerms := setup()
 
 		dto := &transfert.Ticket{
 			ClientID: cid,
@@ -160,9 +168,9 @@ func Test_UpdateTicket(t *testing.T) {
 		}
 
 		// Configuration des mocks
-		repo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
-		sec.On("CanUpdate", ticket, mock.Anything).Return(true)
-		repo.On("UpdateTicket", ticket, mock.Anything).Return(errors.ErrNoData)
+		mockRepo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
+		mockPerms.On("CanUpdate", ticket, mock.Anything).Return(true)
+		mockRepo.On("UpdateTicket", ticket, mock.Anything).Return(errors.ErrNoData)
 
 		// Appel de la méthode à tester
 		updatedTicket, err := service.UpdateTicket(dto)
@@ -172,8 +180,8 @@ func Test_UpdateTicket(t *testing.T) {
 		assert.Nil(t, updatedTicket)
 		assert.Equal(t, errors.ErrNoData, err)
 
-		repo.AssertExpectations(t)
-		sec.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 }

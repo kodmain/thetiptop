@@ -192,7 +192,7 @@ func TestUserAuth(t *testing.T) {
 		// Vérification des résultats
 		require.NoError(t, err)
 		require.NotNil(t, user)
-		assert.Equal(t, userType, "client")
+		assert.Equal(t, userType, entities.ROLE_CLIENT)
 
 		// Vérifier que les attentes sur le mock sont satisfaites
 		mockRepo.AssertExpectations(t)
@@ -215,7 +215,7 @@ func TestUserAuth(t *testing.T) {
 		// Vérification des résultats
 		require.NoError(t, err)
 		require.NotNil(t, user)
-		assert.Equal(t, userType, "employee")
+		assert.Equal(t, userType, entities.ROLE_EMPLOYEE)
 
 		// Vérifier que les attentes sur le mock sont satisfaites
 		mockRepo.AssertExpectations(t)

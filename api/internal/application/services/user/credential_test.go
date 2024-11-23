@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/config"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
 	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
@@ -69,7 +70,7 @@ func TestUserAuth(t *testing.T) {
 		assert.NoError(t, err)
 		mockClient := new(DomainUserService)
 		// Simuler un cas réussi avec une Credential valide et un ClientID valide
-		mockClient.On("UserAuth", mock.Anything).Return(&ids, "", nil)
+		mockClient.On("UserAuth", mock.Anything).Return(&ids, security.ROLE_CONNECTED, nil)
 
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &email,

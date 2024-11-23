@@ -90,7 +90,17 @@ type PermissionMock struct {
 	mock.Mock
 }
 
-func (m *PermissionMock) IsGranted(roles ...string) bool {
+func (m *PermissionMock) IsAuthenticated() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
+
+func (m *PermissionMock) IsGrantedByRoles(roles ...security.Role) bool {
+	args := m.Called(roles)
+	return args.Bool(0)
+}
+
+func (m *PermissionMock) IsGrantedByRules(roles ...security.Rule) bool {
 	args := m.Called(roles)
 	return args.Bool(0)
 }

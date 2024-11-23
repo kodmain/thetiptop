@@ -185,6 +185,11 @@ type PermissionMock struct {
 	mock.Mock
 }
 
+func (m *PermissionMock) IsAuthenticated() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
+
 func (m *PermissionMock) GetCredentialID() *string {
 	args := m.Called()
 	if args.Get(0) == nil {
@@ -194,7 +199,12 @@ func (m *PermissionMock) GetCredentialID() *string {
 	return args.Get(0).(*string)
 }
 
-func (m *PermissionMock) IsGranted(roles ...string) bool {
+func (m *PermissionMock) IsGrantedByRules(rules ...security.Rule) bool {
+	args := m.Called(rules)
+	return args.Bool(0)
+}
+
+func (m *PermissionMock) IsGrantedByRoles(roles ...security.Role) bool {
 	args := m.Called(roles)
 	return args.Bool(0)
 }
