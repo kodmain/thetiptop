@@ -1,14 +1,18 @@
 package services
 
 import (
-	"github.com/kodmain/thetiptop/api/internal/application/security"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/entities"
+	user "github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 )
 
 func (s *GameService) GetRandomTicket() (*entities.Ticket, errors.ErrorInterface) {
+	if !s.security.IsGrantedByRoles(user.ROLE_EMPLOYEE) {
+		return nil, errors.ErrUnauthorized
+	}
+
 	ticket, err := s.repo.ReadTicket(&transfert.Ticket{}, database.Where("client_id IS NULL"), database.Order("RANDOM()"))
 	if err != nil {
 		return nil, errors.ErrNoData
@@ -18,6 +22,10 @@ func (s *GameService) GetRandomTicket() (*entities.Ticket, errors.ErrorInterface
 }
 
 func (s *GameService) GetTickets() ([]*entities.Ticket, errors.ErrorInterface) {
+	if !s.security.IsGrantedByRules() {
+		return nil, errors.ErrUnauthorized
+	}
+
 	tickets, err := s.repo.ReadTickets(&transfert.Ticket{
 		ClientID: s.security.GetCredentialID(),
 	})
@@ -36,9 +44,7 @@ func (s *GameService) UpdateTicket(dto *transfert.Ticket) (*entities.Ticket, err
 		return nil, err
 	}
 
-	if !s.security.CanUpdate(ticket, func(p *security.UserAccess, entity database.Entity) bool {
-		return entity.GetOwnerID() == ""
-	}) {
+	if !s.security.CanUpdate(ticket) {
 		return nil, errors.ErrUnauthorized
 	}
 

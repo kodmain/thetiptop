@@ -6,7 +6,9 @@ import (
 )
 
 type PermissionInterface interface {
-	IsGranted(roles ...string) bool
+	IsAuthenticated() bool
+	IsGrantedByRoles(roles ...Role) bool
+	IsGrantedByRules(rules ...Rule) bool
 	GetCredentialID() *string
 	CanRead(ressource database.Entity, rules ...Rule) bool
 	CanCreate(ressource database.Entity, rules ...Rule) bool
@@ -16,10 +18,21 @@ type PermissionInterface interface {
 
 type UserAccess struct {
 	CredentialID string
-	Role         string
+	Role         Role
 }
 
-type Rule func(p *UserAccess, entity database.Entity) bool
+type Role string
+type Rule func(p *UserAccess) bool
+
+const (
+	ROLE_ADMIN     Role = "admin"
+	ROLE_ANONYMOUS Role = "anonymous"
+	ROLE_CONNECTED Role = "connected"
+)
+
+func (p *UserAccess) IsAuthenticated() bool {
+	return p.CredentialID != ""
+}
 
 func (p *UserAccess) GetCredentialID() *string {
 	if p.CredentialID == "" {
@@ -29,7 +42,17 @@ func (p *UserAccess) GetCredentialID() *string {
 	return &p.CredentialID
 }
 
-func (p *UserAccess) IsGranted(roles ...string) bool {
+func (p *UserAccess) IsGrantedByRules(rules ...Rule) bool {
+	for _, rule := range rules {
+		if rule(p) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (p *UserAccess) IsGrantedByRoles(roles ...Role) bool {
 	for _, role := range roles {
 		if p.Role == role {
 			return true
@@ -49,7 +72,7 @@ func (p *UserAccess) CanRead(ressource database.Entity, rules ...Rule) bool {
 	}
 
 	for _, rule := range rules {
-		if rule(p, ressource) {
+		if rule(p) {
 			return true
 		}
 	}
@@ -63,7 +86,7 @@ func (p *UserAccess) CanCreate(ressource database.Entity, rules ...Rule) bool {
 	}
 
 	for _, rule := range rules {
-		if rule(p, ressource) {
+		if rule(p) {
 			return true
 		}
 	}
@@ -77,7 +100,7 @@ func (p *UserAccess) CanUpdate(ressource database.Entity, rules ...Rule) bool {
 	}
 
 	for _, rule := range rules {
-		if rule(p, ressource) {
+		if rule(p) {
 			return true
 		}
 	}
@@ -91,7 +114,7 @@ func (p *UserAccess) CanDelete(ressource database.Entity, rules ...Rule) bool {
 	}
 
 	for _, rule := range rules {
-		if rule(p, ressource) {
+		if rule(p) {
 			return true
 		}
 	}
@@ -100,13 +123,15 @@ func (p *UserAccess) CanDelete(ressource database.Entity, rules ...Rule) bool {
 }
 
 func NewUserAccess(token any) *UserAccess {
-	p := &UserAccess{}
+	p := &UserAccess{
+		Role: ROLE_ANONYMOUS,
+	}
 	if token != nil {
 		if token, ok := token.(*jwt.Token); ok {
 			p.CredentialID = token.ID
 			if role, exists := token.Data["role"]; exists {
 				if roleStr, ok := role.(string); ok {
-					p.Role = roleStr
+					p.Role = Role(roleStr)
 				}
 			}
 		}

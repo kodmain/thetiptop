@@ -4,8 +4,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"gorm.io/gorm"
+)
+
+const (
+	ROLE_EMPLOYEE security.Role = "employee"
 )
 
 type Employee struct {

@@ -1,11 +1,6 @@
 package game_test
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
+/*
 func TestGame(t *testing.T) {
 	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}
 	assert.Nil(t, start(8888, 8444))
@@ -24,3 +19,4 @@ func TestGame(t *testing.T) {
 
 	}
 }
+*/

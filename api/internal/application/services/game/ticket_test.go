@@ -12,6 +12,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGetTickets(t *testing.T) {
+	t.Run("should return tickets successfully", func(t *testing.T) {
+		mockService := new(DomainGameService)
+		expectedTickets := []*entities.Ticket{}
+		mockService.On("GetTickets").Return(expectedTickets, nil)
+
+		statusCode, response := game.GetTickets(mockService)
+
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.Equal(t, expectedTickets, response)
+		mockService.AssertCalled(t, "GetTickets")
+	})
+
+	t.Run("should return error when service fails", func(t *testing.T) {
+		mockService := new(DomainGameService)
+		expectedError := errors.ErrBadRequest
+		mockService.On("GetTickets").Return(nil, expectedError)
+
+		statusCode, response := game.GetTickets(mockService)
+
+		assert.Equal(t, http.StatusBadRequest, statusCode)
+		assert.Error(t, response.(*errors.Error))
+		mockService.AssertCalled(t, "GetTickets")
+	})
+}
+
 func TestGetRandomTicket(t *testing.T) {
 	t.Run("should return ticket successfully", func(t *testing.T) {
 		mockService := new(DomainGameService)
