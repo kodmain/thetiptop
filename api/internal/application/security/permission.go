@@ -22,7 +22,7 @@ type UserAccess struct {
 }
 
 type Role string
-type Rule func(p *UserAccess) bool
+type Rule func(p *UserAccess, args ...any) bool
 
 const (
 	ROLE_ADMIN     Role = "admin"
