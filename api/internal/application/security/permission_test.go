@@ -10,21 +10,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type MockEntity struct {
+type MockEntityPublic struct {
 	OwnerID string
 	Public  bool
 }
 
-func (e *MockEntity) GetOwnerID() string {
+func (e *MockEntityPublic) GetOwnerID() string {
 	return e.OwnerID
 }
 
-func (e *MockEntity) IsPublic() bool {
+func (e *MockEntityPublic) IsPublic() bool {
 	return e.Public
 }
 
-func CustomRule(p *security.UserAccess) bool {
+func CustomRule(p *security.UserAccess, args ...any) bool {
 	return p.CredentialID != ""
+}
+
+func CustomRuleDeny(p *security.UserAccess, args ...any) bool {
+	return false
+}
+
+func CustomRuleGrant(p *security.UserAccess, args ...any) bool {
+	return true
 }
 
 func TestGetCredentialID(t *testing.T) {
@@ -70,18 +78,19 @@ func TestCanRead(t *testing.T) {
 		name       string
 		userAccess *security.UserAccess
 		entity     database.Entity
+		rule       security.Rule
 		expected   bool
 	}{
-		{"Public entity", &security.UserAccess{}, &MockEntity{Public: true}, true},
-		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntity{OwnerID: "owner-id"}, true},
-		{"Access denied", &security.UserAccess{}, &MockEntity{OwnerID: ""}, false},
-		{"Custom rule granted", &security.UserAccess{CredentialID: "owner-xyz"}, &MockEntity{OwnerID: "owner-xyz"}, true},
-		{"Custom rule denied", &security.UserAccess{}, &MockEntity{OwnerID: ""}, false},
+		{"Public entity", &security.UserAccess{}, &MockEntityPublic{Public: true}, CustomRule, true},
+		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntityPublic{OwnerID: "owner-id"}, CustomRule, true},
+		{"Access denied", &security.UserAccess{}, &MockEntityPublic{OwnerID: ""}, CustomRule, false},
+		{"Custom rule granted", &security.UserAccess{}, &MockEntityPublic{}, CustomRuleGrant, true},
+		{"Custom rule denied", &security.UserAccess{}, &MockEntityPublic{}, CustomRuleDeny, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.userAccess.CanRead(tt.entity, CustomRule)
+			result := tt.userAccess.CanRead(tt.entity, tt.rule)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -92,17 +101,18 @@ func TestCanCreate(t *testing.T) {
 		name       string
 		userAccess *security.UserAccess
 		entity     database.Entity
+		rule       security.Rule
 		expected   bool
 	}{
-		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntity{OwnerID: "owner-id"}, true},
-		{"Access denied", &security.UserAccess{}, &MockEntity{OwnerID: "other-id"}, false},
-		{"Custom rule granted", &security.UserAccess{CredentialID: "owner-xyz"}, &MockEntity{OwnerID: "owner-xyz"}, true},
-		{"Custom rule denied", &security.UserAccess{}, &MockEntity{OwnerID: "owner-abc"}, false},
+		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntityPublic{OwnerID: "owner-id"}, CustomRule, true},
+		{"Access denied", &security.UserAccess{}, &MockEntityPublic{OwnerID: "other-id"}, CustomRule, false},
+		{"Custom rule granted", &security.UserAccess{}, &MockEntityPublic{}, CustomRuleGrant, true},
+		{"Custom rule denied", &security.UserAccess{}, &MockEntityPublic{}, CustomRuleDeny, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.userAccess.CanCreate(tt.entity, CustomRule)
+			result := tt.userAccess.CanCreate(tt.entity, tt.rule)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -113,17 +123,18 @@ func TestCanUpdate(t *testing.T) {
 		name       string
 		userAccess *security.UserAccess
 		entity     database.Entity
+		rule       security.Rule
 		expected   bool
 	}{
-		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntity{OwnerID: "owner-id"}, true},
-		{"Access denied", &security.UserAccess{}, &MockEntity{OwnerID: "other-id"}, false},
-		{"Custom rule granted", &security.UserAccess{CredentialID: "owner-xyz"}, &MockEntity{OwnerID: "owner-xyz"}, true},
-		{"Custom rule denied", &security.UserAccess{}, &MockEntity{OwnerID: "owner-abc"}, false},
+		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntityPublic{OwnerID: "owner-id"}, CustomRule, true},
+		{"Access denied", &security.UserAccess{}, &MockEntityPublic{OwnerID: "other-id"}, CustomRule, false},
+		{"Custom rule granted", &security.UserAccess{}, &MockEntityPublic{}, CustomRuleGrant, true},
+		{"Custom rule denied", &security.UserAccess{}, &MockEntityPublic{}, CustomRuleDeny, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.userAccess.CanUpdate(tt.entity, CustomRule)
+			result := tt.userAccess.CanUpdate(tt.entity, tt.rule)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -134,17 +145,18 @@ func TestCanDelete(t *testing.T) {
 		name       string
 		userAccess *security.UserAccess
 		entity     database.Entity
+		rule       security.Rule
 		expected   bool
 	}{
-		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntity{OwnerID: "owner-id"}, true},
-		{"Access denied", &security.UserAccess{}, &MockEntity{OwnerID: "other-id"}, false},
-		{"Custom rule granted", &security.UserAccess{CredentialID: "owner-xyz"}, &MockEntity{OwnerID: "owner-xyz"}, true},
-		{"Custom rule denied", &security.UserAccess{}, &MockEntity{OwnerID: "owner-abc"}, false},
+		{"Owner access", &security.UserAccess{CredentialID: "owner-id"}, &MockEntityPublic{OwnerID: "owner-id"}, CustomRule, true},
+		{"Access denied", &security.UserAccess{}, &MockEntityPublic{OwnerID: "other-id"}, CustomRule, false},
+		{"Custom rule granted", &security.UserAccess{CredentialID: "owner-xyz"}, &MockEntityPublic{OwnerID: "owner-xyz"}, CustomRule, true},
+		{"Custom rule denied", &security.UserAccess{}, &MockEntityPublic{OwnerID: "owner-abc"}, CustomRule, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.userAccess.CanDelete(tt.entity, CustomRule)
+			result := tt.userAccess.CanDelete(tt.entity, tt.rule)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -165,4 +177,41 @@ func TestNewUserAccess_NoRole(t *testing.T) {
 	p := security.NewUserAccess(token)
 	assert.Equal(t, "test-id", p.CredentialID)
 	assert.Equal(t, security.ROLE_ANONYMOUS, p.Role)
+}
+
+func TestNewUserAccess_NoToken(t *testing.T) {
+	p := security.NewUserAccess(nil)
+	assert.Equal(t, "", p.CredentialID)
+	assert.Equal(t, security.ROLE_ANONYMOUS, p.Role)
+}
+
+func TestNewUserAccess_InvalidToken(t *testing.T) {
+	p := security.NewUserAccess("invalid")
+	assert.Equal(t, "", p.CredentialID)
+	assert.Equal(t, security.ROLE_ANONYMOUS, p.Role)
+}
+
+func TestNewUserAccess_InvalidRole(t *testing.T) {
+	token := &jwt.Token{
+		ID:   "test-id",
+		Data: map[string]interface{}{"role": 123},
+	}
+	p := security.NewUserAccess(token)
+	assert.Equal(t, "test-id", p.CredentialID)
+	assert.Equal(t, security.ROLE_ANONYMOUS, p.Role)
+}
+
+func TestNewUserAccess_IsGrantedByRules(t *testing.T) {
+	p := &security.UserAccess{CredentialID: "test-id"}
+	assert.True(t, p.IsGrantedByRules(CustomRule))
+}
+
+func TestNewUserAccess_IsGrantedByRules_NoRules(t *testing.T) {
+	p := &security.UserAccess{CredentialID: "test-id"}
+	assert.False(t, p.IsGrantedByRules())
+}
+
+func TestNewUserAccess_IsGrantedByRules_Denied(t *testing.T) {
+	p := &security.UserAccess{}
+	assert.False(t, p.IsGrantedByRules(CustomRule))
 }

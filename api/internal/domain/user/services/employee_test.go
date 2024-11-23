@@ -180,6 +180,23 @@ func TestGetEmployee(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("unauthorized role read employee", func(t *testing.T) {
+		service, mockRepo, _, mockPerms := setup()
+
+		dummyEmployeeDTO := &transfert.Employee{
+			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
+		}
+
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(false)
+		employee, err := service.GetEmployee(dummyEmployeeDTO)
+
+		require.Error(t, err)
+		require.Nil(t, employee)
+
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
+	})
+
 	t.Run("cant read employee", func(t *testing.T) {
 		service, mockRepo, _, mockPerms := setup()
 
@@ -247,7 +264,28 @@ func TestDeleteEmployee(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("should return error if employee cannot be deleted", func(t *testing.T) {
+	t.Run("unauthorized role delete", func(t *testing.T) {
+		mockRepo := new(UserRepositoryMock)
+		mockPermission := new(PermissionMock)
+		service := services.User(mockPermission, mockRepo, nil)
+
+		// Employee DTO avec un ID valide
+		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
+		dtoEmployee := &transfert.Employee{ID: employeeID}
+
+		// Simuler la permission de suppression
+		mockPermission.On("IsGrantedByRoles", mock.Anything).Return(false)
+
+		// Appel du service pour supprimer le employee
+		err := service.DeleteEmployee(dtoEmployee)
+
+		// Vérifier que l'erreur est bien celle attendue
+		assert.EqualError(t, err, errors.ErrUnauthorized.Error())
+		mockRepo.AssertExpectations(t)
+		mockPermission.AssertExpectations(t)
+	})
+
+	t.Run("unauthorized delete", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
 		service := services.User(mockPermission, mockRepo, nil)
@@ -341,7 +379,20 @@ func TestUpdateEmployee(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("unauthorized", func(t *testing.T) {
+	t.Run("unauthorized role", func(t *testing.T) {
+		service, mockRepo, _, mockPerms := setup()
+
+		mockPerms.On("IsGrantedByRoles", mock.Anything).Return(false)
+		employee, err := service.UpdateEmployee(&transfert.Employee{ID: aws.String("valid-id")})
+
+		assert.EqualError(t, err, errors.ErrUnauthorized.Error())
+		assert.Nil(t, employee)
+
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
+	})
+
+	t.Run("unauthorized update", func(t *testing.T) {
 		service, mockRepo, _, mockPerms := setup()
 
 		mockEmployee := &entities.Employee{ID: "42debee6-2063-4566-baf1-37a7bdd139ff"}
