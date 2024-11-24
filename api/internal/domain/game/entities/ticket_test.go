@@ -17,17 +17,17 @@ import (
 func TestCreateTicket(t *testing.T) {
 	// Cas avec des données valides
 	input := &transfert.Ticket{
-		ID:       aws.String(uuid.New().String()),
-		ClientID: aws.String(uuid.New().String()),
-		Prize:    aws.String("PrizeA"),
-		Token:    aws.String("123456"),
+		ID:           aws.String(uuid.New().String()),
+		CredentialID: aws.String(uuid.New().String()),
+		Prize:        aws.String("PrizeA"),
+		Token:        aws.String("123456"),
 	}
 
 	ticket := entities.CreateTicket(input)
 
 	assert.NotNil(t, ticket)
 	assert.Equal(t, *input.ID, ticket.ID)
-	assert.Equal(t, *input.ClientID, *ticket.ClientID)
+	assert.Equal(t, *input.CredentialID, *ticket.CredentialID)
 	assert.Equal(t, *input.Prize, *ticket.Prize)
 	assert.Equal(t, token.Luhn("123456"), ticket.Token)
 }
@@ -35,17 +35,17 @@ func TestCreateTicket(t *testing.T) {
 func TestCreateTicketWithNilFields(t *testing.T) {
 	// Cas avec des champs optionnels nuls
 	input := &transfert.Ticket{
-		ID:       nil,
-		ClientID: nil,
-		Prize:    nil,
-		Token:    aws.String("123456"),
+		ID:           nil,
+		CredentialID: nil,
+		Prize:        nil,
+		Token:        aws.String("123456"),
 	}
 
 	ticket := entities.CreateTicket(input)
 
 	assert.NotNil(t, ticket)
 	assert.Empty(t, ticket.ID)
-	assert.Nil(t, ticket.ClientID)
+	assert.Nil(t, ticket.CredentialID)
 	assert.Nil(t, ticket.Prize)
 	assert.Equal(t, token.Luhn("123456"), ticket.Token)
 }
@@ -56,17 +56,17 @@ func TestTicket_IsPublic(t *testing.T) {
 }
 
 func TestTicket_GetOwnerID(t *testing.T) {
-	t.Run("with ClientID", func(t *testing.T) {
+	t.Run("with CredentialID", func(t *testing.T) {
 		clientID := uuid.New().String()
 		ticket := &entities.Ticket{
-			ClientID: aws.String(clientID),
+			CredentialID: aws.String(clientID),
 		}
 		assert.Equal(t, clientID, ticket.GetOwnerID())
 	})
 
-	t.Run("without ClientID", func(t *testing.T) {
+	t.Run("without CredentialID", func(t *testing.T) {
 		ticket := &entities.Ticket{
-			ClientID: nil,
+			CredentialID: nil,
 		}
 		assert.Equal(t, "", ticket.GetOwnerID())
 	})

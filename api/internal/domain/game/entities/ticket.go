@@ -17,16 +17,16 @@ type Ticket struct {
 	DeletedAt *gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Additional fields
-	ClientID *string    `gorm:"type:varchar(36);index" json:"client_id"`
-	Token    token.Luhn `gorm:"type:varchar(16);uniqueIndex" json:"token"`
-	Prize    *string    `gorm:"type:varchar(36);index" json:"prize"`
+	CredentialID *string    `gorm:"type:varchar(36);index" json:"credential_id"`
+	Token        token.Luhn `gorm:"type:varchar(16);uniqueIndex" json:"token"`
+	Prize        *string    `gorm:"type:varchar(36);index" json:"prize"`
 }
 
 func CreateTicket(obj *transfert.Ticket) *Ticket {
 	t := &Ticket{
-		ClientID: obj.ClientID,
-		Prize:    obj.Prize,
-		Token:    token.NewLuhnP(obj.Token),
+		CredentialID: obj.CredentialID,
+		Prize:        obj.Prize,
+		Token:        token.NewLuhnP(obj.Token),
 	}
 
 	if obj.ID != nil {
@@ -41,11 +41,11 @@ func (ticket *Ticket) IsPublic() bool {
 }
 
 func (ticket *Ticket) GetOwnerID() string {
-	if ticket.ClientID == nil {
+	if ticket.CredentialID == nil {
 		return ""
 	}
 
-	return *ticket.ClientID
+	return *ticket.CredentialID
 }
 
 func (ticket *Ticket) BeforeUpdate(tx *gorm.DB) error {
