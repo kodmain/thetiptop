@@ -114,7 +114,8 @@ func Test_UpdateTicket(t *testing.T) {
 		}
 
 		mockRepo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
-		mockPerms.On("CanUpdate", ticket, mock.Anything).Return(true)
+		mockPerms.On("IsAuthenticated").Return(true)
+		mockPerms.On("GetCredentialID").Return(cid)
 		mockRepo.On("UpdateTicket", ticket, mock.Anything).Return(nil)
 
 		updatedTicket, err := service.UpdateTicket(dto)
@@ -128,13 +129,14 @@ func Test_UpdateTicket(t *testing.T) {
 	})
 
 	t.Run("Should return error when ticket not found", func(t *testing.T) {
-		service, mockRepo, _ := setup()
+		service, mockRepo, mockPerms := setup()
 
 		dto := &transfert.Ticket{
 			CredentialID: cid,
 		}
 
 		mockRepo.On("ReadTicket", dto, mock.Anything).Return(nil, errors.ErrNoData)
+		mockPerms.On("IsAuthenticated").Return(true)
 
 		updatedTicket, err := service.UpdateTicket(dto)
 		assert.NotNil(t, err)
@@ -157,7 +159,7 @@ func Test_UpdateTicket(t *testing.T) {
 		}
 
 		mockRepo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
-		mockPerms.On("CanUpdate", ticket, mock.Anything).Return(false)
+		mockPerms.On("IsAuthenticated").Return(false)
 
 		updatedTicket, err := service.UpdateTicket(dto)
 		assert.NotNil(t, err)
@@ -182,7 +184,8 @@ func Test_UpdateTicket(t *testing.T) {
 
 		// Configuration des mocks
 		mockRepo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
-		mockPerms.On("CanUpdate", ticket, mock.Anything).Return(true)
+		mockPerms.On("IsAuthenticated").Return(true)
+		mockPerms.On("GetCredentialID").Return(cid)
 		mockRepo.On("UpdateTicket", ticket, mock.Anything).Return(errors.ErrNoData)
 
 		// Appel de la méthode à tester
