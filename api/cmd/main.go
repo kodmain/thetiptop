@@ -10,13 +10,25 @@ import (
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application"
+	"github.com/kodmain/thetiptop/api/internal/application/hook"
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
+	"github.com/kodmain/thetiptop/api/internal/domain/game/events"
+	"github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 	"github.com/spf13/cobra"
 )
+
+var callBack hook.Handler = func(tags ...string) {
+	events.HydrateDBWithTickets(
+		repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
+		config.Get("project.tickets.required", 10000).(int),
+		config.Get("project.tickets.types", map[string]int{}).(map[string]int),
+	)
+}
 
 // Helper use Cobra package to create a CLI and give Args gesture
 var Helper *cobra.Command = &cobra.Command{
@@ -26,13 +38,16 @@ var Helper *cobra.Command = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("loading configuration")
+		hook.Call(hook.EventOnConfig)
 		generated.SwaggerInfo.Version = env.BUILD_VERSION
 		logger.SetLevel(levels.DEBUG)
+		hook.Register(hook.EventOnDBInit, callBack)
 
 		return config.Load(env.CONFIG_URI)
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("starting application")
+		hook.Call(hook.EventOnStart)
 		srv := server.Create()
 		srv.Register(interfaces.Endpoints)
 		return srv.Start()
@@ -62,6 +77,10 @@ var versionCmd = &cobra.Command{
 // @description	TheTipTop API
 // @host		localhost
 // @BasePath
+// @SecurityDefinitions.apiKey 	Bearer
+// @in 							header
+// @name 						Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func main() {
 	env.CONFIG_URI = Helper.Flags().String("config", env.DEFAULT_CONFIG_URI, "URI de la configuration")
 	env.AWS_PROFILE = Helper.Flags().String("profile", env.DEFAULT_AWS_PROFILE, "Profil AWS")

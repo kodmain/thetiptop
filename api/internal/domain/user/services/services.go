@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
@@ -21,7 +21,7 @@ func User(security security.PermissionInterface, repo repositories.UserRepositor
 
 type UserServiceInterface interface {
 	// Credential
-	UserAuth(dtoCredential *transfert.Credential) (*string, string, errors.ErrorInterface)
+	UserAuth(dtoCredential *transfert.Credential) (*string, security.Role, errors.ErrorInterface)
 	PasswordUpdate(dtoCredential *transfert.Credential) errors.ErrorInterface
 	ValidationRecover(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) errors.ErrorInterface
 	PasswordValidation(dtoValidation *transfert.Validation, dtoClient *transfert.Credential) (*entities.Validation, errors.ErrorInterface)

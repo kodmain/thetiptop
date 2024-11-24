@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/kodmain/thetiptop/api/internal/application/hook"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
@@ -27,6 +28,8 @@ func Wait() error {
 				return err
 			}
 		case <-SIGS:
+			logger.Info("shutting down application")
+			hook.Call(hook.EventOnStop)
 			return nil
 		}
 	}

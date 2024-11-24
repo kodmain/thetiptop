@@ -3,7 +3,7 @@ package code
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/security"
-	"github.com/kodmain/thetiptop/api/internal/application/services"
+	services "github.com/kodmain/thetiptop/api/internal/application/services/code"
 	"github.com/kodmain/thetiptop/api/internal/domain/code/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/code/services"
 )

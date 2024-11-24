@@ -4,8 +4,8 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
 	"github.com/kodmain/thetiptop/api/internal/domain/code/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/code/services"
-	user "github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -48,27 +48,46 @@ type PermissionMock struct {
 	mock.Mock
 }
 
-func (m *PermissionMock) IsGranted(roles ...string) bool {
+func (m *PermissionMock) IsAuthenticated() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
+
+func (m *PermissionMock) GetCredentialID() *string {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(*string)
+}
+
+func (m *PermissionMock) IsGrantedByRoles(roles ...security.Role) bool {
 	args := m.Called(roles)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanRead(ressource user.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) IsGrantedByRules(roles ...security.Rule) bool {
+	args := m.Called(roles)
+	return args.Bool(0)
+}
+
+func (m *PermissionMock) CanRead(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanCreate(ressource user.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanCreate(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanUpdate(ressource user.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanUpdate(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }
 
-func (m *PermissionMock) CanDelete(ressource user.Entity, rules ...security.Rule) bool {
+func (m *PermissionMock) CanDelete(ressource database.Entity, rules ...security.Rule) bool {
 	args := m.Called(ressource)
 	return args.Bool(0)
 }

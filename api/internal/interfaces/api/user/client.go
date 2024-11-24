@@ -5,8 +5,8 @@ import (
 
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/internal/application/security"
-	"github.com/kodmain/thetiptop/api/internal/application/services"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
@@ -65,6 +65,7 @@ func RegisterClient(ctx *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client [put]
 // @Id			jwt.Auth => user.UpdateClient
+// @Security 	Bearer
 func UpdateClient(ctx *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}
 	if err := ctx.BodyParser(dtoClient); err != nil {
@@ -94,6 +95,7 @@ func UpdateClient(ctx *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/{id} [get]
 // @Id			jwt.Auth => user.GetClient
+// @Security 	Bearer
 func GetClient(ctx *fiber.Ctx) error {
 	clientID := ctx.Params("id")
 
@@ -127,6 +129,7 @@ func GetClient(ctx *fiber.Ctx) error {
 // @Failure		500	{object}	nil "Internal server error"
 // @Router		/client/{id} [delete]
 // @Id			jwt.Auth => user.DeleteClient
+// @Security 	Bearer
 func DeleteClient(ctx *fiber.Ctx) error {
 	clientID := ctx.Params("id")
 

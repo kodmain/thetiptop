@@ -1,0 +1,45 @@
+services:
+  client:
+    database: default
+    mail: default
+  employee:
+    database: default
+    mail: default
+  game:
+    database: default
+    mail: default
+
+providers:
+  mails:
+    default:
+      username: secret
+      password: secret
+      host: localhost
+      port: 1025
+      expeditor: Whoami
+      from: whoami@localhost
+
+  databases:
+    default:
+      protocol: sqlite
+      dbname: ${PWD}/local.sqlite
+      logger: true
+
+security:
+  validation:
+    expire: 30m
+  jwt:
+    tz: Europe/Paris
+    secret: secret
+    expire: 15
+    refresh: 30
+
+project:
+  tickets:
+    required: 1500000
+    types:
+      "Infuseur à thé": 60
+      "Une boite de 100g de thé détox": 20
+      "Une boite de 100g de thé signature": 10
+      "Coffret découverte 39€": 6
+      "Coffret découverte 69€": 4
