@@ -18,6 +18,9 @@ import (
 // @Router		/game/ticket/random [get]
 // @Id			jwt.Auth => game.GetTicket
 // @Security 	Bearer
+// @Success		200	{object} 	nil "Ticket details"
+// @Failure		400	{object} 	nil "Bad request"
+// @Failure		401	{object} 	nil "Unauthorized"
 func GetTicket(ctx *fiber.Ctx) error {
 	status, response := game.GetRandomTicket(
 		services.Game(
@@ -36,6 +39,9 @@ func GetTicket(ctx *fiber.Ctx) error {
 // @Router		/game/ticket [get]
 // @Id			jwt.Auth => game.GetTickets
 // @Security 	Bearer
+// @Success		200	{object} 	nil "Tickets details"
+// @Failure		400	{object} 	nil "Bad request"
+// @Failure		404	{object} 	nil "Not found"
 func GetTickets(ctx *fiber.Ctx) error {
 	status, response := game.GetTickets(
 		services.Game(
@@ -54,6 +60,11 @@ func GetTickets(ctx *fiber.Ctx) error {
 // @Router		/game/ticket [put]
 // @Id			jwt.Auth => game.UpdateTicket
 // @Security 	Bearer
+// @Param		id	formData	string	true	"Ticket ID" format(uuid)
+// @Success		200	{object} 	nil "Ticket details"
+// @Failure		400	{object} 	nil "Bad request"
+// @Failure		401	{object} 	nil "Unauthorized"
+// @Failure		404	{object} 	nil "Not found"
 func UpdateTicket(ctx *fiber.Ctx) error {
 	dtoTicket := &transfert.Ticket{}
 	if err := ctx.BodyParser(dtoTicket); err != nil {
