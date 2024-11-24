@@ -78,8 +78,8 @@ func initializeDatabase(key string, cfg *Config, errs *[]error) error {
 		return err
 	}
 
-	hook.Call(hook.EventOnDBInit)
 	saveDatabaseInstance(key, cfg, db)
+	hook.Call(hook.EventOnDBInit, key)
 
 	return nil
 }

@@ -6,18 +6,18 @@ import (
 )
 
 type Ticket struct {
-	ID       *string `json:"id" xml:"id" form:"id"`
-	Prize    *string `json:"prize" xml:"prize" form:"prize"`
-	ClientID *string `json:"client_id" xml:"client_id" form:"client_id"`
-	Token    *string `json:"token" xml:"token" form:"token"`
+	ID           *string `json:"id" xml:"id" form:"id"`
+	Prize        *string `json:"prize" xml:"prize" form:"prize"`
+	CredentialID *string `json:"credential_id" xml:"credential_id" form:"credential_id"`
+	Token        *string `json:"token" xml:"token" form:"token"`
 }
 
 func (c *Ticket) Check(validator data.Validator) error {
 	return validator.Check(data.Object{
-		"id":        c.ID,
-		"prize":     c.Prize,
-		"client_id": c.ClientID,
-		"token":     c.Token,
+		"id":            c.ID,
+		"prize":         c.Prize,
+		"credential_id": c.CredentialID,
+		"token":         c.Token,
 	})
 }
 

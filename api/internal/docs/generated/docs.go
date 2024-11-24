@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/client": {
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -141,6 +146,11 @@ const docTemplate = `{
         },
         "/client/{id}": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -185,6 +195,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -244,6 +259,11 @@ const docTemplate = `{
         },
         "/employee": {
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -352,6 +372,11 @@ const docTemplate = `{
         },
         "/employee/{id}": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -396,6 +421,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -439,6 +469,11 @@ const docTemplate = `{
         },
         "/game/ticket": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -453,6 +488,11 @@ const docTemplate = `{
                 "responses": {}
             },
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -616,6 +656,11 @@ const docTemplate = `{
         },
         "/user/password": {
             "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "consumes": [
                     "multipart/form-data"
                 ],

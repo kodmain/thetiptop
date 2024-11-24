@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var callBack hook.Handler = func() {
+var callBack hook.Handler = func(tags ...string) {
 	events.HydrateDBWithTickets(
 		repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 		config.Get("project.tickets.required", 10000).(int),

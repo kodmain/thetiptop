@@ -37,13 +37,13 @@ func TestCreateTicket(t *testing.T) {
 
 	t.Run("successful creation", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","client_id","token","prize"\)`).
+		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","credential_id","token","prize"\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID
 				sqlmock.AnyArg(), // CreatedAt
 				sqlmock.AnyArg(), // UpdatedAt
 				nil,              // DeletedAt
-				nil,              // ClientID
+				nil,              // CredentialID
 				dto.Token,        // Token
 				dto.Prize,        // Prize
 			).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -62,13 +62,13 @@ func TestCreateTicket(t *testing.T) {
 		}
 
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","client_id","token","prize"\)`).
+		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","credential_id","token","prize"\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID
 				sqlmock.AnyArg(), // CreatedAt
 				sqlmock.AnyArg(), // UpdatedAt
 				nil,              // DeletedAt
-				nil,              // ClientID
+				nil,              // CredentialID
 				dtoWithoutPrize.Token,
 				nil, // Prize is missing
 			).WillReturnError(fmt.Errorf("constraint violation"))
@@ -85,13 +85,13 @@ func TestCreateTicket(t *testing.T) {
 
 	t.Run("creation with duplicate token", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","client_id","token","prize"\)`).
+		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","credential_id","token","prize"\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID
 				sqlmock.AnyArg(), // CreatedAt
 				sqlmock.AnyArg(), // UpdatedAt
 				nil,              // DeletedAt
-				nil,              // ClientID
+				nil,              // CredentialID
 				dto.Token,        // Token
 				dto.Prize,        // Prize
 			).WillReturnError(fmt.Errorf("duplicate key value violates unique constraint"))
@@ -108,13 +108,13 @@ func TestCreateTicket(t *testing.T) {
 
 	t.Run("creation with database connection error", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","client_id","token","prize"\)`).
+		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","credential_id","token","prize"\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID
 				sqlmock.AnyArg(), // CreatedAt
 				sqlmock.AnyArg(), // UpdatedAt
 				nil,              // DeletedAt
-				nil,              // ClientID
+				nil,              // CredentialID
 				dto.Token,        // Token
 				dto.Prize,        // Prize
 			).WillReturnError(fmt.Errorf("database is unavailable"))
@@ -131,13 +131,13 @@ func TestCreateTicket(t *testing.T) {
 
 	t.Run("successful creation with custom options", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","client_id","token","prize"\)`).
+		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","credential_id","token","prize"\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID
 				sqlmock.AnyArg(), // CreatedAt
 				sqlmock.AnyArg(), // UpdatedAt
 				nil,              // DeletedAt
-				nil,              // ClientID
+				nil,              // CredentialID
 				dto.Token,        // Token
 				dto.Prize,        // Prize
 			).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -162,13 +162,13 @@ func TestCreateTickets(t *testing.T) {
 		}
 
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","client_id","token","prize"\)`).
+		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","credential_id","token","prize"\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID (Ticket 1)
 				sqlmock.AnyArg(), // CreatedAt (Ticket 1)
 				sqlmock.AnyArg(), // UpdatedAt (Ticket 1)
 				nil,              // DeletedAt (Ticket 1)
-				nil,              // ClientID (Ticket 1)
+				nil,              // CredentialID (Ticket 1)
 				"TokenA",         // Token (Ticket 1)
 				"PrizeA",         // Prize (Ticket 1)
 
@@ -176,7 +176,7 @@ func TestCreateTickets(t *testing.T) {
 				sqlmock.AnyArg(), // CreatedAt (Ticket 2)
 				sqlmock.AnyArg(), // UpdatedAt (Ticket 2)
 				nil,              // DeletedAt (Ticket 2)
-				nil,              // ClientID (Ticket 2)
+				nil,              // CredentialID (Ticket 2)
 				"TokenB",         // Token (Ticket 2)
 				"PrizeB",         // Prize (Ticket 2)
 			).WillReturnResult(sqlmock.NewResult(2, 2))
@@ -195,13 +195,13 @@ func TestCreateTickets(t *testing.T) {
 		}
 
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","client_id","token","prize"\)`).
+		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","credential_id","token","prize"\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID (Ticket 1)
 				sqlmock.AnyArg(), // CreatedAt (Ticket 1)
 				sqlmock.AnyArg(), // UpdatedAt (Ticket 1)
 				nil,              // DeletedAt (Ticket 1)
-				nil,              // ClientID (Ticket 1)
+				nil,              // CredentialID (Ticket 1)
 				"TokenA",         // Token (Ticket 1)
 				"PrizeA",         // Prize (Ticket 1)
 
@@ -209,7 +209,7 @@ func TestCreateTickets(t *testing.T) {
 				sqlmock.AnyArg(), // CreatedAt (Ticket 2)
 				sqlmock.AnyArg(), // UpdatedAt (Ticket 2)
 				nil,              // DeletedAt (Ticket 2)
-				nil,              // ClientID (Ticket 2)
+				nil,              // CredentialID (Ticket 2)
 				"TokenB",         // Token (Ticket 2)
 				"PrizeB",         // Prize (Ticket 2)
 			).WillReturnError(fmt.Errorf("duplicate key value violates unique constraint"))
@@ -230,13 +230,13 @@ func TestCreateTickets(t *testing.T) {
 		}
 
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","client_id","token","prize"\)`).
+		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","credential_id","token","prize"\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID (Ticket 1)
 				sqlmock.AnyArg(), // CreatedAt (Ticket 1)
 				sqlmock.AnyArg(), // UpdatedAt (Ticket 1)
 				nil,              // DeletedAt (Ticket 1)
-				nil,              // ClientID (Ticket 1)
+				nil,              // CredentialID (Ticket 1)
 				"TokenA",         // Token (Ticket 1)
 				"PrizeA",         // Prize (Ticket 1)
 
@@ -244,7 +244,7 @@ func TestCreateTickets(t *testing.T) {
 				sqlmock.AnyArg(), // CreatedAt (Ticket 2)
 				sqlmock.AnyArg(), // UpdatedAt (Ticket 2)
 				nil,              // DeletedAt (Ticket 2)
-				nil,              // ClientID (Ticket 2)
+				nil,              // CredentialID (Ticket 2)
 				"TokenB",         // Token (Ticket 2)
 				"PrizeB",         // Prize (Ticket 2)
 			).WillReturnError(fmt.Errorf("database is unavailable"))
@@ -265,13 +265,13 @@ func TestCreateTickets(t *testing.T) {
 		}
 
 		mock.ExpectBegin()
-		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","client_id","token","prize"\)`).
+		mock.ExpectExec(`INSERT INTO "tickets" \("id","created_at","updated_at","deleted_at","credential_id","token","prize"\)`).
 			WithArgs(
 				sqlmock.AnyArg(), // ID (Ticket 1)
 				sqlmock.AnyArg(), // CreatedAt (Ticket 1)
 				sqlmock.AnyArg(), // UpdatedAt (Ticket 1)
 				nil,              // DeletedAt (Ticket 1)
-				nil,              // ClientID (Ticket 1)
+				nil,              // CredentialID (Ticket 1)
 				"TokenA",         // Token (Ticket 1)
 				"PrizeA",         // Prize (Ticket 1)
 
@@ -279,7 +279,7 @@ func TestCreateTickets(t *testing.T) {
 				sqlmock.AnyArg(), // CreatedAt (Ticket 2)
 				sqlmock.AnyArg(), // UpdatedAt (Ticket 2)
 				nil,              // DeletedAt (Ticket 2)
-				nil,              // ClientID (Ticket 2)
+				nil,              // CredentialID (Ticket 2)
 				"TokenB",         // Token (Ticket 2)
 				"PrizeB",         // Prize (Ticket 2),
 			).WillReturnResult(sqlmock.NewResult(2, 2))
@@ -429,25 +429,25 @@ func TestUpdateTicket(t *testing.T) {
 	token1 := token.Generate(12)
 
 	entity := &entities.Ticket{
-		ID:        "some-id",
-		Prize:     aws.String("PrizeA"),
-		Token:     token1,
-		ClientID:  nil,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:           "some-id",
+		Prize:        aws.String("PrizeA"),
+		Token:        token1,
+		CredentialID: nil,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 
 	t.Run("successful update with options", func(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`UPDATE "tickets" SET`).
 			WithArgs(
-				sqlmock.AnyArg(), // CreatedAt
-				sqlmock.AnyArg(), // UpdatedAt
-				nil,              // DeletedAt
-				entity.ClientID,  // ClientID
-				entity.Token,     // Token
-				entity.Prize,     // Prize
-				entity.ID,        // ID
+				sqlmock.AnyArg(),    // CreatedAt
+				sqlmock.AnyArg(),    // UpdatedAt
+				nil,                 // DeletedAt
+				entity.CredentialID, // CredentialID
+				entity.Token,        // Token
+				entity.Prize,        // Prize
+				entity.ID,           // ID
 			).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -461,13 +461,13 @@ func TestUpdateTicket(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec(`UPDATE "tickets" SET`).
 			WithArgs(
-				sqlmock.AnyArg(), // CreatedAt
-				sqlmock.AnyArg(), // UpdatedAt
-				nil,              // DeletedAt
-				entity.ClientID,  // ClientID
-				entity.Token,     // Token
-				entity.Prize,     // Prize
-				entity.ID,        // ID
+				sqlmock.AnyArg(),    // CreatedAt
+				sqlmock.AnyArg(),    // UpdatedAt
+				nil,                 // DeletedAt
+				entity.CredentialID, // CredentialID
+				entity.Token,        // Token
+				entity.Prize,        // Prize
+				entity.ID,           // ID
 			).WillReturnError(fmt.Errorf("update error"))
 		mock.ExpectRollback()
 

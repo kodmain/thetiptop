@@ -43,6 +43,8 @@ paths:
           description: Token expired
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Update a client.
       tags:
       - Client
@@ -72,6 +74,8 @@ paths:
           description: Client not found
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Delete a client by ID.
       tags:
       - Client
@@ -102,6 +106,8 @@ paths:
           description: Client not found
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Get a client by ID.
       tags:
       - Client
@@ -199,6 +205,8 @@ paths:
           description: Token expired
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Update a employee.
       tags:
       - Employee
@@ -228,6 +236,8 @@ paths:
           description: Employee not found
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Delete a client by ID.
       tags:
       - Employee
@@ -258,6 +268,8 @@ paths:
           description: Employee not found
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Get a employee by ID.
       tags:
       - Employee
@@ -302,6 +314,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Get a random ticket.
       tags:
       - Game
@@ -312,6 +326,8 @@ paths:
       produces:
       - application/json
       responses: {}
+      security:
+      - Bearer: []
       summary: Update a ticket.
       tags:
       - Game
@@ -452,6 +468,8 @@ paths:
           description: Token expired
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Update a client/employees password.
       tags:
       - User

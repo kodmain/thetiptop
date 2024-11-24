@@ -105,12 +105,12 @@ func Test_UpdateTicket(t *testing.T) {
 		service, mockRepo, mockPerms := setup()
 
 		dto := &transfert.Ticket{
-			ClientID: cid,
+			CredentialID: cid,
 		}
 
 		ticket := &entities.Ticket{
-			ID:       "ticket-123",
-			ClientID: cid,
+			ID:           "ticket-123",
+			CredentialID: cid,
 		}
 
 		mockRepo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
@@ -131,7 +131,7 @@ func Test_UpdateTicket(t *testing.T) {
 		service, mockRepo, _ := setup()
 
 		dto := &transfert.Ticket{
-			ClientID: cid,
+			CredentialID: cid,
 		}
 
 		mockRepo.On("ReadTicket", dto, mock.Anything).Return(nil, errors.ErrNoData)
@@ -148,12 +148,12 @@ func Test_UpdateTicket(t *testing.T) {
 		service, mockRepo, mockPerms := setup()
 
 		dto := &transfert.Ticket{
-			ClientID: cid,
+			CredentialID: cid,
 		}
 
 		ticket := &entities.Ticket{
-			ID:       "ticket-123",
-			ClientID: cid,
+			ID:           "ticket-123",
+			CredentialID: cid,
 		}
 
 		mockRepo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
@@ -172,12 +172,12 @@ func Test_UpdateTicket(t *testing.T) {
 		service, mockRepo, mockPerms := setup()
 
 		dto := &transfert.Ticket{
-			ClientID: cid,
+			CredentialID: cid,
 		}
 
 		ticket := &entities.Ticket{
-			ID:       "ticket-123",
-			ClientID: cid,
+			ID:           "ticket-123",
+			CredentialID: cid,
 		}
 
 		// Configuration des mocks

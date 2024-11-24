@@ -19,28 +19,28 @@ func TestNewTicket(t *testing.T) {
 		{
 			name: "Valid ticket",
 			inputData: data.Object{
-				"id":        aws.String("123"),
-				"prize":     aws.String("Gold"),
-				"client_id": aws.String("456"),
-				"token":     aws.String("abc123"),
+				"id":            aws.String("123"),
+				"prize":         aws.String("Gold"),
+				"credential_id": aws.String("456"),
+				"token":         aws.String("abc123"),
 			},
 			wantErr: false,
 		},
 		{
 			name: "Invalid ticket - missing ID",
 			inputData: data.Object{
-				"prize":     aws.String("Gold"),
-				"client_id": aws.String("456"),
-				"token":     aws.String("abc123"),
+				"prize":         aws.String("Gold"),
+				"credential_id": aws.String("456"),
+				"token":         aws.String("abc123"),
 			},
 			wantErr: true,
 		},
 		{
 			name: "Invalid ticket - missing Token",
 			inputData: data.Object{
-				"id":        aws.String("123"),
-				"prize":     aws.String("Gold"),
-				"client_id": aws.String("456"),
+				"id":            aws.String("123"),
+				"prize":         aws.String("Gold"),
+				"credential_id": aws.String("456"),
 			},
 			wantErr: true,
 		},
@@ -64,10 +64,10 @@ func TestNewTicket(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ticket, err := transfert.NewTicket(tt.inputData, data.Validator{
-				"id":        {validator.Required},
-				"prize":     {validator.Required},
-				"client_id": {validator.Required},
-				"token":     {validator.Required},
+				"id":            {validator.Required},
+				"prize":         {validator.Required},
+				"credential_id": {validator.Required},
+				"token":         {validator.Required},
 			})
 
 			if tt.wantErr {
@@ -79,10 +79,10 @@ func TestNewTicket(t *testing.T) {
 
 				// Validate the ticket object with the same validators
 				err := ticket.Check(data.Validator{
-					"id":        {validator.Required},
-					"prize":     {validator.Required},
-					"client_id": {validator.Required},
-					"token":     {validator.Required},
+					"id":            {validator.Required},
+					"prize":         {validator.Required},
+					"credential_id": {validator.Required},
+					"token":         {validator.Required},
 				})
 				assert.NoError(t, err, "expected ticket validation to pass")
 			}

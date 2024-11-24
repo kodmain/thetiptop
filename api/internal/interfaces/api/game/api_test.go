@@ -12,18 +12,52 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
+	"github.com/kodmain/thetiptop/api/internal/application/hook"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
+	userTransfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	gameRepository "github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
+	userRepository "github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 )
 
+const (
+	email    = "user-thetiptop@yopmail.com"
+	password = "Aa1@azetyuiop"
+)
+
 var srv *server.Server
+var callBack hook.HandlerSync = func(tags ...string) {
+	if len(tags) > 0 && tags[0] == "default" {
+		user := userRepository.NewUserRepository(database.Get(config.GetString("services.game.database", config.DEFAULT)))
+		game := gameRepository.NewGameRepository(database.Get(config.GetString("services.user.database", config.DEFAULT)))
+		cred, _ := user.CreateCredential(&userTransfert.Credential{
+			Email:    aws.String(email),
+			Password: aws.String(password),
+		})
+
+		user.CreateEmployee(&userTransfert.Employee{
+			CredentialID: &cred.ID,
+		})
+
+		for i := 0; i < 100; i++ {
+			game.CreateTicket(&transfert.Ticket{
+				Prize: aws.String("prize"),
+				Token: aws.String("token:" + fmt.Sprintf("%d", i)),
+			})
+		}
+	}
+}
 
 func start(http, https int) error {
 	env.DEFAULT_PORT_HTTP = http
 	env.DEFAULT_PORT_HTTPS = https
 	env.PORT_HTTP = &env.DEFAULT_PORT_HTTP
 	env.PORT_HTTPS = &env.DEFAULT_PORT_HTTPS
+	env.ForceTest()
+	hook.Register(hook.EventOnDBInit, callBack)
 	config.Load(aws.String("../../../../config.test.yml"))
 	logger.Info("starting application")
 	srv = server.Create()

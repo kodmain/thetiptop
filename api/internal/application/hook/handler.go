@@ -4,21 +4,37 @@ import (
 	"sync"
 
 	"github.com/kodmain/thetiptop/api/env"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 )
 
-type Handler func()
+type Handler func(tags ...string)
 
-func (Handler) IsOnce() bool { return false }
-func (h Handler) call()      { h() }
+func (h Handler) once() bool          { return false }
+func (h Handler) call(tags ...string) { h(tags...) }
+func (h Handler) sync() bool          { return false }
 
-type OnceHandler func()
+type OnceHandler func(tags ...string)
 
-func (OnceHandler) IsOnce() bool { return true }
-func (h OnceHandler) call()      { h() }
+func (h OnceHandler) once() bool          { return true }
+func (h OnceHandler) call(tags ...string) { h(tags...) }
+func (h OnceHandler) sync() bool          { return false }
+
+type HandlerSync func(tags ...string)
+
+func (h HandlerSync) once() bool          { return false }
+func (h HandlerSync) call(tags ...string) { h(tags...) }
+func (h HandlerSync) sync() bool          { return true }
+
+type OnceHandlerSync func(tags ...string)
+
+func (h OnceHandlerSync) once() bool          { return true }
+func (h OnceHandlerSync) call(tags ...string) { h(tags...) }
+func (h OnceHandlerSync) sync() bool          { return true }
 
 type HookHandler interface {
-	IsOnce() bool
-	call()
+	sync() bool
+	once() bool
+	call(tags ...string)
 }
 
 var (
@@ -32,7 +48,8 @@ func Register(event Event, handler HookHandler) {
 	mu.Unlock()
 }
 
-func Call(event Event) {
+func Call(event Event, tags ...string) {
+	logger.Warnf("hook called for event %s with tags %v", event, tags)
 	if !env.IsTest() {
 		mu.Lock()
 		defer mu.Unlock()
@@ -41,8 +58,13 @@ func Call(event Event) {
 		var remainingHandlers []HookHandler
 
 		for _, handler := range handlers[event] {
-			go handler.call()
-			if !handler.IsOnce() {
+			if !handler.sync() {
+				go handler.call(tags...)
+			} else {
+				handler.call(tags...)
+			}
+
+			if !handler.once() {
 				remainingHandlers = append(remainingHandlers, handler)
 			}
 		}

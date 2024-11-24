@@ -13,7 +13,7 @@ func (s *GameService) GetRandomTicket() (*entities.Ticket, errors.ErrorInterface
 		return nil, errors.ErrUnauthorized
 	}
 
-	ticket, err := s.repo.ReadTicket(&transfert.Ticket{}, database.Where("client_id IS NULL"), database.Order("RANDOM()"))
+	ticket, err := s.repo.ReadTicket(&transfert.Ticket{}, database.Where("credential_id IS NULL"), database.Order("RANDOM()"))
 	if err != nil {
 		return nil, errors.ErrNoData
 	}
@@ -23,7 +23,7 @@ func (s *GameService) GetRandomTicket() (*entities.Ticket, errors.ErrorInterface
 
 func (s *GameService) GetTickets() ([]*entities.Ticket, errors.ErrorInterface) {
 	tickets, err := s.repo.ReadTickets(&transfert.Ticket{
-		ClientID: s.security.GetCredentialID(),
+		CredentialID: s.security.GetCredentialID(),
 	})
 
 	if err != nil {
@@ -34,17 +34,17 @@ func (s *GameService) GetTickets() ([]*entities.Ticket, errors.ErrorInterface) {
 }
 
 func (s *GameService) UpdateTicket(dto *transfert.Ticket) (*entities.Ticket, errors.ErrorInterface) {
-	ticket, err := s.repo.ReadTicket(dto, database.Where("client_id IS NULL"))
+	ticket, err := s.repo.ReadTicket(dto, database.Where("credential_id IS NULL"))
 
 	if err != nil {
 		return nil, err
 	}
 
-	if !s.security.CanUpdate(ticket) {
+	if !s.security.IsAuthenticated() {
 		return nil, errors.ErrUnauthorized
 	}
 
-	ticket.ClientID = dto.ClientID
+	ticket.CredentialID = s.security.GetCredentialID()
 
 	if err := s.repo.UpdateTicket(ticket); err != nil {
 		return nil, err
