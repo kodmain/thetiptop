@@ -4,8 +4,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"gorm.io/gorm"
+)
+
+const (
+	ROLE_CLIENT security.Role = "client"
 )
 
 type Client struct {
@@ -53,7 +58,6 @@ func (client *Client) BeforeUpdate(tx *gorm.DB) error {
 
 func (client *Client) AfterFind(tx *gorm.DB) error {
 	tx.Find(&client.Validations, "client_id = ?", client.ID)
-	//tx.Find(&client.Credential, "client_id = ?", client.ID)
 	return nil
 }
 

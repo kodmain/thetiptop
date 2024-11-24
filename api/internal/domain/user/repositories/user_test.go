@@ -9,7 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
@@ -806,10 +806,11 @@ func TestDeleteClient(t *testing.T) {
 	t.Run("successful deletion", func(t *testing.T) {
 		// Mock de la requête pour supprimer un client (soft delete)
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "clients" SET "deleted_at"=\$1 WHERE "clients"\."id" = \$2 AND "clients"\."deleted_at" IS NULL`).
+		mock.ExpectExec(`UPDATE "clients" SET "deleted_at"=\$1 WHERE "clients"\."id" = \$2 AND "clients"\."id" = \$3 AND "clients"\."deleted_at" IS NULL`).
 			WithArgs(
-				sqlmock.AnyArg(),
-				dto.ID,
+				sqlmock.AnyArg(), // Date de suppression
+				dto.ID,           // ID du client
+				dto.ID,           // Deuxième condition sur l'ID
 			).WillReturnResult(sqlmock.NewResult(1, 1)) // 1 ligne affectée par la suppression
 		mock.ExpectCommit()
 
@@ -826,8 +827,12 @@ func TestDeleteClient(t *testing.T) {
 	// Cas où la suppression échoue
 	t.Run("deletion failure", func(t *testing.T) {
 		mock.ExpectBegin()
-		mock.ExpectExec(`UPDATE "clients" SET "deleted_at"=\$1 WHERE "clients"\."id" = \$2 AND "clients"\."deleted_at" IS NULL`).
-			WithArgs(sqlmock.AnyArg(), dto.ID).
+		mock.ExpectExec(`UPDATE "clients" SET "deleted_at"=\$1 WHERE "clients"\."id" = \$2 AND "clients"\."id" = \$3 AND "clients"\."deleted_at" IS NULL`).
+			WithArgs(
+				sqlmock.AnyArg(), // Date de suppression
+				dto.ID,           // Premier argument ID
+				dto.ID,           // Deuxième argument ID
+			).
 			WillReturnError(fmt.Errorf("some delete error"))
 		mock.ExpectRollback()
 

@@ -5,7 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/env"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
@@ -14,7 +15,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 )
 
-func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, string, errors.ErrorInterface) {
+func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, security.Role, errors.ErrorInterface) {
 	if dtoCredential == nil {
 		return nil, "", errors.ErrNoDto
 	}
@@ -42,10 +43,10 @@ func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, st
 	}
 
 	if client != nil {
-		return &credential.ID, "client", nil
+		return &credential.ID, entities.ROLE_CLIENT, nil
 	}
 
-	return &credential.ID, "employee", nil
+	return &credential.ID, entities.ROLE_EMPLOYEE, nil
 }
 
 func (s *UserService) PasswordUpdate(dto *transfert.Credential) errors.ErrorInterface {

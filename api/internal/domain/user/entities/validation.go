@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/config"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 	"gorm.io/gorm"
 )

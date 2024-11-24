@@ -5,7 +5,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/google/uuid"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
@@ -166,11 +167,12 @@ func TestGetEmployee(t *testing.T) {
 	})
 
 	t.Run("employee not found", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 
 		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, errors_domain_user.ErrEmployeeNotFound)
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
 
 		employee, err := service.GetEmployee(dtoEmployee)
 		assert.Nil(t, employee)
@@ -178,10 +180,26 @@ func TestGetEmployee(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("unauthorized role read employee", func(t *testing.T) {
+		service, mockRepo, _, mockPerms := setup()
+
+		dummyEmployeeDTO := &transfert.Employee{
+			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
+		}
+
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(false)
+		employee, err := service.GetEmployee(dummyEmployeeDTO)
+
+		require.Error(t, err)
+		require.Nil(t, employee)
+
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
+	})
+
 	t.Run("cant read employee", func(t *testing.T) {
 		service, mockRepo, _, mockPerms := setup()
 
-		// Simuler un employee DTO valide
 		dummyEmployeeDTO := &transfert.Employee{
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
 		}
@@ -189,20 +207,15 @@ func TestGetEmployee(t *testing.T) {
 			ID: "42debee6-2063-4566-baf1-37a7bdd139ff",
 		}
 
-		// Simuler la réponse du repository
 		mockRepo.On("ReadEmployee", dummyEmployeeDTO).Return(expectedEmployee, nil)
-
-		// Simuler la méthode CanRead pour le contrôle des permissions
 		mockPerms.On("CanRead", expectedEmployee, mock.Anything).Return(false)
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
 
-		// Appeler la méthode du service
 		employee, err := service.GetEmployee(dummyEmployeeDTO)
 
-		// Assertions
 		require.Error(t, err)
 		require.Nil(t, employee)
 
-		// Vérifier les attentes sur le mock
 		mockRepo.AssertExpectations(t)
 		mockPerms.AssertExpectations(t)
 	})
@@ -215,6 +228,7 @@ func TestGetEmployee(t *testing.T) {
 
 		mockRepo.On("ReadEmployee", dtoEmployee).Return(expectedEmployee, nil)
 		mockPerms.On("CanRead", mock.AnythingOfType("*entities.Employee"), mock.Anything).Return(true)
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
 
 		employee, err := service.GetEmployee(dtoEmployee)
 		assert.NotNil(t, employee)
@@ -227,14 +241,30 @@ func TestGetEmployee(t *testing.T) {
 func TestDeleteEmployee(t *testing.T) {
 	t.Run("should return error if dtoEmployee is nil", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
-		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
+		mockPerms := new(PermissionMock)
+		service := services.User(mockPerms, mockRepo, nil)
 
 		err := service.DeleteEmployee(nil)
 		assert.EqualError(t, err, errors.ErrNoDto.Error())
 	})
 
 	t.Run("should return error if employee not found", func(t *testing.T) {
+		mockRepo := new(UserRepositoryMock)
+		mockPerms := new(PermissionMock)
+		service := services.User(mockPerms, mockRepo, nil)
+
+		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
+		dtoEmployee := &transfert.Employee{ID: employeeID}
+
+		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, errors_domain_user.ErrEmployeeNotFound)
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
+
+		err := service.DeleteEmployee(dtoEmployee)
+		assert.Error(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("unauthorized role delete", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
 		service := services.User(mockPermission, mockRepo, nil)
@@ -243,18 +273,19 @@ func TestDeleteEmployee(t *testing.T) {
 		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
 		dtoEmployee := &transfert.Employee{ID: employeeID}
 
-		// Simuler la lecture du employee
-		mockRepo.On("ReadEmployee", dtoEmployee).Return(nil, errors_domain_user.ErrEmployeeNotFound)
+		// Simuler la permission de suppression
+		mockPermission.On("IsGrantedByRoles", mock.Anything).Return(false)
 
 		// Appel du service pour supprimer le employee
 		err := service.DeleteEmployee(dtoEmployee)
 
 		// Vérifier que l'erreur est bien celle attendue
-		assert.Error(t, err)
+		assert.EqualError(t, err, errors.ErrUnauthorized.Error())
 		mockRepo.AssertExpectations(t)
+		mockPermission.AssertExpectations(t)
 	})
 
-	t.Run("should return error if employee cannot be deleted", func(t *testing.T) {
+	t.Run("unauthorized delete", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
 		service := services.User(mockPermission, mockRepo, nil)
@@ -267,6 +298,7 @@ func TestDeleteEmployee(t *testing.T) {
 		mockRepo.On("ReadEmployee", dtoEmployee).Return(&entities.Employee{ID: *employeeID}, nil)
 		// Simuler la permission de suppression
 		mockPermission.On("CanDelete", mock.AnythingOfType("*entities.Employee")).Return(false)
+		mockPermission.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
 
 		// Appel du service pour supprimer le employee
 		err := service.DeleteEmployee(dtoEmployee)
@@ -279,26 +311,21 @@ func TestDeleteEmployee(t *testing.T) {
 
 	t.Run("should delete employee successfully", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
-		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
-		// Employee DTO avec un ID valide
+		mockPerms := new(PermissionMock)
+		service := services.User(mockPerms, mockRepo, nil)
+
 		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
 		dtoEmployee := &transfert.Employee{ID: employeeID}
 
-		// Simuler la lecture du employee
 		mockRepo.On("ReadEmployee", dtoEmployee).Return(&entities.Employee{ID: *employeeID}, nil)
-		// Simuler la permission de suppression
-		mockPermission.On("CanDelete", mock.AnythingOfType("*entities.Employee")).Return(true)
-		// Simuler la suppression réussie du employee
+		mockPerms.On("CanDelete", mock.AnythingOfType("*entities.Employee")).Return(true)
 		mockRepo.On("DeleteEmployee", dtoEmployee).Return(nil)
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
 
-		// Appel du service pour supprimer le employee
 		err := service.DeleteEmployee(dtoEmployee)
-
-		// Vérifier qu'il n'y a pas d'erreur
 		assert.NoError(t, err)
 		mockRepo.AssertExpectations(t)
-		mockPermission.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
 	})
 
 	t.Run("should return error if repository delete fails", func(t *testing.T) {
@@ -314,6 +341,7 @@ func TestDeleteEmployee(t *testing.T) {
 		mockRepo.On("ReadEmployee", dtoEmployee).Return(&entities.Employee{ID: *employeeID}, nil)
 		// Simuler la permission de suppression
 		mockPermission.On("CanDelete", mock.AnythingOfType("*entities.Employee")).Return(true)
+		mockPermission.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
 		// Simuler une erreur lors de la suppression du Employee
 		mockRepo.On("DeleteEmployee", dtoEmployee).Return(errors.ErrInternalServer)
 
@@ -332,19 +360,17 @@ func TestUpdateEmployee(t *testing.T) {
 	t.Run("no dto", func(t *testing.T) {
 		service, _, _, _ := setup()
 
-		// Appel du service avec un DTO nil
 		employee, err := service.UpdateEmployee(nil)
 
-		// Vérifier que l'erreur est bien une erreur "No DTO"
 		assert.EqualError(t, err, errors.ErrNoDto.Error())
 		assert.Nil(t, employee)
 	})
 
 	t.Run("employee not found", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, mockPerms := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
-
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
 		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(nil, errors_domain_user.ErrEmployeeNotFound)
 
 		employee, err := service.UpdateEmployee(dtoEmployee)
@@ -353,27 +379,34 @@ func TestUpdateEmployee(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("unauthorized", func(t *testing.T) {
+	t.Run("unauthorized role", func(t *testing.T) {
 		service, mockRepo, _, mockPerms := setup()
 
-		// Simuler un employee valide
-		mockEmployee := &entities.Employee{ID: "42debee6-2063-4566-baf1-37a7bdd139ff"}
-
-		// Le mock retourne un employee valide pour l'appel à ReadEmployee
-		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).
-			Return(mockEmployee, nil)
-
-		// Simuler que la méthode CanUpdate retourne false pour ce employee
-		mockPerms.On("CanUpdate", mockEmployee, mock.Anything).Return(false)
-
-		// Appel du service avec un employee valide mais sans autorisation
+		mockPerms.On("IsGrantedByRoles", mock.Anything).Return(false)
 		employee, err := service.UpdateEmployee(&transfert.Employee{ID: aws.String("valid-id")})
 
-		// Vérifier que l'erreur est bien une erreur "Unauthorized"
 		assert.EqualError(t, err, errors.ErrUnauthorized.Error())
 		assert.Nil(t, employee)
 
-		// Vérifier que les attentes du mock sont respectées
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
+	})
+
+	t.Run("unauthorized update", func(t *testing.T) {
+		service, mockRepo, _, mockPerms := setup()
+
+		mockEmployee := &entities.Employee{ID: "42debee6-2063-4566-baf1-37a7bdd139ff"}
+		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).
+			Return(mockEmployee, nil)
+
+		mockPerms.On("CanUpdate", mockEmployee, mock.Anything).Return(false)
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
+
+		employee, err := service.UpdateEmployee(&transfert.Employee{ID: aws.String("valid-id")})
+
+		assert.EqualError(t, err, errors.ErrUnauthorized.Error())
+		assert.Nil(t, employee)
+
 		mockRepo.AssertExpectations(t)
 		mockPerms.AssertExpectations(t)
 	})
@@ -386,6 +419,7 @@ func TestUpdateEmployee(t *testing.T) {
 
 		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(existingEmployee, nil)
 		mockPerms.On("CanUpdate", mock.AnythingOfType("*entities.Employee"), mock.Anything).Return(true)
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
 		mockRepo.On("UpdateEmployee", existingEmployee).Return(nil)
 
 		employee, err := service.UpdateEmployee(dtoEmployee)
@@ -404,6 +438,7 @@ func TestUpdateEmployee(t *testing.T) {
 		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).Return(existingEmployee, nil)
 		mockPerms.On("CanUpdate", mock.AnythingOfType("*entities.Employee"), mock.Anything).Return(true)
 		mockRepo.On("UpdateEmployee", existingEmployee).Return(errors.ErrInternalServer)
+		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
 
 		employee, err := service.UpdateEmployee(dtoEmployee)
 		assert.Nil(t, employee)

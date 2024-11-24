@@ -25,6 +25,11 @@ func TestConfigNew(t *testing.T) {
 			DBname:   CONF_MEMORY,
 			Logger:   true,
 		},
+		"re-memory": {
+			Protocol: database.SQLite,
+			DBname:   CONF_MEMORY,
+			Logger:   true,
+		},
 		"mysql": {
 			Protocol: database.MySQL,
 			Host:     CONF_HOST,
@@ -52,11 +57,6 @@ func TestConfigNew(t *testing.T) {
 		if key == "empty" || key == "unknown" {
 			assert.Error(t, err)
 		}
-	}
-
-	for key, cfg := range databases {
-		err = database.New(map[string]*database.Config{key: cfg})
-		assert.Error(t, err)
 	}
 
 	db = database.Get("memory")

@@ -4,7 +4,8 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/stretchr/testify/mock"
@@ -43,13 +44,13 @@ func (dcs *DomainUserService) PasswordRecover(obj *transfert.Credential) errors.
 	return args.Get(0).(errors.ErrorInterface)
 }
 
-func (dcs *DomainUserService) UserAuth(obj *transfert.Credential) (*string, string, errors.ErrorInterface) {
+func (dcs *DomainUserService) UserAuth(obj *transfert.Credential) (*string, security.Role, errors.ErrorInterface) {
 	args := dcs.Called(obj)
 	if args.Get(0) == nil {
 		return nil, "", args.Get(2).(errors.ErrorInterface) // Retourne nil pour *string et l'erreur s'il y en a une
 	}
 
-	return args.Get(0).(*string), args.Get(1).(string), nil
+	return args.Get(0).(*string), args.Get(1).(security.Role), nil
 }
 
 func (dcs *DomainUserService) MailValidation(validation *transfert.Validation, credential *transfert.Credential) (*entities.Validation, errors.ErrorInterface) {

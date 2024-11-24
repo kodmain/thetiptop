@@ -1,8 +1,5 @@
 services:
-  client:
-    database: default
-    mail: default
-  employee:
+  service_name:
     database: default
     mail: default
 

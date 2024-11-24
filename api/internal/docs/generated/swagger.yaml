@@ -43,6 +43,8 @@ paths:
           description: Token expired
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Update a client.
       tags:
       - Client
@@ -72,6 +74,8 @@ paths:
           description: Client not found
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Delete a client by ID.
       tags:
       - Client
@@ -102,6 +106,8 @@ paths:
           description: Client not found
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Get a client by ID.
       tags:
       - Client
@@ -199,6 +205,8 @@ paths:
           description: Token expired
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Update a employee.
       tags:
       - Employee
@@ -228,6 +236,8 @@ paths:
           description: Employee not found
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Delete a client by ID.
       tags:
       - Employee
@@ -258,6 +268,8 @@ paths:
           description: Employee not found
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Get a employee by ID.
       tags:
       - Employee
@@ -294,6 +306,44 @@ paths:
       summary: Register a employee.
       tags:
       - Employee
+  /game/ticket:
+    get:
+      consumes:
+      - multipart/form-data
+      operationId: jwt.Auth => game.GetTickets
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - Bearer: []
+      summary: Get a random ticket.
+      tags:
+      - Game
+    put:
+      consumes:
+      - multipart/form-data
+      operationId: jwt.Auth => game.UpdateTicket
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - Bearer: []
+      summary: Update a ticket.
+      tags:
+      - Game
+  /game/ticket/random:
+    get:
+      consumes:
+      - multipart/form-data
+      operationId: jwt.Auth => game.GetTicket
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - Bearer: []
+      summary: Get a random ticket.
+      tags:
+      - Game
   /status/healthcheck:
     get:
       consumes:
@@ -418,6 +468,8 @@ paths:
           description: Token expired
         "500":
           description: Internal server error
+      security:
+      - Bearer: []
       summary: Update a client/employees password.
       tags:
       - User
@@ -485,4 +537,10 @@ paths:
       summary: Recover a client/employees validation type.
       tags:
       - User
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

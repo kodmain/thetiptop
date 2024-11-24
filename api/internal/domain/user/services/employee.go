@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
@@ -53,6 +53,10 @@ func (s *UserService) UpdateEmployee(dtoEmployee *transfert.Employee) (*entities
 		return nil, errors.ErrNoDto
 	}
 
+	if !s.security.IsGrantedByRoles(entities.ROLE_EMPLOYEE) {
+		return nil, errors.ErrUnauthorized
+	}
+
 	employee, err := s.repo.ReadEmployee(&transfert.Employee{
 		ID: dtoEmployee.ID,
 	})
@@ -79,6 +83,10 @@ func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) errors.Err
 		return errors.ErrNoDto
 	}
 
+	if !s.security.IsGrantedByRoles(entities.ROLE_EMPLOYEE) {
+		return errors.ErrUnauthorized
+	}
+
 	employee, err := s.repo.ReadEmployee(dtoEmployee)
 	if err != nil {
 		return err
@@ -98,6 +106,10 @@ func (s *UserService) DeleteEmployee(dtoEmployee *transfert.Employee) errors.Err
 func (s *UserService) GetEmployee(dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface) {
 	if dtoEmployee == nil {
 		return nil, errors.ErrNoDto
+	}
+
+	if !s.security.IsGrantedByRoles(entities.ROLE_EMPLOYEE) {
+		return nil, errors.ErrUnauthorized
 	}
 
 	employee, err := s.repo.ReadEmployee(dtoEmployee)

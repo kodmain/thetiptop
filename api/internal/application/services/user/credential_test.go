@@ -8,8 +8,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/config"
-	"github.com/kodmain/thetiptop/api/internal/application/services"
-	"github.com/kodmain/thetiptop/api/internal/application/transfert"
+	"github.com/kodmain/thetiptop/api/internal/application/security"
+	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
@@ -20,7 +21,8 @@ import (
 )
 
 func TestUserAuth(t *testing.T) {
-	config.Load(aws.String("../../../config.test.yml"))
+	err := config.Load(aws.String("../../../../config.test.yml"))
+	assert.NoError(t, err)
 
 	t.Run("invalid syntax password", func(t *testing.T) {
 		mockClient := new(DomainUserService)
@@ -68,7 +70,7 @@ func TestUserAuth(t *testing.T) {
 		assert.NoError(t, err)
 		mockClient := new(DomainUserService)
 		// Simuler un cas réussi avec une Credential valide et un ClientID valide
-		mockClient.On("UserAuth", mock.Anything).Return(&ids, "", nil)
+		mockClient.On("UserAuth", mock.Anything).Return(&ids, security.ROLE_CONNECTED, nil)
 
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &email,
@@ -80,7 +82,8 @@ func TestUserAuth(t *testing.T) {
 }
 
 func TestUserAuthRenew(t *testing.T) {
-	config.Load(aws.String("../../../config.test.yml"))
+	err := config.Load(aws.String("../../../../config.test.yml"))
+	assert.NoError(t, err)
 
 	t.Run("invalid token - nil", func(t *testing.T) {
 		// Cas où le jeton est nil
