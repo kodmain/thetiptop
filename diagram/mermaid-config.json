@@ -1,0 +1,13 @@
+{
+  "theme": "dark",
+  "themeVariables": {
+    "primaryColor": "#222222",
+    "width": 1920,
+    "height": 400
+  },
+  "deterministicRendering": true,
+  "architecture": {
+    "padding": 0
+  }
+}
+  

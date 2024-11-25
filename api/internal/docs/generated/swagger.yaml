@@ -313,7 +313,13 @@ paths:
       operationId: jwt.Auth => game.GetTickets
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: Tickets details
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
       security:
       - Bearer: []
       summary: Get a random ticket.
@@ -323,9 +329,24 @@ paths:
       consumes:
       - multipart/form-data
       operationId: jwt.Auth => game.UpdateTicket
+      parameters:
+      - description: Ticket ID
+        format: uuid
+        in: formData
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: Ticket details
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
       security:
       - Bearer: []
       summary: Update a ticket.
@@ -338,7 +359,13 @@ paths:
       operationId: jwt.Auth => game.GetTicket
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: Ticket details
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
       security:
       - Bearer: []
       summary: Get a random ticket.

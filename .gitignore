@@ -10,3 +10,5 @@ tfplan
 config.yml
 *.lcov
 *.sqlite
+node_modules
+.task

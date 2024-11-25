@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@iconify-json/akar-icons": "^1.2.1",
+    "@iconify-json/logos": "^1.2.3",
+    "@iconify-json/mdi": "^1.2.1",
+    "@iconify-json/skill-icons": "^1.2.0",
+    "mermaid": "^11.4.0",
+    "puppeteer": "^23.9.0"
+  }
+}
