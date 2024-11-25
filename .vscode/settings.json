@@ -5,7 +5,8 @@
 		".maker": false,
 		"deploy/**/*terraform*": true,
 		"**/*_test.go": false,
-		".vscode": false
+		".vscode": false,
+		"**/node_modules": true,
 	},
     "sonarlint.connectedMode.project": {
         "connectionId": "kodmain",
