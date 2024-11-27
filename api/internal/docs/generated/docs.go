@@ -485,7 +485,17 @@ const docTemplate = `{
                 ],
                 "summary": "Get a random ticket.",
                 "operationId": "jwt.Auth =\u003e game.GetTickets",
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Tickets details"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
             },
             "put": {
                 "security": [
@@ -504,7 +514,30 @@ const docTemplate = `{
                 ],
                 "summary": "Update a ticket.",
                 "operationId": "jwt.Auth =\u003e game.UpdateTicket",
-                "responses": {}
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ticket details"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
             }
         },
         "/game/ticket/random": {
@@ -525,7 +558,17 @@ const docTemplate = `{
                 ],
                 "summary": "Get a random ticket.",
                 "operationId": "jwt.Auth =\u003e game.GetTicket",
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Ticket details"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
             }
         },
         "/status/healthcheck": {
