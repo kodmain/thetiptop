@@ -1,0 +1,65 @@
+classDiagram
+    class Ticket {
+        +string ID
+        +time.Time CreatedAt
+        +time.Time UpdatedAt
+        +gorm.DeletedAt DeletedAt
+        +string CredentialID
+        +token.Luhn Token
+        +string Prize
+    }
+
+    class Code {
+        +string Message
+        +int Code
+    }
+
+    class Client {
+        +string ID
+        +time.Time CreatedAt
+        +time.Time UpdatedAt
+        +gorm.DeletedAt DeletedAt
+        +string CredentialID
+        +Validations Validations
+        +bool CGU
+        +bool Newsletter
+    }
+
+    class Employee {
+        +string ID
+        +time.Time CreatedAt
+        +time.Time UpdatedAt
+        +gorm.DeletedAt DeletedAt
+        +string CredentialID
+        +Validations Validations
+    }
+
+    class Validation {
+        +string ID
+        +time.Time CreatedAt
+        +time.Time UpdatedAt
+        +gorm.DeletedAt DeletedAt
+        +token.Luhn Token
+        +ValidationType Type
+        +bool Validated
+        +string ClientID
+        +string EmployeeID
+        +string CredentialID
+        +time.Time ExpiresAt
+    }
+
+    class Credential {
+        +string ID
+        +time.Time CreatedAt
+        +time.Time UpdatedAt
+        +gorm.DeletedAt DeletedAt
+        +string Email
+        +string Password
+    }
+
+    Ticket --> Credential : "CredentialID"
+    Validation --> Client : "ClientID"
+    Validation --> Employee : "EmployeeID"
+    Validation --> Credential : "CredentialID"
+    Client --> Credential : "CredentialID"
+    Employee --> Credential : "CredentialID"
