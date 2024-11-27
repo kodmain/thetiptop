@@ -7,7 +7,26 @@ tasks:
     cmds:
       - task -l
 
-  generate-diagrams:
+  diagram:
+    desc: "Activate the virtual environment and execute the Python script to generate architecture diagrams"
+    dir: diagram/dst
+    cmds:
+      - |
+        # Ensure the virtual environment exists
+        if [ ! -f "../../.venv/bin/activate" ]; then
+          echo "Virtual environment not found. Please create it first."
+          exit 1
+        fi
+      - |
+        # Activate the virtual environment and execute the script
+        . ../../.venv/bin/activate
+        if [ ! -f "../src/architecture.py" ]; then
+          echo "Script architecture.py not found in diagram/src."
+          exit 1
+        fi
+        python3 ../src/architecture.py
+
+  mermaid:
     desc: "Generate all Mermaid diagrams from the src folder and output them to the dst folder using Mermaid CLI"
     vars:
       src_dir: "./diagram/src"  # Source directory containing Mermaid (.mmd) files
@@ -19,23 +38,28 @@ tasks:
           echo "Mermaid CLI (mmdc) is not installed. Install it with: npm install -g @mermaid-js/mermaid-cli"
           exit 1
         fi
-
       - |
         # Ensure the destination directory exists and clean it
         mkdir -p {{.dst_dir}}
         rm -rf {{.dst_dir}}/*
-
       - |
-        # Iterate over all .mmd files and generate corresponding .png files
+        # Iterate over all .mmd files and generate corresponding .svg files
         echo "Generating Mermaid diagrams..."
         for file in {{.src_dir}}/*.mmd; do
           filename=$(basename "$file" .mmd)
           mmdc -i "$file" -o "{{.dst_dir}}/$filename.svg" -e svg -t dark -b "#222"
         done
     sources:
-      - diagram/src/  # Specify the source folder for Taskfile's dependency tracking
+      - "{{.src_dir}}/*.mmd"
     generates:
-      - diagram/dst/  # Specify the destination folder for Taskfile's dependency tracking
+      - "{{.dst_dir}}/*.svg"
+
+  generate-diagrams:
+    desc: "Run both architecture diagram generation and Mermaid diagram generation"
+    deps:
+      - diagram
+      - mermaid
+
 
 
   login:aws:
