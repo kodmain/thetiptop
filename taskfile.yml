@@ -8,24 +8,35 @@ tasks:
       - task -l
 
   generate-diagrams:
-    desc: "Generate all Mermaid diagrams from the src folder and output them to the dst folder using the Node.js script"
+    desc: "Generate all Mermaid diagrams from the src folder and output them to the dst folder using Mermaid CLI"
     vars:
       src_dir: "./diagram/src"  # Source directory containing Mermaid (.mmd) files
       dst_dir: "./diagram/dst"  # Destination directory for generated SVG files
     cmds:
+      - |
+        # Ensure Mermaid CLI is installed
+        if ! command -v mmdc > /dev/null; then
+          echo "Mermaid CLI (mmdc) is not installed. Install it with: npm install -g @mermaid-js/mermaid-cli"
+          exit 1
+        fi
+
       - |
         # Ensure the destination directory exists and clean it
         mkdir -p {{.dst_dir}}
         rm -rf {{.dst_dir}}/*
 
       - |
-        # Execute the Node.js script to generate diagrams
-        echo "Running Mermaid diagram generation script..."
-        node diagram/generate-mermaid.mjs
+        # Iterate over all .mmd files and generate corresponding .png files
+        echo "Generating Mermaid diagrams..."
+        for file in {{.src_dir}}/*.mmd; do
+          filename=$(basename "$file" .mmd)
+          mmdc -i "$file" -o "{{.dst_dir}}/$filename.svg" -e svg -t dark -b "#222"
+        done
     sources:
       - diagram/src/  # Specify the source folder for Taskfile's dependency tracking
     generates:
       - diagram/dst/  # Specify the destination folder for Taskfile's dependency tracking
+
 
   login:aws:
     desc: Se connecter à AWS SSO
