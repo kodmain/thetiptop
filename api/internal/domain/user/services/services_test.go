@@ -3,7 +3,9 @@ package services_test
 import (
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/security"
+	gameTransfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	gameEntity "github.com/kodmain/thetiptop/api/internal/domain/game/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
@@ -109,6 +111,14 @@ func (m *UserRepositoryMock) ReadValidation(validation *transfert.Validation, op
 		return nil, args.Get(1).(errors.ErrorInterface)
 	}
 	return args.Get(0).(*entities.Validation), nil
+}
+
+func (m *UserRepositoryMock) ReadValidations(validation *transfert.Validation, options ...database.Option) ([]*entities.Validation, errors.ErrorInterface) {
+	args := m.Called(validation)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(errors.ErrorInterface)
+	}
+	return args.Get(0).([]*entities.Validation), nil
 }
 
 func (m *UserRepositoryMock) UpdateValidation(validation *entities.Validation, options ...database.Option) errors.ErrorInterface {
@@ -229,11 +239,86 @@ func (m *PermissionMock) CanDelete(ressource database.Entity, rules ...security.
 	return args.Bool(0)
 }
 
+type GameRepositoryMock struct {
+	mock.Mock
+}
+
+// CreateTicket simule la création d'un ticket.
+func (m *GameRepositoryMock) CreateTicket(obj *gameTransfert.Ticket, options ...database.Option) (*gameEntity.Ticket, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1).(errors.ErrorInterface)
+	}
+
+	return args.Get(0).(*gameEntity.Ticket), nil
+}
+
+// CreateTickets simule la création de plusieurs tickets.
+func (m *GameRepositoryMock) CreateTickets(objs []*gameTransfert.Ticket, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(objs, options)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Error(0).(errors.ErrorInterface)
+}
+
+// ReadTicket simule la lecture d'un ticket.
+func (m *GameRepositoryMock) ReadTicket(obj *gameTransfert.Ticket, options ...database.Option) (*gameEntity.Ticket, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1).(errors.ErrorInterface)
+	}
+
+	return args.Get(0).(*gameEntity.Ticket), nil
+}
+
+// ReadTickets simule la lecture de plusieurs tickets.
+func (m *GameRepositoryMock) ReadTickets(obj *gameTransfert.Ticket, options ...database.Option) ([]*gameEntity.Ticket, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1).(errors.ErrorInterface)
+	}
+
+	return args.Get(0).([]*gameEntity.Ticket), nil
+}
+
+// UpdateTicket simule la mise à jour d'un ticket.
+func (m *GameRepositoryMock) UpdateTicket(entity *gameEntity.Ticket, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(entity, options)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Error(0).(errors.ErrorInterface)
+}
+
+// DeleteTicket simule la suppression d'un ticket.
+func (m *GameRepositoryMock) DeleteTicket(obj *gameTransfert.Ticket, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Error(0).(errors.ErrorInterface)
+}
+
+// CountTicket simule le comptage des tickets.
+func (m *GameRepositoryMock) CountTicket(obj *gameTransfert.Ticket, options ...database.Option) (int, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+	if args.Get(0) == nil {
+		return 0, args.Error(1).(errors.ErrorInterface)
+	}
+
+	return args.Int(0), nil
+}
+
 func setup() (*services.UserService, *UserRepositoryMock, *MailServiceMock, *PermissionMock) {
 	mockRepository := new(UserRepositoryMock)
+	gameRepository := new(GameRepositoryMock)
 	mockMailer := new(MailServiceMock)
 	mockSecurity := new(PermissionMock)
-	service := services.User(mockSecurity, mockRepository, mockMailer)
+	service := services.User(mockSecurity, mockRepository, gameRepository, mockMailer)
 
 	return service, mockRepository, mockMailer, mockSecurity
 }

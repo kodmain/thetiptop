@@ -8,6 +8,7 @@ import (
 	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 
+	gameRepository "github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
@@ -43,6 +44,7 @@ func RegisterClient(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoClient,
 	)
@@ -76,6 +78,7 @@ func UpdateClient(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
 	)
@@ -111,6 +114,7 @@ func GetClient(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
 	)
@@ -145,8 +149,31 @@ func DeleteClient(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
+	)
+
+	return ctx.Status(status).JSON(response)
+}
+
+// @Tags		Client
+// @Summary		Export all data of the connected client.
+// @Produce		application/json
+// @Param 		Authorization header string true "With the bearer started"
+// @Success		200	{object}	nil "Clients exported"
+// @Failure		500	{object}	nil "Internal
+// @Router		/client/export [get]
+// @Id			jwt.Auth => user.ExportClients
+// @Security 	Bearer
+func ExportClients(ctx *fiber.Ctx) error {
+	status, response := services.ExportClient(
+		domain.User(
+			security.NewUserAccess(ctx.Locals("token")),
+			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
+		),
 	)
 
 	return ctx.Status(status).JSON(response)
