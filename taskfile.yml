@@ -7,8 +7,70 @@ tasks:
     cmds:
       - task -l
 
-  generate-diagrams:
+  clean-dst:
+    desc: "Clean the destination directory for diagram outputs"
+    cmds:
+      - |
+        echo "Cleaning up the destination directory..."
+        rm -rf ../../diagram/dst/*
+        echo "Destination directory cleaned."
+
+  diagram:
+    desc: "Create the virtual environment, install dependencies, and execute the Python script to generate architecture diagrams"
+    dir: diagram/dst
+    deps:
+      - clean-dst
+    cmds:
+      - |
+        # Check if the virtual environment exists
+        if [ ! -f "../../.venv/bin/activate" ]; then
+          echo "Virtual environment not found. Creating it now..."
+
+          # Install Graphviz with Homebrew
+          brew install graphviz
+
+          # Create the virtual environment
+          python3 -m venv ../../.venv
+          if [ $? -ne 0 ]; then
+            echo "Failed to create the virtual environment. Please check your Python installation."
+            exit 1
+          fi
+          echo "Virtual environment created successfully."
+
+          # Activate the virtual environment and install diagrams
+          . ../../.venv/bin/activate
+          pip install diagrams
+          if [ $? -ne 0 ]; then
+            echo "Failed to install diagrams. Please check your Python setup or internet connection."
+            exit 1
+          fi
+          echo "Diagrams package installed successfully."
+        fi
+      - |
+        # Activate the virtual environment if not already active
+        if [ -z "$VIRTUAL_ENV" ]; then
+          echo "Activating the virtual environment..."
+          . ../../.venv/bin/activate
+        fi
+
+        # Execute the architecture script
+        if [ ! -f "../src/architecture.py" ]; then
+          echo "Script architecture.py not found in diagram/src."
+          exit 1
+        fi
+        echo "Running the architecture diagram generation script..."
+        python3 ../src/architecture.py
+
+        # Deactivate the virtual environment
+        if [ -z "$VIRTUAL_ENV" ]; then
+          echo "Deactivating the virtual environment..."
+          deactivate
+        fi
+
+  mermaid:
     desc: "Generate all Mermaid diagrams from the src folder and output them to the dst folder using Mermaid CLI"
+    deps:
+      - clean-dst
     vars:
       src_dir: "./diagram/src"  # Source directory containing Mermaid (.mmd) files
       dst_dir: "./diagram/dst"  # Destination directory for generated SVG files
@@ -19,23 +81,24 @@ tasks:
           echo "Mermaid CLI (mmdc) is not installed. Install it with: npm install -g @mermaid-js/mermaid-cli"
           exit 1
         fi
-
       - |
         # Ensure the destination directory exists and clean it
         mkdir -p {{.dst_dir}}
         rm -rf {{.dst_dir}}/*
-
       - |
-        # Iterate over all .mmd files and generate corresponding .png files
+        # Iterate over all .mmd files and generate corresponding .svg files
         echo "Generating Mermaid diagrams..."
         for file in {{.src_dir}}/*.mmd; do
           filename=$(basename "$file" .mmd)
           mmdc -i "$file" -o "{{.dst_dir}}/$filename.svg" -e svg -t dark -b "#222"
         done
-    sources:
-      - diagram/src/  # Specify the source folder for Taskfile's dependency tracking
-    generates:
-      - diagram/dst/  # Specify the destination folder for Taskfile's dependency tracking
+
+  generate-diagrams:
+    desc: "Run both architecture diagram generation and Mermaid diagram generation"
+    deps:
+      - diagram
+      - mermaid
+
 
 
   login:aws:
