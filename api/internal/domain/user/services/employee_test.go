@@ -54,7 +54,7 @@ func TestEmployeeRegister(t *testing.T) {
 	}
 
 	t.Run("nil input", func(t *testing.T) {
-		service, _, _, _ := setup()
+		service, _, _, _, _ := setup()
 		require.NotNil(t, service)
 
 		result, err := service.RegisterEmployee(nil, nil)
@@ -64,7 +64,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("employee already exists", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("existing@example.com")}
 		dtoEmployee := &transfert.Employee{}
 
@@ -77,7 +77,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("credential creation error", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoEmployee := &transfert.Employee{}
 
@@ -91,7 +91,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("employee creation error", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoEmployee := &transfert.Employee{}
 
@@ -106,7 +106,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("employee update error", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -120,7 +120,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("credential update error", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -135,7 +135,7 @@ func TestEmployeeRegister(t *testing.T) {
 	})
 
 	t.Run("successful employee and credential creation", func(t *testing.T) {
-		service, mockRepo, mockMailer, _ := setup()
+		service, mockRepo, mockMailer, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -155,7 +155,7 @@ func TestEmployeeRegister(t *testing.T) {
 
 func TestGetEmployee(t *testing.T) {
 	t.Run("error nil dto", func(t *testing.T) {
-		service, _, _, _ := setup()
+		service, _, _, _, _ := setup()
 
 		// Appeler la méthode du service avec un DTO nil
 		employee, err := service.GetEmployee(nil)
@@ -167,7 +167,7 @@ func TestGetEmployee(t *testing.T) {
 	})
 
 	t.Run("employee not found", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 
@@ -181,7 +181,7 @@ func TestGetEmployee(t *testing.T) {
 	})
 
 	t.Run("unauthorized role read employee", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		dummyEmployeeDTO := &transfert.Employee{
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
@@ -198,7 +198,7 @@ func TestGetEmployee(t *testing.T) {
 	})
 
 	t.Run("cant read employee", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		dummyEmployeeDTO := &transfert.Employee{
 			ID: aws.String("42debee6-2063-4566-baf1-37a7bdd139ff"),
@@ -221,7 +221,7 @@ func TestGetEmployee(t *testing.T) {
 	})
 
 	t.Run("successful retrieval", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 		expectedEmployee := &entities.Employee{ID: "employee-id"}
@@ -364,7 +364,7 @@ func TestDeleteEmployee(t *testing.T) {
 func TestUpdateEmployee(t *testing.T) {
 
 	t.Run("no dto", func(t *testing.T) {
-		service, _, _, _ := setup()
+		service, _, _, _, _ := setup()
 
 		employee, err := service.UpdateEmployee(nil)
 
@@ -373,7 +373,7 @@ func TestUpdateEmployee(t *testing.T) {
 	})
 
 	t.Run("employee not found", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 		mockPerms.On("IsGrantedByRoles", []security.Role{entities.ROLE_EMPLOYEE}).Return(true)
@@ -386,7 +386,7 @@ func TestUpdateEmployee(t *testing.T) {
 	})
 
 	t.Run("unauthorized role", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		mockPerms.On("IsGrantedByRoles", mock.Anything).Return(false)
 		employee, err := service.UpdateEmployee(&transfert.Employee{ID: aws.String("valid-id")})
@@ -399,7 +399,7 @@ func TestUpdateEmployee(t *testing.T) {
 	})
 
 	t.Run("unauthorized update", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		mockEmployee := &entities.Employee{ID: "42debee6-2063-4566-baf1-37a7bdd139ff"}
 		mockRepo.On("ReadEmployee", mock.AnythingOfType("*transfert.Employee")).
@@ -418,7 +418,7 @@ func TestUpdateEmployee(t *testing.T) {
 	})
 
 	t.Run("successful update", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 		existingEmployee := &entities.Employee{ID: "employee-id"}
@@ -436,7 +436,7 @@ func TestUpdateEmployee(t *testing.T) {
 	})
 
 	t.Run("update error", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		dtoEmployee := &transfert.Employee{ID: aws.String("employee-id")}
 		existingEmployee := &entities.Employee{ID: "employee-id"}

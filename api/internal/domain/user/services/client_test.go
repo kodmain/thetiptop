@@ -5,7 +5,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/google/uuid"
+	gameTransfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	gameEntity "github.com/kodmain/thetiptop/api/internal/domain/game/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/services"
@@ -56,7 +58,7 @@ func TestClientRegister(t *testing.T) {
 	}
 
 	t.Run("nil input", func(t *testing.T) {
-		service, _, _, _ := setup()
+		service, _, _, _, _ := setup()
 		require.NotNil(t, service)
 
 		result, err := service.RegisterClient(nil, nil)
@@ -66,7 +68,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("client already exists", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("existing@example.com")}
 		dtoClient := &transfert.Client{}
 
@@ -79,7 +81,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("credential creation error", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoClient := &transfert.Client{}
 
@@ -93,7 +95,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("client creation error", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 		dtoCredential := &transfert.Credential{Email: aws.String("new@example.com")}
 		dtoClient := &transfert.Client{}
 
@@ -108,7 +110,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("client update error", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -122,7 +124,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("credential update error", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -137,7 +139,7 @@ func TestClientRegister(t *testing.T) {
 	})
 
 	t.Run("successful client and credential creation", func(t *testing.T) {
-		service, mockRepo, mockMailer, _ := setup()
+		service, mockRepo, mockMailer, _, _ := setup()
 
 		mockRepo.On("ReadCredential", inputCredential).Return(nil, errors_domain_user.ErrCredentialNotFound)
 		mockRepo.On("CreateCredential", inputCredential).Return(expectedCredential, nil)
@@ -157,7 +159,7 @@ func TestClientRegister(t *testing.T) {
 
 func TestUpdateClient(t *testing.T) {
 	t.Run("no dto", func(t *testing.T) {
-		service, _, _, _ := setup()
+		service, _, _, _, _ := setup()
 
 		// Appel du service avec un DTO nil
 		client, err := service.UpdateClient(nil)
@@ -168,7 +170,7 @@ func TestUpdateClient(t *testing.T) {
 	})
 
 	t.Run("client not found", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 
 		// Simuler un client non trouvé dans la base de données
 		mockRepo.On("ReadClient", mock.AnythingOfType("*transfert.Client")).
@@ -186,7 +188,7 @@ func TestUpdateClient(t *testing.T) {
 	})
 
 	t.Run("unauthorized", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		// Simuler un client valide
 		mockClient := &entities.Client{ID: "42debee6-2063-4566-baf1-37a7bdd139ff"}
@@ -212,7 +214,7 @@ func TestUpdateClient(t *testing.T) {
 
 	t.Run("update client success", func(t *testing.T) {
 		clientID := "42debee6-2063-4566-baf1-37a7bdd139ff"
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		// Simuler un client valide
 		mockClient := &entities.Client{ID: clientID}
@@ -240,7 +242,7 @@ func TestUpdateClient(t *testing.T) {
 	})
 
 	t.Run("update client failure", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 		clientID := "42debee6-2063-4566-baf1-37a7bdd139ff"
 
 		// Simuler un client valide
@@ -271,7 +273,7 @@ func TestUpdateClient(t *testing.T) {
 
 func TestGetClient(t *testing.T) {
 	t.Run("successful get", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		// Simuler un client DTO valide
 		dummyClientDTO := &transfert.Client{
@@ -302,7 +304,7 @@ func TestGetClient(t *testing.T) {
 	})
 
 	t.Run("error nil dto", func(t *testing.T) {
-		service, _, _, _ := setup()
+		service, _, _, _, _ := setup()
 
 		// Appeler la méthode du service avec un DTO nil
 		client, err := service.GetClient(nil)
@@ -314,7 +316,7 @@ func TestGetClient(t *testing.T) {
 	})
 
 	t.Run("cant read client", func(t *testing.T) {
-		service, mockRepo, _, mockPerms := setup()
+		service, mockRepo, _, mockPerms, _ := setup()
 
 		// Simuler un client DTO valide
 		dummyClientDTO := &transfert.Client{
@@ -344,7 +346,7 @@ func TestGetClient(t *testing.T) {
 	})
 
 	t.Run("client_not_found", func(t *testing.T) {
-		service, mockRepo, _, _ := setup()
+		service, mockRepo, _, _, _ := setup()
 
 		// Simuler un client DTO valide
 		dummyClientDTO := &transfert.Client{
@@ -365,6 +367,173 @@ func TestGetClient(t *testing.T) {
 		// Vérifier les attentes sur le mock
 		mockRepo.AssertExpectations(t)
 	})
+}
+
+func TestExportClient(t *testing.T) {
+	t.Run("unauthorized if no credential ID", func(t *testing.T) {
+		service, _, _, mockSecurity, _ := setup()
+
+		// Simuler l'absence de credential ID
+		mockSecurity.On("GetCredentialID").Return(nil)
+
+		// Appeler la méthode ExportClient
+		data, err := service.ExportClient()
+
+		// Vérifications
+		require.Nil(t, data)
+		require.EqualError(t, err, errors.ErrUnauthorized.Error())
+		mockSecurity.AssertExpectations(t)
+	})
+
+	t.Run("error reading credential", func(t *testing.T) {
+		service, mockRepo, _, mockSecurity, _ := setup()
+
+		credentialID := aws.String("valid-credential-id")
+
+		// Simuler la récupération du credential ID
+		mockSecurity.On("GetCredentialID").Return(credentialID)
+
+		// Simuler une erreur lors de la lecture des credentials
+		mockRepo.On("ReadCredential", &transfert.Credential{ID: credentialID}).
+			Return(nil, errors_domain_user.ErrCredentialNotFound)
+
+		// Appeler la méthode ExportClient
+		data, err := service.ExportClient()
+
+		// Vérifications
+		require.Nil(t, data)
+		require.EqualError(t, err, errors_domain_user.ErrCredentialNotFound.Error())
+		mockSecurity.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("error reading validations", func(t *testing.T) {
+		service, mockRepo, _, mockSecurity, _ := setup()
+
+		credentialID := aws.String("valid-credential-id")
+
+		// Simuler la récupération du credential ID
+		mockSecurity.On("GetCredentialID").Return(credentialID)
+
+		// Simuler une lecture réussie des credentials
+		mockRepo.On("ReadCredential", &transfert.Credential{ID: credentialID}).
+			Return(&entities.Credential{ID: *credentialID}, nil)
+
+		// Simuler une erreur lors de la lecture des validations
+		mockRepo.On("ReadValidations", &transfert.Validation{ClientID: credentialID}).
+			Return(nil, errors.ErrInternalServer)
+
+		// Appeler la méthode ExportClient
+		data, err := service.ExportClient()
+
+		// Vérifications
+		require.Nil(t, data)
+		require.EqualError(t, err, "common.internal_error")
+		mockRepo.AssertExpectations(t)
+		mockSecurity.AssertExpectations(t)
+	})
+
+	t.Run("error reading client", func(t *testing.T) {
+		service, mockRepo, _, mockSecurity, _ := setup()
+
+		credentialID := aws.String("valid-credential-id")
+
+		// Simuler la récupération du credential ID
+		mockSecurity.On("GetCredentialID").Return(credentialID)
+
+		// Simuler des lectures réussies pour credentials et validations
+		mockRepo.On("ReadCredential", &transfert.Credential{ID: credentialID}).
+			Return(&entities.Credential{ID: *credentialID}, nil)
+		mockRepo.On("ReadValidations", &transfert.Validation{ClientID: credentialID}).
+			Return([]*entities.Validation{}, nil)
+
+		// Simuler une erreur lors de la lecture du client
+		mockRepo.On("ReadClient", &transfert.Client{CredentialID: credentialID}).
+			Return(nil, errors.ErrInternalServer)
+
+		// Appeler la méthode ExportClient
+		data, err := service.ExportClient()
+
+		// Vérifications
+		require.Nil(t, data)
+		require.EqualError(t, err, "common.internal_error")
+		mockRepo.AssertExpectations(t)
+		mockSecurity.AssertExpectations(t)
+	})
+
+	t.Run("error reading tickets", func(t *testing.T) {
+		service, mockRepo, _, mockSecurity, mockGameRepo := setup()
+
+		credentialID := aws.String("valid-credential-id")
+
+		// Simuler la récupération du credential ID
+		mockSecurity.On("GetCredentialID").Return(credentialID)
+
+		// Simuler des lectures réussies pour credentials, validations et client
+		mockRepo.On("ReadCredential", &transfert.Credential{ID: credentialID}).
+			Return(&entities.Credential{ID: *credentialID}, nil)
+		mockRepo.On("ReadValidations", &transfert.Validation{ClientID: credentialID}).
+			Return([]*entities.Validation{}, nil)
+		mockRepo.On("ReadClient", &transfert.Client{CredentialID: credentialID}).
+			Return(&entities.Client{ID: "client-id"}, nil)
+
+		// Simuler une erreur lors de la lecture des tickets avec les options
+		mockGameRepo.On("ReadTickets",
+			&gameTransfert.Ticket{CredentialID: credentialID}, // Premier argument
+			mock.Anything, // Deuxième argument
+		).Return(nil, errors.ErrInternalServer)
+
+		// Appeler la méthode ExportClient
+		data, err := service.ExportClient()
+
+		// Vérifications
+		require.Nil(t, data)
+		require.EqualError(t, err, "common.internal_error")
+		mockRepo.AssertExpectations(t)
+		mockGameRepo.AssertExpectations(t)
+		mockSecurity.AssertExpectations(t)
+	})
+
+	t.Run("successful export", func(t *testing.T) {
+		service, mockRepo, _, mockSecurity, mockGameRepo := setup()
+
+		credentialID := aws.String("valid-credential-id")
+		expectedData := &entities.ClientData{
+			Credential:  &entities.Credential{ID: *credentialID},
+			Client:      &entities.Client{ID: "client-id"},
+			Tickets:     []*gameEntity.Ticket{{ID: "ticket-id"}},
+			Validations: []*entities.Validation{{ID: "validation-id"}},
+		}
+
+		// Simuler la récupération du credential ID
+		mockSecurity.On("GetCredentialID").Return(credentialID)
+
+		// Simuler des lectures réussies
+		mockRepo.On("ReadCredential", &transfert.Credential{ID: credentialID}).
+			Return(expectedData.Credential, nil)
+		mockRepo.On("ReadValidations", &transfert.Validation{ClientID: credentialID}).
+			Return(expectedData.Validations, nil)
+		mockRepo.On("ReadClient", &transfert.Client{CredentialID: credentialID}).
+			Return(expectedData.Client, nil)
+		mockGameRepo.On("ReadTickets",
+			&gameTransfert.Ticket{CredentialID: credentialID}, // Premier argument
+			mock.Anything, // Deuxième argument
+		).Return(expectedData.Tickets, nil)
+
+		// Appeler la méthode ExportClient
+		data, err := service.ExportClient()
+
+		// Vérifications
+		require.NoError(t, err)
+		require.NotNil(t, data)
+		assert.Equal(t, expectedData, data)
+
+		// Vérifier les attentes sur les mocks
+		mockRepo.AssertExpectations(t)
+		mockGameRepo.AssertExpectations(t)
+		mockSecurity.AssertExpectations(t)
+	})
+
 }
 
 func TestDeleteClient(t *testing.T) {
