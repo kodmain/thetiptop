@@ -313,12 +313,12 @@ func (m *GameRepositoryMock) CountTicket(obj *gameTransfert.Ticket, options ...d
 	return args.Int(0), nil
 }
 
-func setup() (*services.UserService, *UserRepositoryMock, *MailServiceMock, *PermissionMock) {
+func setup() (*services.UserService, *UserRepositoryMock, *MailServiceMock, *PermissionMock, *GameRepositoryMock) {
 	mockRepository := new(UserRepositoryMock)
 	gameRepository := new(GameRepositoryMock)
 	mockMailer := new(MailServiceMock)
 	mockSecurity := new(PermissionMock)
 	service := services.User(mockSecurity, mockRepository, gameRepository, mockMailer)
 
-	return service, mockRepository, mockMailer, mockSecurity
+	return service, mockRepository, mockMailer, mockSecurity, gameRepository
 }
