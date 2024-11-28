@@ -7,27 +7,70 @@ tasks:
     cmds:
       - task -l
 
-  diagram:
-    desc: "Activate the virtual environment and execute the Python script to generate architecture diagrams"
-    dir: diagram/dst
+  clean-dst:
+    desc: "Clean the destination directory for diagram outputs"
     cmds:
       - |
-        # Ensure the virtual environment exists
+        echo "Cleaning up the destination directory..."
+        rm -rf ../../diagram/dst/*
+        echo "Destination directory cleaned."
+
+  diagram:
+    desc: "Create the virtual environment, install dependencies, and execute the Python script to generate architecture diagrams"
+    dir: diagram/dst
+    deps:
+      - clean-dst
+    cmds:
+      - |
+        # Check if the virtual environment exists
         if [ ! -f "../../.venv/bin/activate" ]; then
-          echo "Virtual environment not found. Please create it first."
-          exit 1
+          echo "Virtual environment not found. Creating it now..."
+
+          # Install Graphviz with Homebrew
+          brew install graphviz
+
+          # Create the virtual environment
+          python3 -m venv ../../.venv
+          if [ $? -ne 0 ]; then
+            echo "Failed to create the virtual environment. Please check your Python installation."
+            exit 1
+          fi
+          echo "Virtual environment created successfully."
+
+          # Activate the virtual environment and install diagrams
+          . ../../.venv/bin/activate
+          pip install diagrams
+          if [ $? -ne 0 ]; then
+            echo "Failed to install diagrams. Please check your Python setup or internet connection."
+            exit 1
+          fi
+          echo "Diagrams package installed successfully."
         fi
       - |
-        # Activate the virtual environment and execute the script
-        . ../../.venv/bin/activate
+        # Activate the virtual environment if not already active
+        if [ -z "$VIRTUAL_ENV" ]; then
+          echo "Activating the virtual environment..."
+          . ../../.venv/bin/activate
+        fi
+
+        # Execute the architecture script
         if [ ! -f "../src/architecture.py" ]; then
           echo "Script architecture.py not found in diagram/src."
           exit 1
         fi
+        echo "Running the architecture diagram generation script..."
         python3 ../src/architecture.py
+
+        # Deactivate the virtual environment
+        if [ -z "$VIRTUAL_ENV" ]; then
+          echo "Deactivating the virtual environment..."
+          deactivate
+        fi
 
   mermaid:
     desc: "Generate all Mermaid diagrams from the src folder and output them to the dst folder using Mermaid CLI"
+    deps:
+      - clean-dst
     vars:
       src_dir: "./diagram/src"  # Source directory containing Mermaid (.mmd) files
       dst_dir: "./diagram/dst"  # Destination directory for generated SVG files
@@ -49,10 +92,6 @@ tasks:
           filename=$(basename "$file" .mmd)
           mmdc -i "$file" -o "{{.dst_dir}}/$filename.svg" -e svg -t dark -b "#222"
         done
-    sources:
-      - "{{.src_dir}}/*.mmd"
-    generates:
-      - "{{.dst_dir}}/*.svg"
 
   generate-diagrams:
     desc: "Run both architecture diagram generation and Mermaid diagram generation"
