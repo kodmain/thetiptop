@@ -3,7 +3,7 @@ from diagrams.aws.compute import EC2
 from diagrams.aws.database import RDS
 from diagrams.aws.network import NLB, Route53, VPC, CloudFront
 
-with Diagram("TheTipTop - Architecture", filename="architecture", show=False, outformat="png"):
+with Diagram("TheTipTop - Architecture", filename="architecture", show=False, outformat="svg"):
     dns = Route53("DNS")
     cdn = CloudFront("CDN")
 
