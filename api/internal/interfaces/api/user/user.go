@@ -6,6 +6,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
 	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	gameRepository "github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
@@ -34,6 +35,7 @@ func UserAuth(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dto,
 	)
@@ -97,6 +99,7 @@ func CredentialUpdate(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoValidation, dtoCredential,
 	)
@@ -133,6 +136,7 @@ func MailValidation(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoValidation, dtoCredential,
 	)
@@ -163,6 +167,7 @@ func ValidationRecover(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoValidation,
 	)

@@ -7,6 +7,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
 	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	gameRepository "github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
 
@@ -41,6 +42,7 @@ func RegisterEmployee(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoEmployee,
 	)
@@ -74,6 +76,7 @@ func UpdateEmployee(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
 	)
@@ -111,6 +114,7 @@ func GetEmployee(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
 	)
@@ -145,6 +149,7 @@ func DeleteEmployee(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
 	)

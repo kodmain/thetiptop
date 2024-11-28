@@ -242,7 +242,8 @@ func TestDeleteEmployee(t *testing.T) {
 	t.Run("should return error if dtoEmployee is nil", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPerms := new(PermissionMock)
-		service := services.User(mockPerms, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPerms, mockRepo, mockGame, nil)
 
 		err := service.DeleteEmployee(nil)
 		assert.EqualError(t, err, errors.ErrNoDto.Error())
@@ -251,7 +252,8 @@ func TestDeleteEmployee(t *testing.T) {
 	t.Run("should return error if employee not found", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPerms := new(PermissionMock)
-		service := services.User(mockPerms, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPerms, mockRepo, mockGame, nil)
 
 		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
 		dtoEmployee := &transfert.Employee{ID: employeeID}
@@ -267,7 +269,8 @@ func TestDeleteEmployee(t *testing.T) {
 	t.Run("unauthorized role delete", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPermission, mockRepo, mockGame, nil)
 
 		// Employee DTO avec un ID valide
 		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
@@ -288,7 +291,8 @@ func TestDeleteEmployee(t *testing.T) {
 	t.Run("unauthorized delete", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPermission, mockRepo, mockGame, nil)
 
 		// Employee DTO avec un ID valide
 		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
@@ -312,7 +316,8 @@ func TestDeleteEmployee(t *testing.T) {
 	t.Run("should delete employee successfully", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPerms := new(PermissionMock)
-		service := services.User(mockPerms, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPerms, mockRepo, mockGame, nil)
 
 		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")
 		dtoEmployee := &transfert.Employee{ID: employeeID}
@@ -331,7 +336,8 @@ func TestDeleteEmployee(t *testing.T) {
 	t.Run("should return error if repository delete fails", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPermission, mockRepo, mockGame, nil)
 
 		// Employee DTO avec un ID valide
 		employeeID := aws.String("123e4567-e89b-12d3-a456-426614174000")

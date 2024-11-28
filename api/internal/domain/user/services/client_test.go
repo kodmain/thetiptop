@@ -371,7 +371,8 @@ func TestDeleteClient(t *testing.T) {
 	t.Run("should return error if dtoClient is nil", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPermission, mockRepo, mockGame, nil)
 
 		err := service.DeleteClient(nil)
 		assert.EqualError(t, err, errors.ErrNoDto.Error())
@@ -380,7 +381,8 @@ func TestDeleteClient(t *testing.T) {
 	t.Run("should return error if client not found", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPermission, mockRepo, mockGame, nil)
 
 		// Client DTO avec un ID valide
 		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")
@@ -400,7 +402,8 @@ func TestDeleteClient(t *testing.T) {
 	t.Run("should return error if client cannot be deleted", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPermission, mockRepo, mockGame, nil)
 
 		// Client DTO avec un ID valide
 		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")
@@ -423,7 +426,8 @@ func TestDeleteClient(t *testing.T) {
 	t.Run("should delete client successfully", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPermission, mockRepo, mockGame, nil)
 		// Client DTO avec un ID valide
 		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")
 		dtoClient := &transfert.Client{ID: clientID}
@@ -447,7 +451,8 @@ func TestDeleteClient(t *testing.T) {
 	t.Run("should return error if repository delete fails", func(t *testing.T) {
 		mockRepo := new(UserRepositoryMock)
 		mockPermission := new(PermissionMock)
-		service := services.User(mockPermission, mockRepo, nil)
+		mockGame := new(GameRepositoryMock)
+		service := services.User(mockPermission, mockRepo, mockGame, nil)
 
 		// Client DTO avec un ID valide
 		clientID := aws.String("123e4567-e89b-12d3-a456-426614174000")
