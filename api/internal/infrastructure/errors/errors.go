@@ -46,10 +46,12 @@ var (
 	ErrValueIsNotUUID                    = New(http.StatusBadRequest, "validator.is_not_uuid")
 
 	// Auth errors
+	ErrAuthNoToken      = New(http.StatusUnauthorized, "auth.no_token")
 	ErrAuthInvalidToken = New(http.StatusBadRequest, "auth.invalid_token")
 	ErrAuthFailed       = New(http.StatusUnauthorized, "auth.failed")
 	ErrAuthBadFormat    = New(http.StatusBadRequest, "auth.bad_format")
 	ErrAuthForbidden    = New(http.StatusForbidden, "auth.forbidden")
+	ErrAuthExpiredToken = New(http.StatusUnauthorized, "auth.expired_token")
 
 	// Mail errors
 	ErrMailSendFailed = New(http.StatusInternalServerError, "mail.send_failed")

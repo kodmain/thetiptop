@@ -93,65 +93,82 @@ func request(method, uri string, token string, values ...map[string][]string) ([
 }
 
 func TestParser(t *testing.T) {
-	err := start()
-	assert.NoError(t, err)
+	assert.NoError(t, start())
 
 	const (
 		restricted = "http://localhost:3000/restricted"
 		bearer     = "Bearer "
 	)
 
-	content, status, err := request("GET", "http://localhost:3000", "", nil)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, status)
-	assert.Equal(t, "Hello, World!", string(content))
-
-	content, status, err = request("GET", restricted, "", nil)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, status)
-	assert.Equal(t, "No token", string(content))
-
-	token, refresh, err := jwt.FromID("hello", nil)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, token)
-	assert.NotEmpty(t, refresh)
-
-	content, status, err = request("GET", restricted, token, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, status)
-	assert.Equal(t, "Invalid Authorization header format", string(content))
-
-	content, status, err = request("GET", restricted, bearer+"Oki"+token, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, status)
-	assert.Equal(t, "auth.failed", string(content))
-
-	content, status, err = request("GET", restricted, bearer+token, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, status)
-	assert.Equal(t, "Hello, Restricted!", string(content))
-
-	time.Sleep(5 * time.Second)
-
-	content, status, err = request("GET", restricted, bearer+token, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, status)
-	assert.Equal(t, "auth.failed", string(content))
-
-	realToken, refreshToken, err := jwt.FromID("hello", nil)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, realToken)
-	assert.NotEmpty(t, refreshToken)
-
-	jwt.New(&jwt.JWT{
-		Secret: "secret",
+	t.Run("TestHomePage", func(t *testing.T) {
+		content, status, err := request("GET", "http://localhost:3000", "", nil)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, status)
+		assert.Equal(t, "Hello, World!", string(content))
 	})
 
-	content, status, err = request("GET", restricted, bearer+realToken, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, status)
-	assert.Equal(t, "auth.failed", string(content))
+	t.Run("TestRestrictedNoToken", func(t *testing.T) {
+		content, status, err := request("GET", restricted, "", nil)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusUnauthorized, status)
+		assert.Equal(t, "auth.no_token", string(content))
+	})
 
-	err = stop()
-	assert.NoError(t, err)
+	t.Run("TestTokenCreation", func(t *testing.T) {
+		token, refresh, err := jwt.FromID("hello", nil)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, token)
+		assert.NotEmpty(t, refresh)
+	})
+
+	t.Run("TestRestrictedBadFormat", func(t *testing.T) {
+		token, _, _ := jwt.FromID("hello", nil)
+		content, status, err := request("GET", restricted, token, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, status)
+		assert.Equal(t, "auth.bad_format", string(content))
+	})
+
+	t.Run("TestRestrictedInvalidToken", func(t *testing.T) {
+		token, _, _ := jwt.FromID("hello", nil)
+		content, status, err := request("GET", restricted, bearer+"Oki"+token, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusUnauthorized, status)
+		assert.Equal(t, "auth.failed", string(content))
+	})
+
+	t.Run("TestRestrictedValidToken", func(t *testing.T) {
+		token, _, _ := jwt.FromID("hello", nil)
+		content, status, err := request("GET", restricted, bearer+token, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, status)
+		assert.Equal(t, "Hello, Restricted!", string(content))
+	})
+
+	t.Run("TestRestrictedExpiredToken", func(t *testing.T) {
+		token, _, _ := jwt.FromID("hello", nil)
+		time.Sleep(5 * time.Second)
+		content, status, err := request("GET", restricted, bearer+token, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusUnauthorized, status)
+		assert.Equal(t, "auth.failed", string(content))
+	})
+
+	t.Run("TestNewSecretInvalidatesOldToken", func(t *testing.T) {
+		realToken, refreshToken, err := jwt.FromID("hello", nil)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, realToken)
+		assert.NotEmpty(t, refreshToken)
+
+		jwt.New(&jwt.JWT{
+			Secret: "secret",
+		})
+
+		content, status, errhttp := request("GET", restricted, bearer+realToken, nil)
+		assert.NoError(t, errhttp)
+		assert.Equal(t, http.StatusUnauthorized, status)
+		assert.Equal(t, "auth.failed", string(content))
+	})
+
+	assert.NoError(t, stop())
 }
