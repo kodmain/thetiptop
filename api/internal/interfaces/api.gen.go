@@ -32,6 +32,7 @@ var (
 		"user.CredentialUpdate":  user.CredentialUpdate,
 		"user.DeleteClient":      user.DeleteClient,
 		"user.DeleteEmployee":    user.DeleteEmployee,
+		"user.ExportClients":     user.ExportClients,
 		"user.GetClient":         user.GetClient,
 		"user.GetEmployee":       user.GetEmployee,
 		"user.MailValidation":    user.MailValidation,
