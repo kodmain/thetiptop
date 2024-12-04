@@ -66,3 +66,21 @@ func (mgs *DomainGameService) GetTickets() ([]*entities.Ticket, errors.ErrorInte
 	}
 	return args.Get(0).([]*entities.Ticket), nil
 }
+
+// GetTicketById simulates the GetTicketById method of the GameServiceInterface
+//
+// It uses testify's mock functionality to simulate return values and errors.
+//
+// Parameters:
+// - dtoTicket: *game.Ticket - the ticket to be updated
+//
+// Returns:
+// - *entities.Ticket: the updated ticket, if successful
+// - errors.ErrorInterface: the error returned by the service, if any
+func (mgs *DomainGameService) GetTicketById(dtoTicket *transfert.Ticket) (*entities.Ticket, errors.ErrorInterface) {
+	args := mgs.Called(dtoTicket)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(errors.ErrorInterface)
+	}
+	return args.Get(0).(*entities.Ticket), nil
+}

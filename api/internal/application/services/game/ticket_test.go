@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/application/services/game"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
@@ -99,5 +100,33 @@ func TestUpdateTicket(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, statusCode)
 		assert.Equal(t, expectedError, response)
 		mockService.AssertCalled(t, "UpdateTicket", dtoTicket)
+	})
+}
+
+func TestGetTicketById(t *testing.T) {
+	t.Run("should return ticket by ID successfully", func(t *testing.T) {
+		mockService := new(DomainGameService)
+		dtoTicket := &transfert.Ticket{ID: aws.String("1")}
+		expectedTicket := &entities.Ticket{ID: "1", Token: "token"}
+		mockService.On("GetTicketById", dtoTicket).Return(expectedTicket, nil)
+
+		statusCode, response := game.GetTicketById(mockService, dtoTicket)
+
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.Equal(t, expectedTicket, response)
+		mockService.AssertCalled(t, "GetTicketById", dtoTicket)
+	})
+
+	t.Run("should return error when service fails", func(t *testing.T) {
+		mockService := new(DomainGameService)
+		dtoTicket := &transfert.Ticket{ID: aws.String("1")}
+		expectedError := errors.ErrBadRequest
+		mockService.On("GetTicketById", dtoTicket).Return(nil, expectedError)
+
+		statusCode, response := game.GetTicketById(mockService, dtoTicket)
+
+		assert.Equal(t, http.StatusBadRequest, statusCode)
+		assert.Error(t, response.(*errors.Error))
+		mockService.AssertCalled(t, "GetTicketById", dtoTicket)
 	})
 }
