@@ -33,3 +33,13 @@ func UpdateTicket(service services.GameServiceInterface, dtoTicket *transfert.Ti
 
 	return fiber.StatusOK, ticket
 }
+
+func GetTicketById(service services.GameServiceInterface, dtoTicket *transfert.Ticket) (int, any) {
+	ticket, err := service.GetTicketById(dtoTicket)
+
+	if err != nil {
+		return err.Code(), err
+	}
+
+	return fiber.StatusOK, ticket
+}
