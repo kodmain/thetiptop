@@ -8,16 +8,6 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/data"
 )
 
-// DeleteClient deletes a client by ID
-// This function checks the client's ID, validates it, and proceeds to delete the client from the system
-//
-// Parameters:
-// - service: services.UserServiceInterface The service responsible for client management
-// - dtoClient: *transfert.Client The DTO that contains the client's data to be deleted
-//
-// Returns:
-// - int: The HTTP status code indicating success or failure of the operation
-// - any: The response object, which can be an error message in case of failure, or nil for successful deletion
 func DeleteClient(service services.UserServiceInterface, dtoClient *transfert.Client) (int, any) {
 	// Validation of the client ID
 	if err := dtoClient.Check(data.Validator{
@@ -87,4 +77,13 @@ func RegisterClient(service services.UserServiceInterface, credentialDTO *transf
 	}
 
 	return fiber.StatusCreated, credential
+}
+
+func ExportClient(service services.UserServiceInterface) (int, any) {
+	clients, err := service.ExportClient()
+	if err != nil {
+		return err.Code(), err
+	}
+
+	return fiber.StatusOK, clients
 }

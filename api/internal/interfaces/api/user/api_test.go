@@ -14,7 +14,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
+	"github.com/kodmain/thetiptop/api/internal/application/hook"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	userRepository "github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 )
@@ -26,6 +30,9 @@ const (
 
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
+
+	email    = "user-thetiptop@yopmail.com"
+	password = "Aa1@azetyuiop"
 )
 
 type Email struct {
@@ -70,11 +77,27 @@ type Email struct {
 
 var srv *server.Server
 
+var callBack hook.HandlerSync = func(tags ...string) {
+	if len(tags) > 0 && tags[0] == "default" {
+		user := userRepository.NewUserRepository(database.Get(config.GetString("services.game.database", config.DEFAULT)))
+		cred, _ := user.CreateCredential(&transfert.Credential{
+			Email:    aws.String(email),
+			Password: aws.String(password),
+		})
+
+		user.CreateClient(&transfert.Client{
+			CredentialID: &cred.ID,
+		})
+	}
+}
+
 func start(http, https int) error {
 	env.DEFAULT_PORT_HTTP = http
 	env.DEFAULT_PORT_HTTPS = https
 	env.PORT_HTTP = &env.DEFAULT_PORT_HTTP
 	env.PORT_HTTPS = &env.DEFAULT_PORT_HTTPS
+	env.ForceTest()
+	hook.Register(hook.EventOnDBInit, callBack)
 	config.Load(aws.String("../../../../config.test.yml"))
 	logger.Info("starting application")
 	srv = server.Create()

@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	gameRepository "github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
@@ -12,11 +13,12 @@ import (
 type UserService struct {
 	security security.PermissionInterface
 	repo     repositories.UserRepositoryInterface
+	repoGame gameRepository.GameRepositoryInterface
 	mail     mail.ServiceInterface
 }
 
-func User(security security.PermissionInterface, repo repositories.UserRepositoryInterface, mail mail.ServiceInterface) *UserService {
-	return &UserService{security, repo, mail}
+func User(security security.PermissionInterface, repo repositories.UserRepositoryInterface, game gameRepository.GameRepositoryInterface, mail mail.ServiceInterface) *UserService {
+	return &UserService{security, repo, game, mail}
 }
 
 type UserServiceInterface interface {
@@ -32,6 +34,7 @@ type UserServiceInterface interface {
 	GetClient(dtoClient *transfert.Client) (*entities.Client, errors.ErrorInterface)
 	DeleteClient(dtoClient *transfert.Client) errors.ErrorInterface
 	UpdateClient(client *transfert.Client) (*entities.Client, errors.ErrorInterface)
+	ExportClient() (*entities.ClientData, errors.ErrorInterface)
 
 	// Employee
 	RegisterEmployee(dtoCredential *transfert.Credential, dtoEmployee *transfert.Employee) (*entities.Employee, errors.ErrorInterface)

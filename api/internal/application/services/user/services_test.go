@@ -28,6 +28,14 @@ type DomainUserService struct {
 	mu sync.Mutex
 }
 
+func (dcs *DomainUserService) ExportClient() (*entities.ClientData, errors.ErrorInterface) {
+	args := dcs.Called()
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(errors.ErrorInterface)
+	}
+	return args.Get(0).(*entities.ClientData), nil
+}
+
 func (dcs *DomainUserService) GetClient(client *transfert.Client) (*entities.Client, errors.ErrorInterface) {
 	args := dcs.Called(client)
 	if args.Get(0) == nil {

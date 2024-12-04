@@ -23,11 +23,6 @@ paths:
         name: newsletter
         required: true
         type: boolean
-      - description: With the bearer started
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -58,11 +53,6 @@ paths:
         name: id
         required: true
         type: string
-      - description: With the bearer started
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -90,11 +80,6 @@ paths:
         name: id
         required: true
         type: string
-      - description: With the bearer started
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -109,6 +94,21 @@ paths:
       security:
       - Bearer: []
       summary: Get a client by ID.
+      tags:
+      - Client
+  /client/export:
+    get:
+      operationId: jwt.Auth => user.ExportClients
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Clients exported
+        "500":
+          description: Internal
+      security:
+      - Bearer: []
+      summary: Export all data of the connected client.
       tags:
       - Client
   /client/register:
@@ -185,11 +185,6 @@ paths:
         name: newsletter
         required: true
         type: boolean
-      - description: With the bearer started
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -220,11 +215,6 @@ paths:
         name: id
         required: true
         type: string
-      - description: With the bearer started
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -250,11 +240,6 @@ paths:
         format: uuid
         in: path
         name: id
-        required: true
-        type: string
-      - description: With the bearer started
-        in: header
-        name: Authorization
         required: true
         type: string
       produces:

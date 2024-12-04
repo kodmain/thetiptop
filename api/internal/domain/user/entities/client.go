@@ -6,12 +6,20 @@ import (
 	"github.com/google/uuid"
 	"github.com/kodmain/thetiptop/api/internal/application/security"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	"github.com/kodmain/thetiptop/api/internal/domain/game/entities"
 	"gorm.io/gorm"
 )
 
 const (
 	ROLE_CLIENT security.Role = "client"
 )
+
+type ClientData struct {
+	Client      *Client
+	Credential  *Credential
+	Tickets     []*entities.Ticket
+	Validations []*Validation
+}
 
 type Client struct {
 	// Gorm model

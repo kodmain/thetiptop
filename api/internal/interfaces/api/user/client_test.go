@@ -9,6 +9,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -104,7 +106,7 @@ func TestClient(t *testing.T) {
 							{"Bearer " + refresh_token_sting, http.StatusOK},
 							{"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y", http.StatusUnauthorized}, // Replace with actual expired JWT token
 							{"Bearer malformed.jwt.token.here", http.StatusUnauthorized},
-							{"", http.StatusBadRequest},
+							{"", http.StatusUnauthorized},
 						}
 
 						for _, user := range users {
@@ -181,5 +183,74 @@ func TestClient(t *testing.T) {
 			}
 		})
 	}
+	assert.Nil(t, stop())
+}
+
+func TestExportClients(t *testing.T) {
+	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}
+
+	assert.Nil(t, start(8888, 8444))
+
+	// Authentification pour récupérer un JWT
+	JWT, status, err := request("POST", "http://localhost:8888/user/auth", "", JSONEncoded, map[string][]any{
+		"email":    {email},
+		"password": {password},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, status)
+	assert.NotNil(t, JWT)
+
+	var tokenData fiber.Map
+	err = json.Unmarshal(JWT, &tokenData)
+	assert.Nil(t, err)
+
+	logger.Warn("JWT", string(JWT))
+	logger.Warn("TokenData", tokenData)
+
+	accessTokenString, ok := tokenData["access_token"].(string)
+	assert.True(t, ok, "access_token should be a string")
+	authorization := "Bearer " + accessTokenString
+
+	claims, err := jwt.TokenToClaims(accessTokenString)
+	assert.Nil(t, err)
+	assert.NotNil(t, claims)
+
+	logger.Warn("Token", authorization)
+
+	for _, encoding := range encodingTypes {
+		encodingName := "FormURLEncoded"
+		if encoding == JSONEncoded {
+			encodingName = "JSONEncoded"
+		}
+
+		t.Run("ExportClients/"+encodingName, func(t *testing.T) {
+			// Test avec un token valide
+			t.Run("Valid Token", func(t *testing.T) {
+				content, status, err := request("GET", DOMAIN+"/client/export", authorization, encoding, nil)
+				assert.Nil(t, err)
+				assert.Equal(t, http.StatusOK, status)
+				var response map[string]interface{}
+				assert.Nil(t, json.Unmarshal(content, &response), "Response should be valid JSON")
+				assert.NotNil(t, response, "Response should not be nil")
+			})
+
+			// Test sans token
+			t.Run("Missing Token", func(t *testing.T) {
+				content, status, err := request("GET", DOMAIN+"/client/export", "", encoding, nil)
+				assert.Nil(t, err)
+				assert.Equal(t, http.StatusUnauthorized, status)
+				assert.Equal(t, "{\"code\":401,\"message\":\"auth.no_token\"}", string(content))
+			})
+
+			t.Run("Invalid Token/"+encodingName, func(t *testing.T) {
+				token := "Bearer invalid-token"
+				content, status, err := request("GET", DOMAIN+"/client/export", token, encoding, nil)
+				assert.Nil(t, err)
+				assert.Equal(t, http.StatusUnauthorized, status)
+				assert.Equal(t, "{\"code\":401,\"message\":\"auth.failed\"}", string(content))
+			})
+		})
+	}
+
 	assert.Nil(t, stop())
 }
