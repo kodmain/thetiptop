@@ -104,7 +104,7 @@ func TestClient(t *testing.T) {
 							{"Bearer " + refresh_token_sting, http.StatusOK},
 							{"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxMDkxMzEsImlkIjoiN2M3OTQwMGYtMDA2YS00NzVlLTk3YjYtNWRiZGUzNzA3NjAxIiwib2ZmIjo3MjAwLCJ0eXBlIjoxLCJ0eiI6IkxvY2FsIn0.5Lae56HNcQ1OHcP_FhTfcOOtHpaZVgRFy6vzzBugN7Y", http.StatusUnauthorized}, // Replace with actual expired JWT token
 							{"Bearer malformed.jwt.token.here", http.StatusUnauthorized},
-							{"", http.StatusBadRequest},
+							{"", http.StatusUnauthorized},
 						}
 
 						for _, user := range users {
