@@ -9,6 +9,7 @@ import (
 	gameRepository "github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/mail"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
@@ -28,7 +29,7 @@ import (
 func UserAuth(ctx *fiber.Ctx) error {
 	dto := &transfert.Credential{}
 	if err := ctx.BodyParser(dto); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.UserAuth(
@@ -58,7 +59,7 @@ func UserAuth(ctx *fiber.Ctx) error {
 func UserAuthRenew(ctx *fiber.Ctx) error {
 	token := ctx.Locals("token")
 	if token == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "no token")
+		return ctx.Status(errors.ErrAuthNoToken.Code()).JSON(errors.ErrAuthNoToken)
 	}
 
 	status, response := services.UserAuthRenew(
@@ -87,12 +88,12 @@ func UserAuthRenew(ctx *fiber.Ctx) error {
 func CredentialUpdate(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := ctx.BodyParser(dtoCredential); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	dtoValidation := &transfert.Validation{}
 	if err := ctx.BodyParser(dtoValidation); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.CredentialUpdate(
@@ -124,12 +125,12 @@ func CredentialUpdate(ctx *fiber.Ctx) error {
 func MailValidation(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := ctx.BodyParser(dtoCredential); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	dtoValidation := &transfert.Validation{}
 	if err := ctx.BodyParser(dtoValidation); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.MailValidation(
@@ -155,12 +156,12 @@ func MailValidation(ctx *fiber.Ctx) error {
 func ValidationRecover(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := ctx.BodyParser(dtoCredential); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	dtoValidation := &transfert.Validation{}
 	if err := ctx.BodyParser(dtoValidation); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.ValidationRecover(

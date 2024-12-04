@@ -10,16 +10,16 @@ import (
 func Auth(c *fiber.Ctx) error {
 	auth := c.Locals("token")
 	if auth == nil {
-		return fiber.NewError(errors.ErrAuthNoToken.Code(), errors.ErrAuthNoToken.Error())
+		return c.Status(errors.ErrAuthNoToken.Code()).JSON(errors.ErrAuthNoToken)
 	}
 
 	token := auth.(*Token)
 	if token.HasExpired() {
-		return fiber.NewError(errors.ErrAuthExpiredToken.Code(), errors.ErrAuthExpiredToken.Error())
+		return c.Status(errors.ErrAuthExpiredToken.Code()).JSON(errors.ErrAuthExpiredToken)
 	}
 
 	if token.IsNotValid() {
-		return fiber.NewError(errors.ErrAuthInvalidToken.Code(), errors.ErrAuthInvalidToken.Error())
+		return c.Status(errors.ErrAuthInvalidToken.Code()).JSON(errors.ErrAuthInvalidToken)
 	}
 
 	return c.Next()
@@ -33,13 +33,13 @@ func Parser(c *fiber.Ctx) error {
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		return fiber.NewError(errors.ErrAuthBadFormat.Code(), errors.ErrAuthBadFormat.Error())
+		return c.Status(errors.ErrAuthBadFormat.Code()).JSON(errors.ErrAuthBadFormat)
 	}
 
 	tokenString := parts[1]
 	token, err := TokenToClaims(tokenString)
 	if err != nil {
-		return fiber.NewError(errors.ErrAuthFailed.Code(), errors.ErrAuthFailed.Error())
+		return c.Status(errors.ErrAuthFailed.Code()).JSON(errors.ErrAuthFailed)
 	}
 
 	c.Locals("token", token)

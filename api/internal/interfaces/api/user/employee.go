@@ -30,12 +30,12 @@ import (
 func RegisterEmployee(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := ctx.BodyParser(dtoCredential); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	dtoEmployee := &transfert.Employee{}
 	if err := ctx.BodyParser(dtoEmployee); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.RegisterEmployee(
@@ -56,7 +56,6 @@ func RegisterEmployee(ctx *fiber.Ctx) error {
 // @Produce		application/json
 // @Param		id			formData	string	true	"Employee ID" format(uuid)
 // @Param		newsletter	formData	bool	true	"Newsletter" default(false)
-// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Password updated"
 // @Failure		400	{object}	nil "Invalid email, password or token"
 // @Failure		404	{object}	nil "Employee not found"
@@ -69,7 +68,7 @@ func RegisterEmployee(ctx *fiber.Ctx) error {
 func UpdateEmployee(ctx *fiber.Ctx) error {
 	dtoEmployee := &transfert.Employee{}
 	if err := ctx.BodyParser(dtoEmployee); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.UpdateEmployee(
@@ -89,7 +88,6 @@ func UpdateEmployee(ctx *fiber.Ctx) error {
 // @Summary		Get a employee by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Employee ID" format(uuid)
-// @Param 		Authorization header string true "With the bearer started"
 // @Success		200	{object}	nil "Employee details"
 // @Failure		400	{object}	nil "Invalid employee ID"
 // @Failure		404	{object}	nil "Employee not found"
@@ -101,7 +99,7 @@ func GetEmployee(ctx *fiber.Ctx) error {
 	EmployeeID := ctx.Params("id")
 
 	if EmployeeID == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "Employee ID is required")
+		return ctx.Status(fiber.StatusBadRequest).JSON("Employee ID is required")
 	}
 
 	dtoEmployee := &transfert.Employee{
@@ -126,7 +124,6 @@ func GetEmployee(ctx *fiber.Ctx) error {
 // @Summary		Delete a client by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Employee ID" format(uuid)
-// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Employee deleted"
 // @Failure		400	{object}	nil "Invalid employee ID"
 // @Failure		404	{object}	nil "Employee not found"
@@ -138,7 +135,7 @@ func DeleteEmployee(ctx *fiber.Ctx) error {
 	EmployeeID := ctx.Params("id")
 
 	if EmployeeID == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "Employee ID is required")
+		return ctx.Status(fiber.StatusBadRequest).JSON("Employee ID is required")
 	}
 
 	dtoEmployee := &transfert.Employee{

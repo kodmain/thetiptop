@@ -111,7 +111,7 @@ func TestParser(t *testing.T) {
 		content, status, err := request("GET", restricted, "", nil)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusUnauthorized, status)
-		assert.Equal(t, "auth.no_token", string(content))
+		assert.Equal(t, "{\"code\":401,\"message\":\"auth.no_token\"}", string(content))
 	})
 
 	t.Run("TestTokenCreation", func(t *testing.T) {
@@ -126,7 +126,7 @@ func TestParser(t *testing.T) {
 		content, status, err := request("GET", restricted, token, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusBadRequest, status)
-		assert.Equal(t, "auth.bad_format", string(content))
+		assert.Equal(t, "{\"code\":400,\"message\":\"auth.bad_format\"}", string(content))
 	})
 
 	t.Run("TestRestrictedInvalidToken", func(t *testing.T) {
@@ -134,7 +134,7 @@ func TestParser(t *testing.T) {
 		content, status, err := request("GET", restricted, bearer+"Oki"+token, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusUnauthorized, status)
-		assert.Equal(t, "auth.failed", string(content))
+		assert.Equal(t, "{\"code\":401,\"message\":\"auth.failed\"}", string(content))
 	})
 
 	t.Run("TestRestrictedValidToken", func(t *testing.T) {
@@ -151,7 +151,7 @@ func TestParser(t *testing.T) {
 		content, status, err := request("GET", restricted, bearer+token, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusUnauthorized, status)
-		assert.Equal(t, "auth.failed", string(content))
+		assert.Equal(t, "{\"code\":401,\"message\":\"auth.failed\"}", string(content))
 	})
 
 	t.Run("TestNewSecretInvalidatesOldToken", func(t *testing.T) {
@@ -167,7 +167,7 @@ func TestParser(t *testing.T) {
 		content, status, errhttp := request("GET", restricted, bearer+realToken, nil)
 		assert.NoError(t, errhttp)
 		assert.Equal(t, http.StatusUnauthorized, status)
-		assert.Equal(t, "auth.failed", string(content))
+		assert.Equal(t, "{\"code\":401,\"message\":\"auth.failed\"}", string(content))
 	})
 
 	assert.NoError(t, stop())
