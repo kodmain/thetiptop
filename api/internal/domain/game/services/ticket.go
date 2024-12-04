@@ -52,3 +52,17 @@ func (s *GameService) UpdateTicket(dto *transfert.Ticket) (*entities.Ticket, err
 
 	return ticket, nil
 }
+
+func (s *GameService) GetTicketById(dto *transfert.Ticket) (*entities.Ticket, errors.ErrorInterface) {
+	if !s.security.IsGrantedByRoles(user.ROLE_EMPLOYEE) {
+		return nil, errors.ErrUnauthorized
+	}
+
+	ticket, err := s.repo.ReadTicket(dto)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return ticket, nil
+}

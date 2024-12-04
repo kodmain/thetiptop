@@ -21,4 +21,5 @@ type GameServiceInterface interface {
 	GetTickets() ([]*entities.Ticket, errors.ErrorInterface)
 	GetRandomTicket() (*entities.Ticket, errors.ErrorInterface)
 	UpdateTicket(*transfert.Ticket) (*entities.Ticket, errors.ErrorInterface)
+	GetTicketById(*transfert.Ticket) (*entities.Ticket, errors.ErrorInterface)
 }

@@ -24,6 +24,7 @@ var (
 	Endpoints map[string]fiber.Handler = map[string]func(*fiber.Ctx) error{
 		"code.ListErrors":        code.ListErrors,
 		"game.GetTicket":         game.GetTicket,
+		"game.GetTicketById":     game.GetTicketById,
 		"game.GetTickets":        game.GetTickets,
 		"game.UpdateTicket":      game.UpdateTicket,
 		"jwt.Auth":               jwt.Auth,

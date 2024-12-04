@@ -40,7 +40,7 @@ func TestGame(t *testing.T) {
 		}
 
 		t.Run("GetTicket/"+encodingName, func(t *testing.T) {
-			randomTicket, status, err := request("GET", "http://localhost:8888/game/ticket/random", authorization, encoding)
+			randomTicket, status, err := request("GET", "http://localhost:8888/game/random", authorization, encoding)
 			assert.Nil(t, err)
 			assert.Equal(t, 200, status)
 
@@ -61,7 +61,7 @@ func TestGame(t *testing.T) {
 				assert.NotNil(t, ticket)
 
 				t.Run("GetTickets/"+encodingName, func(t *testing.T) {
-					tickets, status, err := request("GET", "http://localhost:8888/game/ticket", authorization, encoding)
+					tickets, status, err := request("GET", "http://localhost:8888/game/tickets", authorization, encoding)
 					assert.Nil(t, err)
 					assert.Equal(t, 200, status)
 
@@ -71,6 +71,18 @@ func TestGame(t *testing.T) {
 					assert.NotNil(t, ticketsArray)
 				})
 			})
+
+			t.Run("GetTicketById/"+encodingName, func(t *testing.T) {
+				queryTicket, status, err := request("GET", "http://localhost:8888/game/ticket/"+ticket.ID, authorization, encoding)
+				assert.Nil(t, err)
+				assert.Equal(t, 200, status)
+
+				ticket := entities.Ticket{}
+				json.Unmarshal(queryTicket, &ticket)
+
+				assert.NotNil(t, ticket)
+			})
+
 		})
 
 	}

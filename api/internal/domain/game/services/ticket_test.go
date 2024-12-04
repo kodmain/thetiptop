@@ -201,3 +201,100 @@ func Test_UpdateTicket(t *testing.T) {
 	})
 
 }
+
+func Test_GetTicketById(t *testing.T) {
+	t.Run("Should return ticket when authorized and ticket exists", func(t *testing.T) {
+		service, mockRepo, mockPerms := setup()
+
+		dto := &transfert.Ticket{
+			ID: aws.String("ticket-123"),
+		}
+
+		ticket := &entities.Ticket{
+			ID: "ticket-123",
+		}
+
+		// Configuration des mocks
+		mockPerms.On("IsGrantedByRoles", []security.Role{user.ROLE_EMPLOYEE}).Return(true)
+		mockRepo.On("ReadTicket", dto, mock.Anything).Return(ticket, nil)
+
+		// Appel de la méthode à tester
+		result, err := service.GetTicketById(dto)
+
+		// Vérifications des résultats
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, ticket, result)
+
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
+	})
+
+	t.Run("Should return error when unauthorized", func(t *testing.T) {
+		service, _, mockPerms := setup()
+
+		dto := &transfert.Ticket{
+			ID: aws.String("ticket-123"),
+		}
+
+		// Configuration des mocks
+		mockPerms.On("IsGrantedByRoles", []security.Role{user.ROLE_EMPLOYEE}).Return(false)
+
+		// Appel de la méthode à tester
+		result, err := service.GetTicketById(dto)
+
+		// Vérifications des résultats
+		assert.NotNil(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, errors.ErrUnauthorized, err)
+
+		mockPerms.AssertExpectations(t)
+	})
+
+	t.Run("Should return error when ticket not found", func(t *testing.T) {
+		service, mockRepo, mockPerms := setup()
+
+		dto := &transfert.Ticket{
+			ID: aws.String("ticket-123"),
+		}
+
+		// Configuration des mocks
+		mockPerms.On("IsGrantedByRoles", []security.Role{user.ROLE_EMPLOYEE}).Return(true)
+		mockRepo.On("ReadTicket", dto, mock.Anything).Return(nil, errors.ErrNoData)
+
+		// Appel de la méthode à tester
+		result, err := service.GetTicketById(dto)
+
+		// Vérifications des résultats
+		assert.NotNil(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, errors.ErrNoData, err)
+
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
+	})
+
+	t.Run("Should return error when repository fails", func(t *testing.T) {
+		service, mockRepo, mockPerms := setup()
+
+		dto := &transfert.Ticket{
+			ID: aws.String("ticket-123"),
+		}
+
+		// Configuration des mocks
+		mockPerms.On("IsGrantedByRoles", []security.Role{user.ROLE_EMPLOYEE}).Return(true)
+		mockRepo.On("ReadTicket", dto, mock.Anything).Return(nil, errors.ErrBadRequest)
+
+		// Appel de la méthode à tester
+		result, err := service.GetTicketById(dto)
+
+		// Vérifications des résultats
+		assert.NotNil(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, errors.ErrBadRequest, err)
+
+		mockRepo.AssertExpectations(t)
+		mockPerms.AssertExpectations(t)
+	})
+
+}

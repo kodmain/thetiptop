@@ -15,7 +15,7 @@ import (
 // @Accept		multipart/form-data
 // @Summary		Get a random ticket.
 // @Produce		application/json
-// @Router		/game/ticket/random [get]
+// @Router		/game/random [get]
 // @Id			jwt.Auth => game.GetTicket
 // @Security 	Bearer
 // @Success		200	{object} 	nil "Ticket details"
@@ -34,9 +34,9 @@ func GetTicket(ctx *fiber.Ctx) error {
 
 // @Tags		Game
 // @Accept		multipart/form-data
-// @Summary		Get a random ticket.
+// @Summary		List all tickets likend to the authenticated user.
 // @Produce		application/json
-// @Router		/game/ticket [get]
+// @Router		/game/tickets [get]
 // @Id			jwt.Auth => game.GetTickets
 // @Security 	Bearer
 // @Success		200	{object} 	nil "Tickets details"
@@ -72,6 +72,37 @@ func UpdateTicket(ctx *fiber.Ctx) error {
 	}
 
 	status, response := game.UpdateTicket(
+		services.Game(
+			security.NewUserAccess(ctx.Locals("token")),
+			repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
+		), dtoTicket,
+	)
+
+	return ctx.Status(status).JSON(response)
+}
+
+// @Tags		Game
+// @Accept		multipart/form-data
+// @Summary		Get ticket by id.
+// @Produce		application/json
+// @Router		/game/ticket/{id} [get]
+// @Id			jwt.Auth => game.GetTicketById
+// @Security 	Bearer
+// @Success		200	{object} 	nil "Tickets details"
+// @Failure		400	{object} 	nil "Bad request"
+// @Failure		404	{object} 	nil "Not found"
+func GetTicketById(ctx *fiber.Ctx) error {
+	TicketID := ctx.Params("id")
+
+	if TicketID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON("Ticket ID is required")
+	}
+
+	dtoTicket := &transfert.Ticket{
+		ID: &TicketID,
+	}
+
+	status, response := game.GetTicketById(
 		services.Game(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
