@@ -38,6 +38,7 @@ type UserRepositoryInterface interface {
 	// validation
 	CreateValidation(obj *transfert.Validation, options ...database.Option) (*entities.Validation, errors.ErrorInterface)
 	ReadValidation(obj *transfert.Validation, options ...database.Option) (*entities.Validation, errors.ErrorInterface)
+	ReadValidations(obj *transfert.Validation, options ...database.Option) ([]*entities.Validation, errors.ErrorInterface)
 	UpdateValidation(entity *entities.Validation, options ...database.Option) errors.ErrorInterface
 	DeleteValidation(obj *transfert.Validation, options ...database.Option) errors.ErrorInterface
 
@@ -223,6 +224,19 @@ func (r *UserRepository) ReadValidation(obj *transfert.Validation, options ...da
 	}
 
 	return validation, nil
+}
+
+func (r *UserRepository) ReadValidations(obj *transfert.Validation, options ...database.Option) ([]*entities.Validation, errors.ErrorInterface) {
+	validations := []*entities.Validation{}
+	query := r.store.Engine.Where(obj)
+	r.applyOptions(query, options...)
+	result := query.Find(&validations)
+
+	if result.Error != nil {
+		return nil, errors.ErrInternalServer.Log(result.Error)
+	}
+
+	return validations, nil
 }
 
 func (r *UserRepository) UpdateValidation(entity *entities.Validation, options ...database.Option) errors.ErrorInterface {

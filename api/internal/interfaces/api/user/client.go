@@ -8,6 +8,7 @@ import (
 	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 
+	gameRepository "github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
@@ -31,18 +32,19 @@ import (
 func RegisterClient(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := ctx.BodyParser(dtoCredential); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	dtoClient := &transfert.Client{}
 	if err := ctx.BodyParser(dtoClient); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.RegisterClient(
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoClient,
 	)
@@ -56,7 +58,6 @@ func RegisterClient(ctx *fiber.Ctx) error {
 // @Produce		application/json
 // @Param		id			formData	string	true	"Client ID" format(uuid)
 // @Param		newsletter	formData	bool	true	"Newsletter" default(false)
-// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Password updated"
 // @Failure		400	{object}	nil "Invalid email, password or token"
 // @Failure		404	{object}	nil "Client not found"
@@ -69,13 +70,14 @@ func RegisterClient(ctx *fiber.Ctx) error {
 func UpdateClient(ctx *fiber.Ctx) error {
 	dtoClient := &transfert.Client{}
 	if err := ctx.BodyParser(dtoClient); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.UpdateClient(
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
 	)
@@ -88,7 +90,6 @@ func UpdateClient(ctx *fiber.Ctx) error {
 // @Summary		Get a client by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Client ID" format(uuid)
-// @Param 		Authorization header string true "With the bearer started"
 // @Success		200	{object}	nil "Client details"
 // @Failure		400	{object}	nil "Invalid client ID"
 // @Failure		404	{object}	nil "Client not found"
@@ -100,7 +101,7 @@ func GetClient(ctx *fiber.Ctx) error {
 	clientID := ctx.Params("id")
 
 	if clientID == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "Client ID is required")
+		return ctx.Status(fiber.StatusBadRequest).JSON("Client ID is required")
 	}
 
 	dtoClient := &transfert.Client{
@@ -111,6 +112,7 @@ func GetClient(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
 	)
@@ -122,7 +124,6 @@ func GetClient(ctx *fiber.Ctx) error {
 // @Summary		Delete a client by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Client ID" format(uuid)
-// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Client deleted"
 // @Failure		400	{object}	nil "Invalid client ID"
 // @Failure		404	{object}	nil "Client not found"
@@ -134,7 +135,7 @@ func DeleteClient(ctx *fiber.Ctx) error {
 	clientID := ctx.Params("id")
 
 	if clientID == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "Client ID is required")
+		return ctx.Status(fiber.StatusBadRequest).JSON("Client ID is required")
 	}
 
 	dtoClient := &transfert.Client{
@@ -145,8 +146,30 @@ func DeleteClient(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoClient,
+	)
+
+	return ctx.Status(status).JSON(response)
+}
+
+// @Tags		Client
+// @Summary		Export all data of the connected client.
+// @Produce		application/json
+// @Success		200	{object}	nil "Clients exported"
+// @Failure		500	{object}	nil "Internal
+// @Router		/client/export [get]
+// @Id			jwt.Auth => user.ExportClients
+// @Security 	Bearer
+func ExportClients(ctx *fiber.Ctx) error {
+	status, response := services.ExportClient(
+		domain.User(
+			security.NewUserAccess(ctx.Locals("token")),
+			repositories.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
+			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
+		),
 	)
 
 	return ctx.Status(status).JSON(response)

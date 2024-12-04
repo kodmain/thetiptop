@@ -68,7 +68,7 @@ func GetTickets(ctx *fiber.Ctx) error {
 func UpdateTicket(ctx *fiber.Ctx) error {
 	dtoTicket := &transfert.Ticket{}
 	if err := ctx.BodyParser(dtoTicket); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := game.UpdateTicket(

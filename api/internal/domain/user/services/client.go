@@ -1,6 +1,7 @@
 package services
 
 import (
+	gameTransfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
@@ -110,4 +111,52 @@ func (s *UserService) GetClient(dtoClient *transfert.Client) (*entities.Client, 
 	}
 
 	return client, nil
+}
+
+func (s *UserService) ExportClient() (*entities.ClientData, errors.ErrorInterface) {
+	credentialID := s.security.GetCredentialID()
+	if credentialID == nil {
+		return nil, errors.ErrUnauthorized
+	}
+
+	credential, err := s.repo.ReadCredential(&transfert.Credential{
+		ID: credentialID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	validations, err := s.repo.ReadValidations(&transfert.Validation{
+		ClientID: credentialID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := s.repo.ReadClient(&transfert.Client{
+		CredentialID: credentialID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	tickets, err := s.repoGame.ReadTickets(&gameTransfert.Ticket{
+		CredentialID: credentialID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	data := &entities.ClientData{
+		Credential:  credential,
+		Client:      client,
+		Tickets:     tickets,
+		Validations: validations,
+	}
+
+	return data, nil
 }

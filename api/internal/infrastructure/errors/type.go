@@ -1,6 +1,10 @@
 package errors
 
-import "github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+import (
+	"encoding/json"
+
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+)
 
 type ErrorInterface interface {
 	Error() string
@@ -20,6 +24,18 @@ func (e *Error) Log(err error) *Error {
 	}
 
 	return e
+}
+
+func (e Error) MarshalJSON() ([]byte, error) {
+	exported := struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}{
+		Code:    e.code,
+		Message: e.message,
+	}
+
+	return json.Marshal(exported)
 }
 
 func (e *Error) Code() int {

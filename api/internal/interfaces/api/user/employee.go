@@ -7,6 +7,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/application/security"
 	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	gameRepository "github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	domain "github.com/kodmain/thetiptop/api/internal/domain/user/services"
 
@@ -29,18 +30,19 @@ import (
 func RegisterEmployee(ctx *fiber.Ctx) error {
 	dtoCredential := &transfert.Credential{}
 	if err := ctx.BodyParser(dtoCredential); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	dtoEmployee := &transfert.Employee{}
 	if err := ctx.BodyParser(dtoEmployee); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.RegisterEmployee(
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoCredential, dtoEmployee,
 	)
@@ -54,7 +56,6 @@ func RegisterEmployee(ctx *fiber.Ctx) error {
 // @Produce		application/json
 // @Param		id			formData	string	true	"Employee ID" format(uuid)
 // @Param		newsletter	formData	bool	true	"Newsletter" default(false)
-// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Password updated"
 // @Failure		400	{object}	nil "Invalid email, password or token"
 // @Failure		404	{object}	nil "Employee not found"
@@ -67,13 +68,14 @@ func RegisterEmployee(ctx *fiber.Ctx) error {
 func UpdateEmployee(ctx *fiber.Ctx) error {
 	dtoEmployee := &transfert.Employee{}
 	if err := ctx.BodyParser(dtoEmployee); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return ctx.Status(fiber.StatusBadRequest).JSON(err)
 	}
 
 	status, response := services.UpdateEmployee(
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
 	)
@@ -86,7 +88,6 @@ func UpdateEmployee(ctx *fiber.Ctx) error {
 // @Summary		Get a employee by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Employee ID" format(uuid)
-// @Param 		Authorization header string true "With the bearer started"
 // @Success		200	{object}	nil "Employee details"
 // @Failure		400	{object}	nil "Invalid employee ID"
 // @Failure		404	{object}	nil "Employee not found"
@@ -98,7 +99,7 @@ func GetEmployee(ctx *fiber.Ctx) error {
 	EmployeeID := ctx.Params("id")
 
 	if EmployeeID == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "Employee ID is required")
+		return ctx.Status(fiber.StatusBadRequest).JSON("Employee ID is required")
 	}
 
 	dtoEmployee := &transfert.Employee{
@@ -111,6 +112,7 @@ func GetEmployee(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
 	)
@@ -122,7 +124,6 @@ func GetEmployee(ctx *fiber.Ctx) error {
 // @Summary		Delete a client by ID.
 // @Produce		application/json
 // @Param		id			path		string	true	"Employee ID" format(uuid)
-// @Param 		Authorization header string true "With the bearer started"
 // @Success		204	{object}	nil "Employee deleted"
 // @Failure		400	{object}	nil "Invalid employee ID"
 // @Failure		404	{object}	nil "Employee not found"
@@ -134,7 +135,7 @@ func DeleteEmployee(ctx *fiber.Ctx) error {
 	EmployeeID := ctx.Params("id")
 
 	if EmployeeID == "" {
-		return fiber.NewError(fiber.StatusBadRequest, "Employee ID is required")
+		return ctx.Status(fiber.StatusBadRequest).JSON("Employee ID is required")
 	}
 
 	dtoEmployee := &transfert.Employee{
@@ -145,6 +146,7 @@ func DeleteEmployee(ctx *fiber.Ctx) error {
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),
 			repositories.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT))),
+			gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 			mail.Get(config.GetString("services.client.mail", config.DEFAULT)),
 		), dtoEmployee,
 	)

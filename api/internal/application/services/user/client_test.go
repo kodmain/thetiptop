@@ -9,6 +9,7 @@ import (
 	"github.com/kodmain/thetiptop/api/config"
 	services "github.com/kodmain/thetiptop/api/internal/application/services/user"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	entitiesGame "github.com/kodmain/thetiptop/api/internal/domain/game/entities"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
 	errors_domain_user "github.com/kodmain/thetiptop/api/internal/domain/user/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
@@ -223,6 +224,74 @@ func TestMailValidation(t *testing.T) {
 		assert.Equal(t, fiber.StatusConflict, statusCode)
 		assert.Equal(t, errors_domain_user.ErrValidationAlreadyValidated, response)
 		mockClient.AssertExpectations(t)
+	})
+
+	t.Run("should return 200 and client data on success", func(t *testing.T) {
+		mockService := new(DomainUserService)
+
+		// Simuler des données de client exportées
+		expectedClients := &entities.ClientData{
+			Credential:  &entities.Credential{ID: "credential-id", Email: aws.String("email@example.com")},
+			Client:      &entities.Client{ID: "client-id", CGU: aws.Bool(true)},
+			Validations: []*entities.Validation{{ID: "validation-id", Validated: false}},
+			Tickets:     []*entitiesGame.Ticket{{ID: "ticket-id"}},
+		}
+
+		// Configurer le mock pour retourner des données valides
+		mockService.On("ExportClient").Return(expectedClients, nil)
+
+		// Appeler la méthode à tester
+		statusCode, response := services.ExportClient(mockService)
+
+		// Vérifications
+		assert.Equal(t, fiber.StatusOK, statusCode)
+		assert.Equal(t, expectedClients, response)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("should return error code and error on internal error", func(t *testing.T) {
+		mockService := new(DomainUserService)
+
+		// Simuler une erreur interne
+		mockService.On("ExportClient").Return(nil, errors.ErrInternalServer)
+
+		// Appeler la méthode à tester
+		statusCode, response := services.ExportClient(mockService)
+
+		// Vérifications
+		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
+		assert.Equal(t, errors.ErrInternalServer, response)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("should return error code and error on unauthorized", func(t *testing.T) {
+		mockService := new(DomainUserService)
+
+		// Simuler une erreur d'autorisation
+		mockService.On("ExportClient").Return(nil, errors.ErrUnauthorized)
+
+		// Appeler la méthode à tester
+		statusCode, response := services.ExportClient(mockService)
+
+		// Vérifications
+		assert.Equal(t, fiber.StatusUnauthorized, statusCode)
+		assert.Equal(t, errors.ErrUnauthorized, response)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("should return error code and error on client not found", func(t *testing.T) {
+		mockService := new(DomainUserService)
+
+		// Simuler une erreur de client introuvable
+		mockService.On("ExportClient").Return(nil, errors.ErrNotFound)
+
+		// Appeler la méthode à tester
+		statusCode, response := services.ExportClient(mockService)
+
+		// Vérifications
+		assert.Equal(t, fiber.StatusNotFound, statusCode)
+		assert.Equal(t, errors.ErrNotFound, response)
+		mockService.AssertExpectations(t)
 	})
 }
 

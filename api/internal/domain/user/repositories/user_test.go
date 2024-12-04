@@ -731,6 +731,104 @@ func TestReadClient(t *testing.T) {
 
 }
 
+func TestReadValidations(t *testing.T) {
+	// Fonction setup pour initialiser les dépendances
+	repo, mock, db := setup()
+	defer db.Close()
+
+	// Cas de lecture réussie
+	t.Run("successful read", func(t *testing.T) {
+		validationType := "password_recovery"
+		dto := &transfert.Validation{
+			Type: &validationType,
+		}
+
+		// Données simulées pour les validations
+		expectedValidations := []*entities.Validation{
+			{
+				ID:        "validation-id-1",
+				Type:      entities.PasswordRecover,
+				ClientID:  aws.String("client-id-1"),
+				Validated: false,
+			},
+			{
+				ID:        "validation-id-2",
+				Type:      entities.PasswordRecover,
+				ClientID:  aws.String("client-id-2"),
+				Validated: true,
+			},
+		}
+
+		// Mock de la requête SQL
+		mock.ExpectQuery(`SELECT \* FROM "validations" WHERE "validations"\."type" = \$1 AND "validations"\."deleted_at" IS NULL`).
+			WithArgs(validationType).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "type", "client_id", "validated"}).
+				AddRow(expectedValidations[0].ID, expectedValidations[0].Type, *expectedValidations[0].ClientID, expectedValidations[0].Validated).
+				AddRow(expectedValidations[1].ID, expectedValidations[1].Type, *expectedValidations[1].ClientID, expectedValidations[1].Validated))
+
+		// Appel de la méthode
+		result, err := repo.ReadValidations(dto)
+
+		// Vérifications
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Len(t, result, 2)
+		assert.Equal(t, expectedValidations[0].ID, result[0].ID)
+		assert.Equal(t, expectedValidations[1].ID, result[1].ID)
+
+		// Vérification des attentes SQL
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	// Cas où aucune validation n'est trouvée
+	t.Run("no validations found", func(t *testing.T) {
+		validationType := "email_verification"
+		dto := &transfert.Validation{
+			Type: &validationType,
+		}
+
+		// Mock pour simuler aucune ligne trouvée
+		mock.ExpectQuery(`SELECT \* FROM "validations" WHERE "validations"\."type" = \$1 AND "validations"\."deleted_at" IS NULL`).
+			WithArgs(validationType).
+			WillReturnRows(sqlmock.NewRows([]string{}))
+
+		// Appel de la méthode
+		result, err := repo.ReadValidations(dto)
+
+		// Vérifications
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Len(t, result, 0) // Résultat vide attendu
+
+		// Vérification des attentes SQL
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	// Cas où une erreur SQL survient
+	t.Run("database error", func(t *testing.T) {
+		validationType := "email_verification"
+		dto := &transfert.Validation{
+			Type: &validationType,
+		}
+
+		// Mock pour simuler une erreur SQL
+		mock.ExpectQuery(`SELECT \* FROM "validations" WHERE "validations"\."type" = \$1 AND "validations"\."deleted_at" IS NULL`).
+			WithArgs(validationType).
+			WillReturnError(fmt.Errorf("database error"))
+
+		// Appel de la méthode
+		result, err := repo.ReadValidations(dto)
+
+		// Vérifications
+		assert.Nil(t, result)
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "common.internal_error")
+
+		// Vérification des attentes SQL
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+
 // TestUpdateClient teste la mise à jour des clients
 func TestUpdateClient(t *testing.T) {
 	repo, mock, db := setup()
