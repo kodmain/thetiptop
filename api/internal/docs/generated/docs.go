@@ -450,7 +450,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/game/ticket": {
+        "/game/random": {
             "get": {
                 "security": [
                     {
@@ -467,19 +467,21 @@ const docTemplate = `{
                     "Game"
                 ],
                 "summary": "Get a random ticket.",
-                "operationId": "jwt.Auth =\u003e game.GetTickets",
+                "operationId": "jwt.Auth =\u003e game.GetTicket",
                 "responses": {
                     "200": {
-                        "description": "Tickets details"
+                        "description": "Ticket details"
                     },
                     "400": {
                         "description": "Bad request"
                     },
-                    "404": {
-                        "description": "Not found"
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
-            },
+            }
+        },
+        "/game/ticket": {
             "put": {
                 "security": [
                     {
@@ -523,7 +525,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/game/ticket/random": {
+        "/game/ticket/{id}": {
             "get": {
                 "security": [
                     {
@@ -539,17 +541,48 @@ const docTemplate = `{
                 "tags": [
                     "Game"
                 ],
-                "summary": "Get a random ticket.",
-                "operationId": "jwt.Auth =\u003e game.GetTicket",
+                "summary": "Get ticket by id.",
+                "operationId": "jwt.Auth =\u003e game.GetTicketById",
                 "responses": {
                     "200": {
-                        "description": "Ticket details"
+                        "description": "Tickets details"
                     },
                     "400": {
                         "description": "Bad request"
                     },
-                    "401": {
-                        "description": "Unauthorized"
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/game/tickets": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "List all tickets likend to the authenticated user.",
+                "operationId": "jwt.Auth =\u003e game.GetTickets",
+                "responses": {
+                    "200": {
+                        "description": "Tickets details"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    },
+                    "404": {
+                        "description": "Not found"
                     }
                 }
             }

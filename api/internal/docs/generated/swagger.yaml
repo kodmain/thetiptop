@@ -291,25 +291,26 @@ paths:
       summary: Register a employee.
       tags:
       - Employee
-  /game/ticket:
+  /game/random:
     get:
       consumes:
       - multipart/form-data
-      operationId: jwt.Auth => game.GetTickets
+      operationId: jwt.Auth => game.GetTicket
       produces:
       - application/json
       responses:
         "200":
-          description: Tickets details
+          description: Ticket details
         "400":
           description: Bad request
-        "404":
-          description: Not found
+        "401":
+          description: Unauthorized
       security:
       - Bearer: []
       summary: Get a random ticket.
       tags:
       - Game
+  /game/ticket:
     put:
       consumes:
       - multipart/form-data
@@ -337,23 +338,42 @@ paths:
       summary: Update a ticket.
       tags:
       - Game
-  /game/ticket/random:
+  /game/ticket/{id}:
     get:
       consumes:
       - multipart/form-data
-      operationId: jwt.Auth => game.GetTicket
+      operationId: jwt.Auth => game.GetTicketById
       produces:
       - application/json
       responses:
         "200":
-          description: Ticket details
+          description: Tickets details
         "400":
           description: Bad request
-        "401":
-          description: Unauthorized
+        "404":
+          description: Not found
       security:
       - Bearer: []
-      summary: Get a random ticket.
+      summary: Get ticket by id.
+      tags:
+      - Game
+  /game/tickets:
+    get:
+      consumes:
+      - multipart/form-data
+      operationId: jwt.Auth => game.GetTickets
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tickets details
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - Bearer: []
+      summary: List all tickets likend to the authenticated user.
       tags:
       - Game
   /status/healthcheck:
