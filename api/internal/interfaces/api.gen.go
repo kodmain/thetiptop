@@ -11,6 +11,7 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/interfaces/api/code"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/api/game"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/api/user"
+	"github.com/kodmain/thetiptop/api/internal/interfaces/crm/store"
 	"github.com/kodmain/thetiptop/api/internal/interfaces/status"
 	"github.com/swaggo/swag"
 )
@@ -30,10 +31,16 @@ var (
 		"jwt.Auth":               jwt.Auth,
 		"status.HealthCheck":     status.HealthCheck,
 		"status.IP":              status.IP,
+		"store.CreateCaisse":     store.CreateCaisse,
+		"store.DeleteCaisse":     store.DeleteCaisse,
+		"store.GetCaisse":        store.GetCaisse,
+		"store.GetCaisseByStore": store.GetCaisseByStore,
+		"store.List":             store.List,
+		"store.UpdateCaisse":     store.UpdateCaisse,
 		"user.CredentialUpdate":  user.CredentialUpdate,
 		"user.DeleteClient":      user.DeleteClient,
 		"user.DeleteEmployee":    user.DeleteEmployee,
-		"user.ExportClients":     user.ExportClients,
+		"user.ExportClient":      user.ExportClient,
 		"user.GetClient":         user.GetClient,
 		"user.GetEmployee":       user.GetEmployee,
 		"user.MailValidation":    user.MailValidation,

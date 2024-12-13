@@ -157,12 +157,14 @@ func DeleteClient(ctx *fiber.Ctx) error {
 // @Tags		Client
 // @Summary		Export all data of the connected client.
 // @Produce		application/json
-// @Success		200	{object}	nil "Clients exported"
-// @Failure		500	{object}	nil "Internal
-// @Router		/client/export [get]
-// @Id			jwt.Auth => user.ExportClients
+// @Success		200	{object}	nil "Client exported"
+// @Failure		401 {object}	nil "Unauthorized"
+// @Failure		404	{object}	nil "Client not found"
+// @Failure		500	{object}	nil "Internal server error"
+// @Router		/export/client [get]
+// @Id			jwt.Auth => user.ExportClient
 // @Security 	Bearer
-func ExportClients(ctx *fiber.Ctx) error {
+func ExportClient(ctx *fiber.Ctx) error {
 	status, response := services.ExportClient(
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),

@@ -14,6 +14,8 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/docs/generated"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/events"
 	"github.com/kodmain/thetiptop/api/internal/domain/game/repositories"
+	eventStore "github.com/kodmain/thetiptop/api/internal/domain/store/events"
+	repoStore "github.com/kodmain/thetiptop/api/internal/domain/store/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
@@ -27,6 +29,10 @@ var callBack hook.Handler = func(tags ...string) {
 		repositories.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT))),
 		config.Get("project.tickets.required", 10000).(int),
 		config.Get("project.tickets.types", map[string]int{}).(map[string]int),
+	)
+
+	eventStore.CreateStores(
+		repoStore.NewStoreRepository(database.Get(config.GetString("services.store.database", config.DEFAULT))),
 	)
 }
 
