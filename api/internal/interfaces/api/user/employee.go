@@ -106,8 +106,6 @@ func GetEmployee(ctx *fiber.Ctx) error {
 		ID: &EmployeeID,
 	}
 
-	ctx.Locals("employee", dtoEmployee)
-
 	status, response := services.GetEmployee(
 		domain.User(
 			security.NewUserAccess(ctx.Locals("token")),

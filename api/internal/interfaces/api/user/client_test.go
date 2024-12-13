@@ -204,9 +204,6 @@ func TestExportClients(t *testing.T) {
 	err = json.Unmarshal(JWT, &tokenData)
 	assert.Nil(t, err)
 
-	logger.Warn("JWT", string(JWT))
-	logger.Warn("TokenData", tokenData)
-
 	accessTokenString, ok := tokenData["access_token"].(string)
 	assert.True(t, ok, "access_token should be a string")
 	authorization := "Bearer " + accessTokenString
@@ -226,7 +223,7 @@ func TestExportClients(t *testing.T) {
 		t.Run("ExportClients/"+encodingName, func(t *testing.T) {
 			// Test avec un token valide
 			t.Run("Valid Token", func(t *testing.T) {
-				content, status, err := request("GET", DOMAIN+"/client/export", authorization, encoding, nil)
+				content, status, err := request("GET", DOMAIN+"/export/client", authorization, encoding, nil)
 				assert.Nil(t, err)
 				assert.Equal(t, http.StatusOK, status)
 				var response map[string]interface{}
@@ -236,7 +233,7 @@ func TestExportClients(t *testing.T) {
 
 			// Test sans token
 			t.Run("Missing Token", func(t *testing.T) {
-				content, status, err := request("GET", DOMAIN+"/client/export", "", encoding, nil)
+				content, status, err := request("GET", DOMAIN+"/export/client", "", encoding, nil)
 				assert.Nil(t, err)
 				assert.Equal(t, http.StatusUnauthorized, status)
 				assert.Equal(t, "{\"code\":401,\"message\":\"auth.no_token\"}", string(content))
