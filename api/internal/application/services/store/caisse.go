@@ -22,20 +22,6 @@ func GetCaisse(store services.StoreServiceInterface, dtoCaisse *transfert.Caisse
 	return fiber.StatusOK, caisses
 }
 
-func GetCaisseByStore(store services.StoreServiceInterface, dtoCaisse *transfert.Caisse) (int, any) {
-	if err := dtoCaisse.Check(data.Validator{
-		"store_id": {validator.Required, validator.ID},
-	}); err != nil {
-		return err.Code(), err
-	}
-
-	caisses, err := store.GetCaissesByStore(dtoCaisse)
-	if err != nil {
-		return err.Code(), err
-	}
-	return fiber.StatusOK, caisses
-}
-
 func CreateCaisse(store services.StoreServiceInterface, dtoCaisse *transfert.Caisse) (int, any) {
 	if err := dtoCaisse.Check(data.Validator{
 		"store_id": {validator.Required, validator.ID},

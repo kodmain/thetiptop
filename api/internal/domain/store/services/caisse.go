@@ -25,23 +25,6 @@ func (s *StoreService) GetCaisse(dto *transfert.Caisse) (*entities.Caisse, error
 	return caisse, nil
 }
 
-func (s *StoreService) GetCaissesByStore(dto *transfert.Caisse) ([]*entities.Caisse, errors.ErrorInterface) {
-	if dto == nil {
-		return nil, errors.ErrNoDto
-	}
-
-	if !s.security.IsGrantedByRoles(user.ROLE_EMPLOYEE) {
-		return nil, errors.ErrUnauthorized
-	}
-
-	caisses, err := s.repo.ReadCaisses(dto)
-	if err != nil {
-		return nil, err
-	}
-
-	return caisses, nil
-}
-
 func (s *StoreService) CreateCaisse(dto *transfert.Caisse) (*entities.Caisse, errors.ErrorInterface) {
 	if dto == nil {
 		return nil, errors.ErrNoDto

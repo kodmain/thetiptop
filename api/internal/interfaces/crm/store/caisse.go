@@ -41,31 +41,6 @@ func GetCaisse(ctx *fiber.Ctx) error {
 }
 
 // @Tags      Caisse
-// @Summary   Get caisse by lieu
-// @Produce   application/json
-// @Param     store_id path string true "Store ID" format(uuid)
-// @Success   200 {object} []entities.Caisse "List of caisse"
-// @Failure   400 {object} nil "Invalid lieu"
-// @Failure   500 {object} nil "Internal server error"
-// @Router    /caisse/{lieu} [get]
-// @Id        store.GetCaisseByStore
-func GetCaisseByStore(ctx *fiber.Ctx) error {
-	dto := &transfert.Caisse{}
-	if err := ctx.BodyParser(dto); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(err)
-	}
-
-	status, response := services.GetCaisseByStore(
-		domain.Store(
-			security.NewUserAccess(ctx.Locals("token")),
-			storeRepository.NewStoreRepository(database.Get(config.GetString("services.store.database", config.DEFAULT))),
-		), dto,
-	)
-
-	return ctx.Status(status).JSON(response)
-}
-
-// @Tags      Caisse
 // @Accept	  multipart/form-data
 // @Summary   Create a new caisse
 // @Produce	  application/jsons
@@ -84,7 +59,7 @@ func CreateCaisse(ctx *fiber.Ctx) error {
 	status, response := services.CreateCaisse(
 		domain.Store(
 			security.NewUserAccess(ctx.Locals("token")),
-			storeRepository.NewStoreRepository(database.Get(config.GetString("services.store.database", config.DEFAULT))),
+			storeRepository.NewStoreRepository(database.Get(config.GetString("services.caisse.database", config.DEFAULT))),
 		), dtoCaisse,
 	)
 
