@@ -31,7 +31,7 @@ const (
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
 
-	email    = "user-thetiptop@yopmail.com"
+	email    = "client-thetiptop@yopmail.com"
 	password = "Aa1@azetyuiop"
 )
 
@@ -79,7 +79,7 @@ var srv *server.Server
 
 var callBack hook.HandlerSync = func(tags ...string) {
 	if len(tags) > 0 && tags[0] == "default" {
-		user := userRepository.NewUserRepository(database.Get(config.GetString("services.game.database", config.DEFAULT)))
+		user := userRepository.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT)))
 		cred, _ := user.CreateCredential(&transfert.Credential{
 			Email:    aws.String(email),
 			Password: aws.String(password),
