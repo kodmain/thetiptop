@@ -1,5 +1,9 @@
 package store_test
 
+func init() {
+
+}
+
 /*
 func TestCaisses(t *testing.T) {
 	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}

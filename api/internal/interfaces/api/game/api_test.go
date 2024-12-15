@@ -24,14 +24,14 @@ import (
 )
 
 const (
-	email    = "user-thetiptop@yopmail.com"
+	email    = "employee-thetiptop@yopmail.com"
 	password = "Aa1@azetyuiop"
 )
 
 var srv *server.Server
 var callBack hook.HandlerSync = func(tags ...string) {
 	if len(tags) > 0 && tags[0] == "default" {
-		user := userRepository.NewUserRepository(database.Get(config.GetString("services.user.database", config.DEFAULT)))
+		user := userRepository.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT)))
 		game := gameRepository.NewGameRepository(database.Get(config.GetString("services.game.database", config.DEFAULT)))
 		cred, _ := user.CreateCredential(&userTransfert.Credential{
 			Email:    aws.String(email),

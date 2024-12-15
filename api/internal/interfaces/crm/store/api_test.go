@@ -25,7 +25,7 @@ import (
 
 const (
 	DOMAIN   = "http://localhost:8888"
-	email    = "user-thetiptop@yopmail.com"
+	email    = "employee-thetiptop@yopmail.com"
 	password = "Aa1@azetyuiop"
 )
 
@@ -33,7 +33,7 @@ var srv *server.Server
 
 var callBack hook.HandlerSync = func(tags ...string) {
 	if len(tags) > 0 && tags[0] == "default" {
-		user := userRepository.NewUserRepository(database.Get(config.GetString("services.user.database", config.DEFAULT)))
+		user := userRepository.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT)))
 		cred, _ := user.CreateCredential(&userTransfert.Credential{
 			Email:    aws.String(email),
 			Password: aws.String(password),
@@ -43,7 +43,7 @@ var callBack hook.HandlerSync = func(tags ...string) {
 			CredentialID: &cred.ID,
 		})
 
-		storeRepo := storeRepository.NewStoreRepository(database.Get(config.GetString("services.game.database", config.DEFAULT)))
+		storeRepo := storeRepository.NewStoreRepository(database.Get(config.GetString("services.store.database", config.DEFAULT)))
 		storeRepo.CreateStores([]*transfert.Store{
 			{
 				Label:    aws.String("DigitalStore"),
@@ -62,7 +62,6 @@ var callBack hook.HandlerSync = func(tags ...string) {
 				Label:   aws.String("Caisse1"),
 			})
 		}
-
 	}
 }
 
