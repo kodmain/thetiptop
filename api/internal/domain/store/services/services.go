@@ -19,9 +19,9 @@ func Store(security security.PermissionInterface, repo repositories.StoreReposit
 
 type StoreServiceInterface interface {
 	ListStores() ([]*entities.Store, errors.ErrorInterface)
+	GetStoreByID(*transfert.Store) (*entities.Store, errors.ErrorInterface)
 
 	GetCaisse(*transfert.Caisse) (*entities.Caisse, errors.ErrorInterface)
-	GetCaissesByStore(*transfert.Caisse) ([]*entities.Caisse, errors.ErrorInterface)
 	CreateCaisse(*transfert.Caisse) (*entities.Caisse, errors.ErrorInterface)
 	DeleteCaisse(*transfert.Caisse) errors.ErrorInterface
 	UpdateCaisse(*transfert.Caisse) (*entities.Caisse, errors.ErrorInterface)

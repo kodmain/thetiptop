@@ -9,6 +9,8 @@ services:
     database: default
   store:
     database: default
+  caisse:
+    database: default
 
 providers:
   mails:

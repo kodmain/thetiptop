@@ -34,7 +34,7 @@ var (
 		"store.CreateCaisse":     store.CreateCaisse,
 		"store.DeleteCaisse":     store.DeleteCaisse,
 		"store.GetCaisse":        store.GetCaisse,
-		"store.GetCaisseByStore": store.GetCaisseByStore,
+		"store.GetStoreByID":     store.GetStoreByID,
 		"store.List":             store.List,
 		"store.UpdateCaisse":     store.UpdateCaisse,
 		"user.CredentialUpdate":  user.CredentialUpdate,

@@ -107,32 +107,6 @@ paths:
       summary: Update a caisse by ID
       tags:
       - Caisse
-  /caisse/{lieu}:
-    get:
-      operationId: store.GetCaisseByStore
-      parameters:
-      - description: Store ID
-        format: uuid
-        in: path
-        name: store_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of caisse
-          schema:
-            items:
-              $ref: '#/definitions/entities.Caisse'
-            type: array
-        "400":
-          description: Invalid lieu
-        "500":
-          description: Internal server error
-      summary: Get caisse by lieu
-      tags:
-      - Caisse
   /client:
     put:
       consumes:
@@ -547,6 +521,28 @@ paths:
         "200":
           description: list of store
       summary: List all store.
+      tags:
+      - Store
+  /store/{id}:
+    get:
+      operationId: store.GetStoreByID
+      parameters:
+      - description: Store ID
+        format: uuid
+        in: path
+        name: store_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of caisse
+        "400":
+          description: Invalid store
+        "500":
+          description: Internal server error
+      summary: Get caisse by store
       tags:
       - Store
   /user/auth:

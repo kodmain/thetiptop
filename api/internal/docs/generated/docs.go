@@ -152,45 +152,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/caisse/{lieu}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Caisse"
-                ],
-                "summary": "Get caisse by lieu",
-                "operationId": "store.GetCaisseByStore",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "uuid",
-                        "description": "Store ID",
-                        "name": "store_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of caisse",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entities.Caisse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid lieu"
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                }
-            }
-        },
         "/client": {
             "put": {
                 "security": [
@@ -827,6 +788,39 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "list of store"
+                    }
+                }
+            }
+        },
+        "/store/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Store"
+                ],
+                "summary": "Get caisse by store",
+                "operationId": "store.GetStoreByID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Store ID",
+                        "name": "store_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of caisse"
+                    },
+                    "400": {
+                        "description": "Invalid store"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
