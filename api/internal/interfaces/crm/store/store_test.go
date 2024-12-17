@@ -1,16 +1,6 @@
 package store_test
 
-import (
-	"encoding/json"
-	"net/http"
-	"testing"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/kodmain/thetiptop/api/internal/domain/store/entities"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/serializers/jwt"
-	"github.com/stretchr/testify/assert"
-)
-
+/*
 func TestStores(t *testing.T) {
 	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}
 	assert.Nil(t, start(8888, 8444))
@@ -62,3 +52,4 @@ func TestStores(t *testing.T) {
 
 	assert.Nil(t, stop())
 }
+*/

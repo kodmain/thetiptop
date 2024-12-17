@@ -10,7 +10,7 @@ import (
 
 func TestListErrors(t *testing.T) {
 	encodingTypes := []EncodingType{FormURLEncoded, JSONEncoded}
-	assert.Nil(t, start(8888, 9999))
+	assert.Nil(t, start(8888, 8444))
 
 	for _, encoding := range encodingTypes {
 		var encodingName string = "FormURLEncoded"
