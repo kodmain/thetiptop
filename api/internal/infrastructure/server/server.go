@@ -19,6 +19,8 @@ import (
 var methods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"}
 
 const (
+	v   = "%v"
+	vv  = "%v %v"
 	vvv = "%v %v %v"
 )
 
