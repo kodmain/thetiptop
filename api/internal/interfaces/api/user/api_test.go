@@ -31,7 +31,7 @@ const (
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
 
-	email    = "client-thetiptop@yopmail.com"
+	email    = "client-user-api-thetiptop@yopmail.com"
 	password = "Aa1@azetyuiop"
 )
 
@@ -80,14 +80,18 @@ var srv *server.Server
 var callBack hook.HandlerSync = func(tags ...string) {
 	if len(tags) > 0 && tags[0] == "default" {
 		user := userRepository.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT)))
-		cred, _ := user.CreateCredential(&transfert.Credential{
-			Email:    aws.String(email),
-			Password: aws.String(password),
-		})
+		if crd, _ := user.ReadCredential(&transfert.Credential{
+			Email: aws.String(email),
+		}); crd == nil {
+			cred, _ := user.CreateCredential(&transfert.Credential{
+				Email:    aws.String(email),
+				Password: aws.String(password),
+			})
 
-		user.CreateClient(&transfert.Client{
-			CredentialID: &cred.ID,
-		})
+			user.CreateClient(&transfert.Client{
+				CredentialID: &cred.ID,
+			})
+		}
 	}
 }
 

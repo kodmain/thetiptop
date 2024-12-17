@@ -39,6 +39,7 @@ type HookHandler interface {
 
 var (
 	handlers = map[Event][]HookHandler{}
+	history  = map[Event][]string{}
 	mu       sync.Mutex
 )
 
@@ -46,6 +47,9 @@ func Register(event Event, handler HookHandler) {
 	mu.Lock()
 	handlers[event] = append(handlers[event], handler)
 	mu.Unlock()
+	if _, ok := history[event]; ok {
+		Call(event, history[event]...)
+	}
 }
 
 func Call(event Event, tags ...string) {
@@ -54,7 +58,8 @@ func Call(event Event, tags ...string) {
 		mu.Lock()
 		defer mu.Unlock()
 
-		// Liste temporaire pour les gestionnaires restants
+		history[event] = tags
+
 		var remainingHandlers []HookHandler
 
 		for _, handler := range handlers[event] {
