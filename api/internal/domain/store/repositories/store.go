@@ -141,9 +141,12 @@ func (r *StoreRepository) ReadCaisse(obj *transfert.Caisse, options ...database.
 		option(query)
 	}
 
-	result := query.Find(&caisse)
+	result := query.First(&caisse)
 
 	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, errors_domain_store.ErrCaisseNotFound
+		}
 		return nil, errors.ErrInternalServer.Log(result.Error)
 	}
 

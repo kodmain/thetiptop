@@ -9,4 +9,6 @@ import (
 var (
 	// Store errors
 	ErrStoreNotFound = errors.New(http.StatusNotFound, "store.not_found")
+	// Caisse errors
+	ErrCaisseNotFound = errors.New(http.StatusNotFound, "caisse.not_found")
 )
