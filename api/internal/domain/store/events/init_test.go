@@ -3,124 +3,254 @@ package events_test
 import (
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/game"
-	"github.com/kodmain/thetiptop/api/internal/domain/game/entities"
-	"github.com/kodmain/thetiptop/api/internal/domain/game/events"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/crm"
+	"github.com/kodmain/thetiptop/api/internal/domain/store/entities"
+	"github.com/kodmain/thetiptop/api/internal/domain/store/events"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
-	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/token"
 )
 
-// MockGameRepository simule l'interface GameRepositoryInterface
-type MockGameRepository struct {
+// MockStoreRepository est une implémentation mock de StoreRepositoryInterface utilisant testify/mock
+type MockStoreRepository struct {
 	mock.Mock
 }
 
-// CreateTicket simule la création d'un ticket
-func (m *MockGameRepository) CreateTicket(obj *transfert.Ticket, options ...database.Option) (*entities.Ticket, errors.ErrorInterface) {
+// ReadStores simule la méthode ReadStores de StoreRepositoryInterface
+func (m *MockStoreRepository) ReadStores(obj *transfert.Store, options ...database.Option) ([]*entities.Store, errors.ErrorInterface) {
 	args := m.Called(obj, options)
-	if args.Error(1) != nil {
-		return nil, args.Error(1).(errors.ErrorInterface)
+
+	var err errors.ErrorInterface
+	if e := args.Get(1); e != nil {
+		err = e.(errors.ErrorInterface)
 	}
-	return args.Get(0).(*entities.Ticket), nil
+
+	if result := args.Get(0); result != nil {
+		return result.([]*entities.Store), err
+	}
+
+	return nil, err
 }
 
-// CreateTickets simule la création de plusieurs tickets
-func (m *MockGameRepository) CreateTickets(objs []*transfert.Ticket, options ...database.Option) errors.ErrorInterface {
+// CreateCaisse simule la méthode CreateCaisse de StoreRepositoryInterface
+func (m *MockStoreRepository) CreateCaisse(obj *transfert.Caisse, options ...database.Option) (*entities.Caisse, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+
+	var err errors.ErrorInterface
+	if e := args.Get(1); e != nil {
+		err = e.(errors.ErrorInterface)
+	}
+
+	if result := args.Get(0); result != nil {
+		return result.(*entities.Caisse), err
+	}
+
+	return nil, err
+}
+
+// ReadCaisses simule la méthode ReadCaisses de StoreRepositoryInterface
+func (m *MockStoreRepository) ReadCaisses(obj *transfert.Caisse, options ...database.Option) ([]*entities.Caisse, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+
+	var err errors.ErrorInterface
+	if e := args.Get(1); e != nil {
+		err = e.(errors.ErrorInterface)
+	}
+
+	if result := args.Get(0); result != nil {
+		return result.([]*entities.Caisse), err
+	}
+
+	return nil, err
+}
+
+// ReadCaisse simule la méthode ReadCaisse de StoreRepositoryInterface
+func (m *MockStoreRepository) ReadCaisse(obj *transfert.Caisse, options ...database.Option) (*entities.Caisse, errors.ErrorInterface) {
+	args := m.Called(obj, options)
+
+	var err errors.ErrorInterface
+	if e := args.Get(1); e != nil {
+		err = e.(errors.ErrorInterface)
+	}
+
+	if result := args.Get(0); result != nil {
+		return result.(*entities.Caisse), err
+	}
+
+	return nil, err
+}
+
+// UpdateCaisse simule la méthode UpdateCaisse de StoreRepositoryInterface
+func (m *MockStoreRepository) UpdateCaisse(obj *entities.Caisse, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(obj, options)
+
+	if args.Error(0) != nil {
+		return args.Error(0).(errors.ErrorInterface)
+	}
+
+	return nil
+}
+
+// DeleteCaisse simule la méthode DeleteCaisse de StoreRepositoryInterface
+func (m *MockStoreRepository) DeleteCaisse(obj *transfert.Caisse, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(obj, options)
+
+	if args.Error(0) != nil {
+		return args.Error(0).(errors.ErrorInterface)
+	}
+
+	return nil
+}
+
+// CreateStores simule la méthode CreateStores de StoreRepositoryInterface
+func (m *MockStoreRepository) CreateStores(objs []*transfert.Store, options ...database.Option) errors.ErrorInterface {
 	args := m.Called(objs, options)
+
 	if args.Error(0) != nil {
 		return args.Error(0).(errors.ErrorInterface)
 	}
+
 	return nil
 }
 
-// ReadTicket simule la lecture d'un ticket
-func (m *MockGameRepository) ReadTicket(obj *transfert.Ticket, options ...database.Option) (*entities.Ticket, errors.ErrorInterface) {
-	args := m.Called(obj, options)
-	if args.Error(1) != nil {
-		return nil, args.Error(1).(errors.ErrorInterface)
-	}
-	return args.Get(0).(*entities.Ticket), nil
-}
+// DeleteStores simule la méthode DeleteStores de StoreRepositoryInterface
+func (m *MockStoreRepository) DeleteStores(objs []*transfert.Store, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(objs, options)
 
-// ReadTickets simule la lecture de plusieurs tickets
-func (m *MockGameRepository) ReadTickets(obj *transfert.Ticket, options ...database.Option) ([]*entities.Ticket, errors.ErrorInterface) {
-	args := m.Called(obj, options)
-	if args.Error(1) != nil {
-		return nil, args.Error(1).(errors.ErrorInterface)
-	}
-	return args.Get(0).([]*entities.Ticket), nil
-}
-
-// UpdateTicket simule la mise à jour d'un ticket
-func (m *MockGameRepository) UpdateTicket(entity *entities.Ticket, options ...database.Option) errors.ErrorInterface {
-	args := m.Called(entity, options)
 	if args.Error(0) != nil {
 		return args.Error(0).(errors.ErrorInterface)
 	}
+
 	return nil
 }
 
-// DeleteTicket simule la suppression d'un ticket
-func (m *MockGameRepository) DeleteTicket(obj *transfert.Ticket, options ...database.Option) errors.ErrorInterface {
-	args := m.Called(obj, options)
+// UpdateStores simule la méthode UpdateStores de StoreRepositoryInterface
+func (m *MockStoreRepository) UpdateStores(objs []*entities.Store, options ...database.Option) errors.ErrorInterface {
+	args := m.Called(objs, options)
+
 	if args.Error(0) != nil {
 		return args.Error(0).(errors.ErrorInterface)
 	}
+
 	return nil
 }
 
-// CountTicket simule le comptage de tickets
-func (m *MockGameRepository) CountTicket(obj *transfert.Ticket, options ...database.Option) (int, errors.ErrorInterface) {
+// ReadStore simule la méthode ReadStore de StoreRepositoryInterface
+func (m *MockStoreRepository) ReadStore(obj *transfert.Store, options ...database.Option) (*entities.Store, errors.ErrorInterface) {
 	args := m.Called(obj, options)
-	if args.Error(1) != nil {
-		return 0, args.Error(1).(errors.ErrorInterface)
+
+	var err errors.ErrorInterface
+	if e := args.Get(1); e != nil {
+		err = e.(errors.ErrorInterface)
 	}
-	return args.Int(0), nil
+
+	if result := args.Get(0); result != nil {
+		return result.(*entities.Store), err
+	}
+
+	return nil, err
 }
 
-// Tests pour la méthode HydrateDBWithTickets
-func TestHydrateDBWithTickets(t *testing.T) {
-	// Initialisation du MockGameRepository
-	mockRepo := new(MockGameRepository)
+// setupStoreRepository initialise l'environnement de test en créant une instance du mock et en retournant une fonction de nettoyage
+func setupStoreRepository() (*MockStoreRepository, func()) {
+	mockRepo := new(MockStoreRepository)
+	cleanup := func() {}
+	return mockRepo, cleanup
+}
 
-	token1 := token.Generate(12)
-	token2 := token.Generate(12)
+// TestConvertEntityToTransfer teste la fonction ConvertEntityToTransfer
+func TestConvertEntityToTransfer(t *testing.T) {
+	t.Run("convert entity to transfer", func(t *testing.T) {
+		// Création d'une entité Store
+		entityStore := &entities.Store{
+			Label:    aws.String("Store One"),
+			IsOnline: aws.Bool(true),
+		}
 
-	// Configuration du mock pour ReadTickets
-	mockRepo.On("ReadTickets", mock.Anything, mock.Anything).Return([]*entities.Ticket{
-		{Token: token1},
-		{Token: token2},
-	}, errors.ErrorInterface(nil))
+		// Appel de la fonction de conversion
+		transferStore := events.ConvertEntityToTransfer(entityStore)
 
-	// Configuration du mock pour CountTicket
-	mockRepo.On("CountTicket", mock.MatchedBy(func(ticket *transfert.Ticket) bool {
-		return ticket != nil && ticket.Prize != nil && *ticket.Prize == "PrizeA"
-	}), mock.Anything).Return(100, errors.ErrorInterface(nil))
+		// Assertions
+		assert.NotNil(t, transferStore)
+		assert.Equal(t, entityStore.Label, transferStore.Label)
+		assert.Equal(t, entityStore.IsOnline, transferStore.IsOnline)
+	})
+}
 
-	mockRepo.On("CountTicket", mock.MatchedBy(func(ticket *transfert.Ticket) bool {
-		return ticket != nil && ticket.Prize != nil && *ticket.Prize == "PrizeB"
-	}), mock.Anything).Return(200, errors.ErrorInterface(nil))
+// TestConvertTransferToEntity teste la fonction ConvertTransferToEntity
+func TestConvertTransferToEntity(t *testing.T) {
+	t.Run("convert transfer to entity", func(t *testing.T) {
+		// Création d'un transfert Store
+		transferStore := &transfert.Store{
+			Label:    aws.String("Store Two"),
+			IsOnline: aws.Bool(false),
+		}
 
-	// Configuration du mock pour CreateTickets
-	mockRepo.On("CreateTickets", mock.Anything, mock.Anything).Return(errors.ErrorInterface(nil))
+		// Appel de la fonction de conversion
+		entityStore := events.ConvertTransferToEntity(transferStore)
 
-	// Appel de la méthode HydrateDBWithTickets
-	dispatch := map[string]int{
-		"PrizeA": 50,
-		"PrizeB": 50,
-	}
-	events.HydrateDBWithTickets(mockRepo, 1000, dispatch)
+		// Assertions
+		assert.NotNil(t, entityStore)
+		assert.Equal(t, transferStore.Label, entityStore.Label)
+		assert.Equal(t, transferStore.IsOnline, entityStore.IsOnline)
+	})
+}
 
-	// Vérifications
-	mockRepo.AssertCalled(t, "ReadTickets", mock.Anything, mock.Anything)
-	mockRepo.AssertCalled(t, "CountTicket", mock.MatchedBy(func(ticket *transfert.Ticket) bool {
-		return ticket != nil && ticket.Prize != nil && *ticket.Prize == "PrizeA"
-	}), mock.Anything)
-	mockRepo.AssertCalled(t, "CountTicket", mock.MatchedBy(func(ticket *transfert.Ticket) bool {
-		return ticket != nil && ticket.Prize != nil && *ticket.Prize == "PrizeB"
-	}), mock.Anything)
-	mockRepo.AssertCalled(t, "CreateTickets", mock.Anything, mock.Anything)
+func TestCreateStores(t *testing.T) {
+
+	t.Run("nominal case", func(t *testing.T) {
+		mockRepo, cleanup := setupStoreRepository()
+		defer cleanup()
+
+		mockRepo.On("ReadStores", mock.Anything, mock.Anything).Return([]*entities.Store{}, nil)
+		mockRepo.On("CreateStores", mock.Anything, mock.Anything).Return(nil)
+		mockRepo.On("UpdateStores", mock.Anything, mock.Anything).Return(nil)
+		events.CreateStores(mockRepo)
+	})
+
+	t.Run("nominal existing store", func(t *testing.T) {
+		mockRepo, cleanup := setupStoreRepository()
+		defer cleanup()
+
+		mockRepo.On("ReadStores", mock.Anything, mock.Anything).Return([]*entities.Store{
+			{
+				Label:    aws.String("DigitalStore"),
+				IsOnline: aws.Bool(true),
+			},
+			{
+				Label:    aws.String("NotDesiredStore"),
+				IsOnline: aws.Bool(false),
+			},
+		}, nil)
+		mockRepo.On("CreateStores", mock.Anything, mock.Anything).Return(nil)
+		mockRepo.On("UpdateStores", mock.Anything, mock.Anything).Return(nil)
+		mockRepo.On("DeleteStores", mock.Anything, mock.Anything).Return(nil)
+		events.CreateStores(mockRepo)
+	})
+
+	t.Run("error ReadStores", func(t *testing.T) {
+		mockRepo, cleanup := setupStoreRepository()
+		defer cleanup()
+
+		// Configuration du mock pour ReadStores avec une erreur
+		mockRepo.On("ReadStores", mock.Anything, mock.Anything).Return(nil, errors.ErrInternalServer).Once()
+
+		// Configuration des autres mocks (non appelés dans ce scénario)
+		mockRepo.On("CreateStores", mock.Anything, mock.Anything).Return(nil)
+		mockRepo.On("UpdateStores", mock.Anything, mock.Anything).Return(nil)
+
+		// Assertion que la fonction panique avec le message attendu
+		assert.PanicsWithValue(t, "Failed to read stores: common.internal_error", func() {
+			events.CreateStores(mockRepo)
+		})
+
+		// Assertions pour vérifier que les autres méthodes ne sont pas appelées
+		mockRepo.AssertCalled(t, "ReadStores", mock.Anything, mock.Anything)
+		mockRepo.AssertNotCalled(t, "CreateStores", mock.Anything, mock.Anything)
+		mockRepo.AssertNotCalled(t, "UpdateStores", mock.Anything, mock.Anything)
+		mockRepo.AssertNotCalled(t, "DeleteStores", mock.Anything, mock.Anything)
+	})
 }
