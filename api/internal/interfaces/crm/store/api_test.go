@@ -1,4 +1,4 @@
-package user_test
+package store_test
 
 import (
 	"bytes"
@@ -7,15 +7,15 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
 	"github.com/kodmain/thetiptop/api/internal/application/hook"
-	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/crm"
+	userTransfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
+	storeRepository "github.com/kodmain/thetiptop/api/internal/domain/store/repositories"
 	userRepository "github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
@@ -24,72 +24,42 @@ import (
 )
 
 const (
-	GOOD_EMAIL        = "user1@example.com"
-	GOOD_PASS         = "ValidP@ssw0rd1"
-	GOOD_PASS_UPDATED = "ValidP@ssw0rd1-update"
-
-	WRONG_EMAIL = "user2@example.com"
-	WRONG_PASS  = "secret"
-
-	email    = "client-user-api-thetiptop@yopmail.com"
+	DOMAIN   = "http://localhost:8888"
+	email    = "employee-thetiptop@yopmail.com"
 	password = "Aa1@azetyuiop"
 )
-
-type Email struct {
-	HTML    string `json:"html"`
-	Text    string `json:"text"`
-	Subject string `json:"subject"`
-	From    []struct {
-		Address string `json:"address"`
-		Name    string `json:"name"`
-	} `json:"from"`
-	To []struct {
-		Address string `json:"address"`
-		Name    string `json:"name"`
-	} `json:"to"`
-	ID       string `json:"id"`
-	Time     string `json:"time"`
-	Read     bool   `json:"read"`
-	Envelope struct {
-		From struct {
-			Address string `json:"address"`
-			Args    struct {
-				BODY     string `json:"BODY"`
-				SMTPUTF8 bool   `json:"SMTPUTF8"`
-			} `json:"args"`
-		} `json:"from"`
-		To []struct {
-			Address string `json:"address"`
-			Args    bool   `json:"args"`
-		} `json:"to"`
-		Host          string `json:"host"`
-		RemoteAddress string `json:"remoteAddress"`
-	} `json:"envelope"`
-	Source        string      `json:"source"`
-	Size          int         `json:"size"`
-	SizeHuman     string      `json:"sizeHuman"`
-	Attachments   interface{} `json:"attachments"`
-	CalculatedBcc []struct {
-		Address string `json:"address"`
-		Name    string `json:"name"`
-	} `json:"calculatedBcc"`
-}
 
 var srv *server.Server
 
 var callBack hook.HandlerSync = func(tags ...string) {
 	if len(tags) > 0 && tags[0] == "default" {
-		user := userRepository.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT)))
-		if crd, _ := user.ReadCredential(&transfert.Credential{
-			Email: aws.String(email),
-		}); crd == nil {
-			cred, _ := user.CreateCredential(&transfert.Credential{
-				Email:    aws.String(email),
-				Password: aws.String(password),
-			})
+		user := userRepository.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT)))
+		cred, _ := user.CreateCredential(&userTransfert.Credential{
+			Email:    aws.String(email),
+			Password: aws.String(password),
+		})
 
-			user.CreateClient(&transfert.Client{
-				CredentialID: &cred.ID,
+		user.CreateEmployee(&userTransfert.Employee{
+			CredentialID: &cred.ID,
+		})
+
+		storeRepo := storeRepository.NewStoreRepository(database.Get(config.GetString("services.store.database", config.DEFAULT)))
+		storeRepo.CreateStores([]*transfert.Store{
+			{
+				Label:    aws.String("DigitalStore"),
+				IsOnline: aws.Bool(true),
+			},
+			{
+				Label:    aws.String("LocalStore"),
+				IsOnline: aws.Bool(false),
+			},
+		})
+
+		stores, _ := storeRepo.ReadStores(&transfert.Store{})
+		for _, store := range stores {
+			storeRepo.CreateCaisse(&transfert.Caisse{
+				StoreID: &store.ID,
+				Label:   aws.String("Caisse1"),
 			})
 		}
 	}
@@ -263,105 +233,3 @@ func request(method, uri string, token string, encoding EncodingType, values ...
 	content, err := io.ReadAll(resp.Body)
 	return content, resp.StatusCode, err
 }
-
-// deleteMail Delete email by ID
-// This function deletes an email from the server by its ID.
-//
-// Parameters:
-// - emailID: string ID of the email to be deleted
-//
-// Returns:
-// - err: error Error if any occurred during the deletion process
-func deleteMail(emailID string) error {
-	apiUrl := fmt.Sprintf("http://localhost:1080/email/%s", emailID)
-	_, statusCode, err := request("DELETE", apiUrl, "", FormURLEncoded)
-
-	if err != nil {
-		return fmt.Errorf("erreur lors de la requête HTTP: %v", err)
-	}
-
-	if statusCode != http.StatusOK {
-		return fmt.Errorf("statut de réponse non OK: %d", statusCode)
-	}
-
-	return nil
-}
-
-// getMailFor Try to retrieve an email for the given address X times before returning an error
-// This function will attempt to find and delete an email associated with the given address.
-// It will retry the operation X times before failing.
-//
-// Parameters:
-// - emailAddr: string The email address to search for
-// - retries: int The number of times to retry before failing
-//
-// Returns:
-// - email: *Email The found email
-// - error: error Error if the operation fails after X attempts
-func getMailFor(emailAddr string, retries int) (*Email, error) {
-	apiUrl := "http://localhost:1080/email"
-
-	for i := 0; i < retries; i++ {
-		content, statusCode, err := request("GET", apiUrl, "", FormURLEncoded)
-
-		if err != nil {
-			return nil, fmt.Errorf("erreur lors de la requête HTTP: %v", err)
-		}
-
-		if statusCode != http.StatusOK {
-			return nil, fmt.Errorf("statut de réponse non OK: %d", statusCode)
-		}
-
-		var emails []*Email
-		if err := json.Unmarshal(content, &emails); err != nil {
-			return nil, fmt.Errorf("erreur lors du parsing des emails: %v", err)
-		}
-
-		for _, email := range emails {
-			for _, to := range email.To {
-				if to.Address == emailAddr {
-					deleteErr := deleteMail(email.ID)
-					if deleteErr != nil {
-						return nil, fmt.Errorf("erreur lors de la suppression de l'email: %v", deleteErr)
-					}
-					return email, nil
-				}
-			}
-		}
-
-		time.Sleep(100 * time.Millisecond)
-	}
-
-	return nil, fmt.Errorf("aucun email trouvé pour l'adresse %s après %d tentatives", emailAddr, retries)
-}
-
-func extractToken(html string) string {
-	re := regexp.MustCompile(`<h1>([a-zA-Z0-9]+)</h1>`)
-	matches := re.FindStringSubmatch(html)
-	if len(matches) > 1 {
-		return matches[1]
-	}
-	return ""
-}
-
-const (
-	DOMAIN = "http://localhost:8888"
-
-	// Client
-	CLIENT          = DOMAIN + "/client"
-	CLIENT_REGISTER = CLIENT + "/register"
-	CLIENT_WITH_ID  = CLIENT + "/%s"
-
-	// Employee
-	EMPLOYEE          = DOMAIN + "/employee"
-	EMPLOYEE_REGISTER = EMPLOYEE + "/register"
-	EMPLOYEE_WITH_ID  = EMPLOYEE + "/%s"
-
-	// User
-	USER                     = DOMAIN + "/user"
-	USER_AUTH                = USER + "/auth"
-	USER_AUTH_RENEW          = USER + "/auth/renew"
-	USER_PASSWORD            = USER + "/password"
-	USER_REGISTER_VALIDATION = USER + "/register/validation"
-	USER_VALIDATION_RENEW    = USER + "/validation/renew"
-)
