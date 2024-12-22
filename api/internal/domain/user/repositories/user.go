@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"sync"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/user"
 	"github.com/kodmain/thetiptop/api/internal/domain/user/entities"
@@ -12,8 +10,6 @@ import (
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/security/hash"
 	"gorm.io/gorm"
 )
-
-var user sync.Once
 
 type UserRepository struct {
 	store *database.Database
@@ -50,13 +46,7 @@ type UserRepositoryInterface interface {
 }
 
 func NewUserRepository(store *database.Database) *UserRepository {
-	user.Do(func() {
-		store.Engine.AutoMigrate(entities.Client{})
-		store.Engine.AutoMigrate(entities.Employee{})
-		store.Engine.AutoMigrate(entities.Validation{})
-		store.Engine.AutoMigrate(entities.Credential{})
-	})
-
+	store.Engine.AutoMigrate(entities.Client{}, entities.Employee{}, entities.Validation{}, entities.Credential{})
 	return &UserRepository{store}
 }
 

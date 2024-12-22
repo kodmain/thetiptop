@@ -18,34 +18,40 @@ import (
 	storeRepository "github.com/kodmain/thetiptop/api/internal/domain/store/repositories"
 	userRepository "github.com/kodmain/thetiptop/api/internal/domain/user/repositories"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
+	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger/levels"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
 )
 
 const (
-	DOMAIN   = "http://localhost:8888"
-	email    = "employee-thetiptop@yopmail.com"
+	email    = "employe@yopmail.com"
 	password = "Aa1@azetyuiop"
+
+	DOMAIN = "http://localhost:8888"
 )
 
 var srv *server.Server
-
 var callBack hook.HandlerSync = func(tags ...string) {
 	if len(tags) > 0 && tags[0] == "default" {
-		user := userRepository.NewUserRepository(database.Get(config.GetString("services.employee.database", config.DEFAULT)))
-		cred, _ := user.CreateCredential(&userTransfert.Credential{
-			Email:    aws.String(email),
-			Password: aws.String(password),
-		})
-
-		user.CreateEmployee(&userTransfert.Employee{
-			CredentialID: &cred.ID,
-		})
-
+		user := userRepository.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT)))
 		storeRepo := storeRepository.NewStoreRepository(database.Get(config.GetString("services.store.database", config.DEFAULT)))
+		if crd, _ := user.ReadCredential(&userTransfert.Credential{
+			Email: aws.String(email),
+		}); crd == nil {
+			cred, _ := user.CreateCredential(&userTransfert.Credential{
+				Email:    aws.String(email),
+				Password: aws.String(password),
+			})
+
+			user.CreateEmployee(&userTransfert.Employee{
+				CredentialID: &cred.ID,
+			})
+		}
+
 		storeRepo.CreateStores([]*transfert.Store{
 			{
+				ID:       aws.String("440763b8-b8d9-4b36-9cc6-545a2c03071c"),
 				Label:    aws.String("DigitalStore"),
 				IsOnline: aws.Bool(true),
 			},
@@ -66,12 +72,14 @@ var callBack hook.HandlerSync = func(tags ...string) {
 }
 
 func start(http, https int) error {
+	env.ForceTest()
+	hook.Reset()
+	hook.Register(hook.EventOnDBInit, callBack)
 	env.DEFAULT_PORT_HTTP = http
 	env.DEFAULT_PORT_HTTPS = https
 	env.PORT_HTTP = &env.DEFAULT_PORT_HTTP
 	env.PORT_HTTPS = &env.DEFAULT_PORT_HTTPS
-	env.ForceTest()
-	hook.Register(hook.EventOnDBInit, callBack)
+	logger.SetLevel(levels.DEBUG)
 	config.Load(aws.String("../../../../config.test.yml"))
 	logger.Info("starting application")
 	srv = server.Create()

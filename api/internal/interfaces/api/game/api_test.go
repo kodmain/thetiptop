@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	email    = "employee-game-api-thetiptop@yopmail.com"
+	email    = "employe@yopmail.com"
 	password = "Aa1@azetyuiop"
 )
 

@@ -11,6 +11,7 @@ import (
 
 func TestRegister(t *testing.T) {
 	env.ForceTest()
+	hook.Reset()
 	var ENAME hook.Event = "EVENT"
 
 	t.Run("Test normal and once handlers", func(t *testing.T) {
@@ -53,7 +54,7 @@ func TestRegister(t *testing.T) {
 		hook.Call(ENAME)
 		hook.Call(ENAME)
 		time.Sleep(1000 * time.Millisecond)
-		assert.Equal(t, 4, countHandler, "Le handler sync doit être appelé deux fois")
+		assert.Equal(t, 2, countHandler, "Le handler sync doit être appelé deux fois")
 		assert.Equal(t, 1, countOnceHandler, "Le once handler sync doit être appelé une seule fois")
 	})
 
@@ -84,7 +85,7 @@ func TestRegister(t *testing.T) {
 		hook.Call(ENAME)
 		time.Sleep(1000 * time.Millisecond)
 
-		assert.Equal(t, 4, countHandler, "Le handler normal doit être appelé deux fois")
+		assert.Equal(t, 2, countHandler, "Le handler normal doit être appelé deux fois")
 		assert.Equal(t, 1, countOnceHandler, "Le once handler doit être appelé une seule fois")
 
 		hook.Register(ENAME, handlerSync)
@@ -94,7 +95,7 @@ func TestRegister(t *testing.T) {
 		hook.Call(ENAME)
 		time.Sleep(1000 * time.Millisecond)
 
-		assert.Equal(t, 12, countHandler, "Handler total (normal + sync) doit être 12")
+		assert.Equal(t, 6, countHandler, "Handler total (normal + sync) doit être 12")
 		assert.Equal(t, 2, countOnceHandler, "OnceHandler total (once + once sync) doit être 2")
 	})
 }
