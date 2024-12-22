@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/kodmain/thetiptop/api/config"
 	"github.com/kodmain/thetiptop/api/env"
+	"github.com/kodmain/thetiptop/api/internal/application/hook"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/observability/logger"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/server"
 	"github.com/kodmain/thetiptop/api/internal/interfaces"
@@ -20,6 +21,8 @@ import (
 var srv *server.Server
 
 func start(http, https int) error {
+	env.ForceTest()
+	hook.Reset()
 	env.DEFAULT_PORT_HTTP = http
 	env.DEFAULT_PORT_HTTPS = https
 	env.PORT_HTTP = &env.DEFAULT_PORT_HTTP

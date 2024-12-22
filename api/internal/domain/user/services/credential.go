@@ -31,7 +31,7 @@ func (s *UserService) UserAuth(dtoCredential *transfert.Credential) (*string, se
 
 	// Comparer les hashs si les credentials existent
 	if !credential.CompareHash(*dtoCredential.Password) {
-		return nil, "", errors_domain_user.ErrCredentialNotFound
+		return nil, "", errors_domain_user.ErrCredentialNotValid
 	}
 
 	client, _, err := s.repo.ReadUser(&transfert.User{

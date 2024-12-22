@@ -15,6 +15,143 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/caisse": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/jsons"
+                ],
+                "tags": [
+                    "Caisse"
+                ],
+                "summary": "Create a new caisse",
+                "operationId": "store.CreateCaisse",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "default": "440763b8-b8d9-4b36-9cc6-545a2c03071c",
+                        "description": "Store ID",
+                        "name": "store_id",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Caisse created",
+                        "schema": {
+                            "$ref": "#/definitions/entities.Caisse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/caisse/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Caisse"
+                ],
+                "summary": "Get all caisse",
+                "operationId": "store.GetCaisse",
+                "responses": {
+                    "200": {
+                        "description": "List of caisse",
+                        "schema": {
+                            "$ref": "#/definitions/entities.Caisse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Caisse"
+                ],
+                "summary": "Update a caisse by ID",
+                "operationId": "store.UpdateCaisse",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Caisse updated",
+                        "schema": {
+                            "$ref": "#/definitions/entities.Caisse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "404": {
+                        "description": "Caisse not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Caisse"
+                ],
+                "summary": "Delete a caisse by ID",
+                "operationId": "store.DeleteCaisse",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Client ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Caisse deleted"
+                    },
+                    "400": {
+                        "description": "Invalid ID"
+                    },
+                    "404": {
+                        "description": "Caisse not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
         "/client": {
             "put": {
                 "security": [
@@ -69,31 +206,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error"
-                    }
-                }
-            }
-        },
-        "/client/export": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Client"
-                ],
-                "summary": "Export all data of the connected client.",
-                "operationId": "jwt.Auth =\u003e user.ExportClients",
-                "responses": {
-                    "200": {
-                        "description": "Clients exported"
-                    },
-                    "500": {
-                        "description": "Internal"
                     }
                 }
             }
@@ -450,6 +562,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/export/client": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Client"
+                ],
+                "summary": "Export all data of the connected client.",
+                "operationId": "jwt.Auth =\u003e user.ExportClient",
+                "responses": {
+                    "200": {
+                        "description": "Client exported"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
         "/game/random": {
             "get": {
                 "security": [
@@ -625,6 +768,59 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/store": {
+            "get": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Store"
+                ],
+                "summary": "List all store.",
+                "operationId": "store.List",
+                "responses": {
+                    "200": {
+                        "description": "list of store"
+                    }
+                }
+            }
+        },
+        "/store/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Store"
+                ],
+                "summary": "Get caisse by store",
+                "operationId": "store.GetStoreByID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Store ID",
+                        "name": "store_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of caisse"
+                    },
+                    "400": {
+                        "description": "Invalid store"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
@@ -869,6 +1065,21 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        }
+    },
+    "definitions": {
+        "entities.Caisse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "Gorm model",
+                    "type": "string"
+                },
+                "storeID": {
+                    "description": "Relations",
+                    "type": "string"
+                }
             }
         }
     },
