@@ -1,3 +1,13 @@
+definitions:
+  entities.Caisse:
+    properties:
+      id:
+        description: Gorm model
+        type: string
+      storeID:
+        description: Relations
+        type: string
+    type: object
 host: localhost
 info:
   contact: {}
@@ -5,6 +15,98 @@ info:
   title: TheTipTop
   version: dev
 paths:
+  /caisse:
+    post:
+      consumes:
+      - multipart/form-data
+      operationId: store.CreateCaisse
+      parameters:
+      - default: 440763b8-b8d9-4b36-9cc6-545a2c03071c
+        description: Store ID
+        format: uuid
+        in: formData
+        name: store_id
+        required: true
+        type: string
+      produces:
+      - application/jsons
+      responses:
+        "201":
+          description: Caisse created
+          schema:
+            $ref: '#/definitions/entities.Caisse'
+        "400":
+          description: Invalid input
+        "500":
+          description: Internal server error
+      summary: Create a new caisse
+      tags:
+      - Caisse
+  /caisse/{id}:
+    delete:
+      operationId: store.DeleteCaisse
+      parameters:
+      - description: Client ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Caisse deleted
+        "400":
+          description: Invalid ID
+        "404":
+          description: Caisse not found
+        "500":
+          description: Internal server error
+      summary: Delete a caisse by ID
+      tags:
+      - Caisse
+    get:
+      operationId: store.GetCaisse
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of caisse
+          schema:
+            $ref: '#/definitions/entities.Caisse'
+        "500":
+          description: Internal server error
+      summary: Get all caisse
+      tags:
+      - Caisse
+    put:
+      consumes:
+      - application/json
+      operationId: store.UpdateCaisse
+      parameters:
+      - description: Client ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Caisse updated
+          schema:
+            $ref: '#/definitions/entities.Caisse'
+        "400":
+          description: Invalid input
+        "404":
+          description: Caisse not found
+        "500":
+          description: Internal server error
+      summary: Update a caisse by ID
+      tags:
+      - Caisse
   /client:
     put:
       consumes:
@@ -94,21 +196,6 @@ paths:
       security:
       - Bearer: []
       summary: Get a client by ID.
-      tags:
-      - Client
-  /client/export:
-    get:
-      operationId: jwt.Auth => user.ExportClients
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Clients exported
-        "500":
-          description: Internal
-      security:
-      - Bearer: []
-      summary: Export all data of the connected client.
       tags:
       - Client
   /client/register:
@@ -291,6 +378,25 @@ paths:
       summary: Register a employee.
       tags:
       - Employee
+  /export/client:
+    get:
+      operationId: jwt.Auth => user.ExportClient
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Client exported
+        "401":
+          description: Unauthorized
+        "404":
+          description: Client not found
+        "500":
+          description: Internal server error
+      security:
+      - Bearer: []
+      summary: Export all data of the connected client.
+      tags:
+      - Client
   /game/random:
     get:
       consumes:
@@ -404,6 +510,41 @@ paths:
       summary: Show the ip of user.
       tags:
       - Status
+  /store:
+    get:
+      consumes:
+      - multipart/form-data
+      operationId: store.List
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: list of store
+      summary: List all store.
+      tags:
+      - Store
+  /store/{id}:
+    get:
+      operationId: store.GetStoreByID
+      parameters:
+      - description: Store ID
+        format: uuid
+        in: path
+        name: store_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of caisse
+        "400":
+          description: Invalid store
+        "500":
+          description: Internal server error
+      summary: Get caisse by store
+      tags:
+      - Store
   /user/auth:
     post:
       consumes:

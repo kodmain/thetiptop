@@ -30,7 +30,7 @@
             "type": "go", 
             "request": "launch",
             "program": "${workspaceFolder}/api/cmd/main.go",
-            "args": ["--config","${workspaceFolder}/api/config.test.yml"],
+            "args": ["--config","${workspaceFolder}/api/config.local.yml"],
             "env": {},
             "port": 2345,
             "host":"127.0.0.1",

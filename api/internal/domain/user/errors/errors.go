@@ -25,6 +25,7 @@ var (
 
 	// Credential errors
 	ErrCredentialNotFound      = errors.New(http.StatusNotFound, "credential.not_found")
+	ErrCredentialNotValid      = errors.New(http.StatusBadRequest, "credential.not_valid")
 	ErrCredentialAlreadyExists = errors.New(http.StatusConflict, "credential.already_exists")
 
 	// Validation errors

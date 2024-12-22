@@ -9,55 +9,93 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type Event string
-
 func TestRegister(t *testing.T) {
 	env.ForceTest()
+	hook.Reset()
 	var ENAME hook.Event = "EVENT"
-	var countHandler int = 0
-	var countOnceHandler int = 0
 
-	var handler hook.Handler = func(tags ...string) {
-		countHandler++
-	}
+	t.Run("Test normal and once handlers", func(t *testing.T) {
+		var countHandler int = 0
+		var countOnceHandler int = 0
 
-	var OnceHandler hook.OnceHandler = func(tags ...string) {
-		countOnceHandler++
-	}
+		var handler hook.Handler = func(tags ...string) {
+			countHandler++
+		}
 
-	var OnceHandlerSync hook.OnceHandlerSync = func(tags ...string) {
-		countOnceHandler++
-	}
+		var onceHandler hook.OnceHandler = func(tags ...string) {
+			countOnceHandler++
+		}
 
-	var HandlerSync hook.HandlerSync = func(tags ...string) {
-		countHandler++
-	}
+		hook.Register(ENAME, handler)
+		hook.Register(ENAME, onceHandler)
 
-	// Enregistre l'événement avec le handler
-	hook.Register(ENAME, handler)
-	hook.Register(ENAME, OnceHandler)
+		hook.Call(ENAME)
+		hook.Call(ENAME)
 
-	// Appelle l'événement
-	hook.Call(ENAME)
-	hook.Call(ENAME)
-	// Attend que le handler ait le temps d'exécuter (les appels sont asynchrones)
-	time.Sleep(1000 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
+		assert.Equal(t, 2, countHandler, "Le handler normal doit être appelé deux fois")
+		assert.Equal(t, 1, countOnceHandler, "Le once handler doit être appelé une seule fois")
+	})
 
-	// Vérifie que la valeur testValue est mise à jour par le handler
-	assert.Equal(t, 2, countHandler)
-	assert.Equal(t, 1, countOnceHandler)
+	t.Run("Test sync and once sync handlers", func(t *testing.T) {
+		var countHandler int = 0
+		var countOnceHandler int = 0
+		var handlerSync hook.HandlerSync = func(tags ...string) {
+			countHandler++
+		}
 
-	// Enregistre l'événement avec le handler
-	hook.Register(ENAME, HandlerSync)
-	hook.Register(ENAME, OnceHandlerSync)
+		var onceHandlerSync hook.OnceHandlerSync = func(tags ...string) {
+			countOnceHandler++
+		}
 
-	// Appelle l'événement
-	hook.Call(ENAME)
-	hook.Call(ENAME)
-	// Attend que le handler ait le temps d'exécuter (les appels sont asynchrones)
-	time.Sleep(1000 * time.Millisecond)
+		hook.Register(ENAME, handlerSync)
+		hook.Register(ENAME, onceHandlerSync)
 
-	// Vérifie que la valeur testValue est mise à jour par le handler
-	assert.Equal(t, 6, countHandler)
-	assert.Equal(t, 2, countOnceHandler)
+		hook.Call(ENAME)
+		hook.Call(ENAME)
+		time.Sleep(1000 * time.Millisecond)
+		assert.Equal(t, 2, countHandler, "Le handler sync doit être appelé deux fois")
+		assert.Equal(t, 1, countOnceHandler, "Le once handler sync doit être appelé une seule fois")
+	})
+
+	t.Run("Test mixing previous scenario", func(t *testing.T) {
+		var countHandler int = 0
+		var countOnceHandler int = 0
+
+		var handler hook.Handler = func(tags ...string) {
+			countHandler++
+		}
+
+		var onceHandler hook.OnceHandler = func(tags ...string) {
+			countOnceHandler++
+		}
+
+		var handlerSync hook.HandlerSync = func(tags ...string) {
+			countHandler++
+		}
+
+		var onceHandlerSync hook.OnceHandlerSync = func(tags ...string) {
+			countOnceHandler++
+		}
+
+		hook.Register(ENAME, handler)
+		hook.Register(ENAME, onceHandler)
+
+		hook.Call(ENAME)
+		hook.Call(ENAME)
+		time.Sleep(1000 * time.Millisecond)
+
+		assert.Equal(t, 2, countHandler, "Le handler normal doit être appelé deux fois")
+		assert.Equal(t, 1, countOnceHandler, "Le once handler doit être appelé une seule fois")
+
+		hook.Register(ENAME, handlerSync)
+		hook.Register(ENAME, onceHandlerSync)
+
+		hook.Call(ENAME)
+		hook.Call(ENAME)
+		time.Sleep(1000 * time.Millisecond)
+
+		assert.Equal(t, 6, countHandler, "Handler total (normal + sync) doit être 12")
+		assert.Equal(t, 2, countOnceHandler, "OnceHandler total (once + once sync) doit être 2")
+	})
 }
