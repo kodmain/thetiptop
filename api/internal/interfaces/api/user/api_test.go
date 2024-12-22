@@ -31,8 +31,9 @@ const (
 	WRONG_EMAIL = "user2@example.com"
 	WRONG_PASS  = "secret"
 
-	email    = "client-user-api-thetiptop@yopmail.com"
-	password = "Aa1@azetyuiop"
+	emailEmployee = "employe@yopmail.com"
+	emailClient   = "client@yopmail.com"
+	password      = "Aa1@azetyuiop"
 )
 
 type Email struct {
@@ -81,10 +82,23 @@ var callBack hook.HandlerSync = func(tags ...string) {
 	if len(tags) > 0 && tags[0] == "default" {
 		user := userRepository.NewUserRepository(database.Get(config.GetString("services.client.database", config.DEFAULT)))
 		if crd, _ := user.ReadCredential(&transfert.Credential{
-			Email: aws.String(email),
+			Email: aws.String(emailEmployee),
 		}); crd == nil {
 			cred, _ := user.CreateCredential(&transfert.Credential{
-				Email:    aws.String(email),
+				Email:    aws.String(emailEmployee),
+				Password: aws.String(password),
+			})
+
+			user.CreateEmployee(&transfert.Employee{
+				CredentialID: &cred.ID,
+			})
+		}
+
+		if crd, _ := user.ReadCredential(&transfert.Credential{
+			Email: aws.String(emailClient),
+		}); crd == nil {
+			cred, _ := user.CreateCredential(&transfert.Credential{
+				Email:    aws.String(emailClient),
 				Password: aws.String(password),
 			})
 
@@ -96,12 +110,13 @@ var callBack hook.HandlerSync = func(tags ...string) {
 }
 
 func start(http, https int) error {
+	env.ForceTest()
+	hook.Reset()
+	hook.Register(hook.EventOnDBInit, callBack)
 	env.DEFAULT_PORT_HTTP = http
 	env.DEFAULT_PORT_HTTPS = https
 	env.PORT_HTTP = &env.DEFAULT_PORT_HTTP
 	env.PORT_HTTPS = &env.DEFAULT_PORT_HTTPS
-	env.ForceTest()
-	hook.Register(hook.EventOnDBInit, callBack)
 	config.Load(aws.String("../../../../config.test.yml"))
 	logger.Info("starting application")
 	srv = server.Create()

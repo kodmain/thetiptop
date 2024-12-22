@@ -77,16 +77,19 @@ func CreateCaisse(ctx *fiber.Ctx) error {
 // @Router    /caisse/{id} [delete]
 // @Id        store.DeleteCaisse
 func DeleteCaisse(ctx *fiber.Ctx) error {
-	dtoCaisse := new(transfert.Caisse)
-	if err := ctx.BodyParser(dtoCaisse); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(err.Error())
+	clientID := ctx.Params("id")
+
+	if clientID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON("Client ID is required")
 	}
 
 	status, response := services.DeleteCaisse(
 		domain.Store(
 			security.NewUserAccess(ctx.Locals("token")),
 			storeRepository.NewStoreRepository(database.Get(config.GetString("services.store.database", config.DEFAULT))),
-		), dtoCaisse,
+		), &transfert.Caisse{
+			ID: &clientID,
+		},
 	)
 
 	return ctx.Status(status).JSON(response)
@@ -108,6 +111,13 @@ func UpdateCaisse(ctx *fiber.Ctx) error {
 	if err := ctx.BodyParser(dtoCaisse); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(err.Error())
 	}
+
+	clientID := ctx.Params("id")
+	if clientID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON("Client ID is required")
+	}
+
+	dtoCaisse.ID = &clientID
 
 	status, response := services.UpdateCaisse(
 		domain.Store(

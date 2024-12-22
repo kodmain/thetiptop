@@ -43,13 +43,17 @@ var (
 	mu       sync.Mutex
 )
 
+func Reset() {
+	mu.Lock()
+	handlers = map[Event][]HookHandler{}
+	history = map[Event][]string{}
+	mu.Unlock()
+}
+
 func Register(event Event, handler HookHandler) {
 	mu.Lock()
 	handlers[event] = append(handlers[event], handler)
 	mu.Unlock()
-	if _, ok := history[event]; ok {
-		Call(event, history[event]...)
-	}
 }
 
 func Call(event Event, tags ...string) {

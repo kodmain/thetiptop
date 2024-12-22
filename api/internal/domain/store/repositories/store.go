@@ -1,16 +1,12 @@
 package repositories
 
 import (
-	"sync"
-
 	transfert "github.com/kodmain/thetiptop/api/internal/application/transfert/crm"
 	"github.com/kodmain/thetiptop/api/internal/domain/store/entities"
 	errors_domain_store "github.com/kodmain/thetiptop/api/internal/domain/store/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/errors"
 	"github.com/kodmain/thetiptop/api/internal/infrastructure/providers/database"
 )
-
-var store sync.Once
 
 type StoreRepository struct {
 	store *database.Database
@@ -31,10 +27,7 @@ type StoreRepositoryInterface interface {
 }
 
 func NewStoreRepository(repo *database.Database) *StoreRepository {
-	store.Do(func() {
-		repo.Engine.AutoMigrate(entities.Store{}, entities.Caisse{})
-	})
-
+	repo.Engine.AutoMigrate(entities.Store{}, entities.Caisse{})
 	return &StoreRepository{repo}
 }
 
