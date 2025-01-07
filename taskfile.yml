@@ -228,7 +228,7 @@ tasks:
     dir: api
     desc: Clean the api
     cmds:
-      - rm *.sqlite
+      - rm *.sqlite || true
 
   api:run:
     dir: api
