@@ -606,7 +606,7 @@ paths:
     put:
       consumes:
       - multipart/form-data
-      operationId: jwt.Auth => user.CredentialUpdate
+      operationId: user.CredentialUpdate
       parameters:
       - default: user-thetiptop@yopmail.com
         description: Email address

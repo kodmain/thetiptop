@@ -62,10 +62,6 @@ func (s *UserService) PasswordUpdate(dto *transfert.Credential) errors.ErrorInte
 		return err
 	}
 
-	if !s.security.CanUpdate(credential) {
-		return errors.ErrUnauthorized
-	}
-
 	password, err := hash.Hash(aws.String(*credential.Email+":"+*dto.Password), hash.BCRYPT)
 	if err != nil {
 		return err
