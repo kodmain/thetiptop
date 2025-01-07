@@ -224,6 +224,11 @@ tasks:
           -e MAILDEV_INCOMING_USER=secret \
           -e MAILDEV_INCOMING_PASS=secret \
           maildev/maildev -v
+  api:clean:
+    dir: api
+    desc: Clean the api
+    cmds:
+      - rm *.sqlite || true
 
   api:run:
     dir: api

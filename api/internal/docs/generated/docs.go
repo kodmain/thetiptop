@@ -926,7 +926,7 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "Update a client/employees password.",
-                "operationId": "jwt.Auth =\u003e user.CredentialUpdate",
+                "operationId": "user.CredentialUpdate",
                 "parameters": [
                     {
                         "type": "string",

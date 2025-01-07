@@ -232,8 +232,6 @@ func TestPasswordUpdate(t *testing.T) {
 
 		// Simuler la lecture réussie du credential
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).Return(mockCredential, nil)
-		// Simuler l'autorisation de mise à jour
-		mockPerms.On("CanUpdate", mock.AnythingOfType("*entities.Credential"), mock.Anything).Return(true)
 		// Simuler la mise à jour réussie du credential
 		mockRepo.On("UpdateCredential", mockCredential).Return(nil)
 
@@ -255,8 +253,6 @@ func TestPasswordUpdate(t *testing.T) {
 
 		// Simuler la lecture réussie du credential
 		mockRepo.On("ReadCredential", mock.AnythingOfType("*transfert.Credential")).Return(mockCredential, nil)
-		// Simuler l'autorisation de mise à jour
-		mockPerms.On("CanUpdate", mock.AnythingOfType("*entities.Credential"), mock.Anything).Return(true)
 		// Simuler un échec lors de la mise à jour du credential
 		mockRepo.On("UpdateCredential", mockCredential).Return(errors.ErrInternalServer)
 
