@@ -20,133 +20,216 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// TestUserAuth tests the UserAuth function
+// This function checks the user authentication process
+//
+// Parameters:
+// - t: *testing.T test framework
+//
+// Returns:
+// - none
 func TestUserAuth(t *testing.T) {
+	// Load config for tests
 	err := config.Load(aws.String("../../../../config.test.yml"))
 	assert.NoError(t, err)
 
-	t.Run("invalid syntax password", func(t *testing.T) {
-		mockClient := new(DomainUserService)
-		// Mocker correctement la méthode UserAuth
-		mockClient.On("UserAuth", mock.Anything).Return(&entities.Client{}, nil)
+	email := "test@example.com"
+	password := "ValidPassword123!"
+	emailSyntaxFail := "invalid-email"
+	passwordSyntaxFail := "short"
 
+	t.Run("invalid syntax password", func(t *testing.T) {
+		t.Parallel()
+
+		mockClient := new(DomainUserService)
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &email,
 			Password: &passwordSyntaxFail,
 		})
+
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("invalid syntax email", func(t *testing.T) {
-		mockClient := new(DomainUserService)
-		// Mocker correctement la méthode UserAuth
-		mockClient.On("UserAuth", mock.Anything).Return(&entities.Client{}, nil)
+		t.Parallel()
 
+		mockClient := new(DomainUserService)
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &emailSyntaxFail,
 			Password: &password,
 		})
+
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
 		assert.NotNil(t, response)
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("not found", func(t *testing.T) {
+		t.Parallel()
+
 		mockClient := new(DomainUserService)
-		// Simuler le cas où le client n'est pas trouvé
-		mockClient.On("UserAuth", mock.Anything).Return(nil, "", errors_domain_user.ErrClientNotFound)
+		// Simulate client not found
+		mockClient.On("UserAuth", mock.Anything).
+			Return(nil, "", errors_domain_user.ErrClientNotFound)
 
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &email,
 			Password: &password,
 		})
+
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
-		assert.Error(t, response.(*errors.Error))
+
+		errObj, ok := response.(*errors.Error)
+		assert.True(t, ok, "response should be of type *errors.Error")
+		if ok {
+			assert.Error(t, errObj)
+			assert.Equal(t, errors_domain_user.ErrClientNotFound, errObj)
+		}
+
 		assert.NotNil(t, response)
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("valid email, password", func(t *testing.T) {
-		id, err := uuid.NewRandom()
+		t.Parallel()
+
+		id, errGen := uuid.NewRandom()
+		assert.NoError(t, errGen)
+
 		ids := id.String()
-		assert.NoError(t, err)
 		mockClient := new(DomainUserService)
-		// Simuler un cas réussi avec une Credential valide et un ClientID valide
-		mockClient.On("UserAuth", mock.Anything).Return(&ids, security.ROLE_CONNECTED, nil)
+		// Simulate a successful auth: returns an ID and a role
+		mockClient.On("UserAuth", mock.Anything).
+			Return(&ids, security.ROLE_CONNECTED, nil)
 
 		statusCode, response := services.UserAuth(mockClient, &transfert.Credential{
 			Email:    &email,
 			Password: &password,
 		})
+
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
+
+		// Because we return fiber.Map{"access_token", ... "refresh_token", ...}
+		respMap, ok := response.(fiber.Map)
+		assert.True(t, ok, "response should be of type fiber.Map")
+		if ok {
+			assert.Contains(t, respMap, "access_token")
+			assert.Contains(t, respMap, "refresh_token")
+		}
+
+		mockClient.AssertExpectations(t)
 	})
 }
 
+// TestUserAuthRenew tests the UserAuthRenew function
+// This function checks the refresh token renewal logic
+//
+// Parameters:
+// - t: *testing.T test framework
+//
+// Returns:
+// - none
 func TestUserAuthRenew(t *testing.T) {
 	err := config.Load(aws.String("../../../../config.test.yml"))
 	assert.NoError(t, err)
 
 	t.Run("invalid token - nil", func(t *testing.T) {
-		// Cas où le jeton est nil
+		t.Parallel()
+
+		// Null token
 		statusCode, response := services.UserAuthRenew(nil)
+
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Error(t, response.(*errors.Error))
+		errObj, ok := response.(*errors.Error)
+		assert.True(t, ok, "response should be of type *errors.Error")
+		if ok {
+			assert.Error(t, errObj)
+		}
 	})
 
 	t.Run("invalid token type", func(t *testing.T) {
-		// Cas où le type de jeton est invalide
+		t.Parallel()
+
+		// Token with wrong type
 		invalidToken := &jwt.Token{
-			Type: jwt.ACCESS, // Mauvais type de jeton
+			Type: jwt.ACCESS, // WRONG type
 		}
 
 		statusCode, response := services.UserAuthRenew(invalidToken)
 		assert.Equal(t, fiber.StatusUnauthorized, statusCode)
-		assert.Error(t, response.(*errors.Error))
+
+		errObj, ok := response.(*errors.Error)
+		assert.True(t, ok, "response should be of type *errors.Error")
+		if ok {
+			assert.Error(t, errObj)
+		}
 	})
 
 	t.Run("token expired", func(t *testing.T) {
-		// Cas où le jeton de rafraîchissement a expiré
+		t.Parallel()
+
+		// Refresh token that has expired
 		expiredToken := &jwt.Token{
 			Type: jwt.REFRESH,
-			Exp:  time.Now().Add(-1 * time.Hour).Unix(), // Jeton expiré
+			Exp:  time.Now().Add(-1 * time.Hour).Unix(),
 		}
 
 		statusCode, response := services.UserAuthRenew(expiredToken)
 		assert.Equal(t, fiber.StatusUnauthorized, statusCode)
-		assert.Error(t, response.(*errors.Error))
+
+		errObj, ok := response.(*errors.Error)
+		assert.True(t, ok, "response should be of type *errors.Error")
+		if ok {
+			assert.Error(t, errObj)
+		}
 	})
 
 	t.Run("successful token renewal", func(t *testing.T) {
-		// Cas de renouvellement réussi avec un jeton valide
+		t.Parallel()
+
+		// Valid refresh token
 		validToken := &jwt.Token{
 			Type: jwt.REFRESH,
 			ID:   "valid-client-id",
-			Exp:  time.Now().Add(1 * time.Hour).Unix(), // Jeton valide
+			Exp:  time.Now().Add(1 * time.Hour).Unix(),
 		}
 
 		statusCode, response := services.UserAuthRenew(validToken)
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
 
-		// Vérifier que les jetons sont présents dans la réponse
-		authResponse, ok := response.(fiber.Map)
-		assert.True(t, ok)
-		assert.NotNil(t, authResponse["access_token"])
-		assert.NotNil(t, authResponse["refresh_token"])
+		respMap, ok := response.(fiber.Map)
+		assert.True(t, ok, "response should be of type fiber.Map")
+		if ok {
+			assert.NotNil(t, respMap["access_token"])
+			assert.NotNil(t, respMap["refresh_token"])
+		}
 	})
 }
 
+// TestCredentialUpdate tests the CredentialUpdate function
+// This function checks the logic for updating credentials after a validation
+//
+// Parameters:
+// - t: *testing.T test framework
+//
+// Returns:
+// - none
 func TestCredentialUpdate(t *testing.T) {
 	config.Load(aws.String("../../../config.test.yml"))
 
 	luhn := token.Generate(6)
 
 	t.Run("invalid token syntax", func(t *testing.T) {
+		t.Parallel()
+
 		mockClient := new(DomainUserService)
-		// Cas où le token est invalide
 		validationDTO := &transfert.Validation{
 			Token: aws.String("invalidToken"),
 		}
-
 		credentialDTO := &transfert.Credential{
 			Email:    aws.String("test@example.com"),
 			Password: aws.String("ValidP@ssw0rd"),
@@ -154,16 +237,22 @@ func TestCredentialUpdate(t *testing.T) {
 
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Error(t, response.(*errors.Error))
+
+		errMap, ok := response.(errors.Errors)
+		assert.True(t, ok, "response should be of type errors.Errors")
+		if ok {
+			assert.Contains(t, errMap, "token")
+		}
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("invalid email format", func(t *testing.T) {
+		t.Parallel()
+
 		mockClient := new(DomainUserService)
-		// Cas où l'email est invalide
 		validationDTO := &transfert.Validation{
 			Token: luhn.PointerString(),
 		}
-
 		credentialDTO := &transfert.Credential{
 			Email:    aws.String("invalid-email"),
 			Password: aws.String("ValidP@ssw0rd"),
@@ -171,18 +260,26 @@ func TestCredentialUpdate(t *testing.T) {
 
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Error(t, response.(*errors.Error))
+
+		errMap, ok := response.(errors.Errors)
+		assert.True(t, ok, "response should be of type errors.Errors")
+		if ok {
+			assert.Contains(t, errMap, "email")
+		}
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("password validation error", func(t *testing.T) {
+		t.Parallel()
+
 		mockClient := new(DomainUserService)
-		// Simuler une erreur lors de la validation du mot de passe
-		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, errors_domain_user.ErrValidationNotFound)
+		// The PasswordValidation returns an error
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).
+			Return(nil, errors_domain_user.ErrValidationNotFound)
 
 		validationDTO := &transfert.Validation{
-			Token: luhn.Pointer().PointerString(),
+			Token: luhn.PointerString(),
 		}
-
 		credentialDTO := &transfert.Credential{
 			Email:    aws.String("test@example.com"),
 			Password: aws.String("ValidP@ssw0rd"),
@@ -191,17 +288,21 @@ func TestCredentialUpdate(t *testing.T) {
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusNotFound, statusCode)
 		assert.Equal(t, errors_domain_user.ErrValidationNotFound, response)
+
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("validation already validated", func(t *testing.T) {
+		t.Parallel()
+
 		mockClient := new(DomainUserService)
-		// Simuler le cas où la validation a déjà été effectuée
-		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, errors_domain_user.ErrValidationAlreadyValidated)
+		// The PasswordValidation returns ErrValidationAlreadyValidated
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).
+			Return(nil, errors_domain_user.ErrValidationAlreadyValidated)
 
 		validationDTO := &transfert.Validation{
-			Token: luhn.Pointer().PointerString(),
+			Token: luhn.PointerString(),
 		}
-
 		credentialDTO := &transfert.Credential{
 			Email:    aws.String("test@example.com"),
 			Password: aws.String("ValidP@ssw0rd"),
@@ -210,17 +311,21 @@ func TestCredentialUpdate(t *testing.T) {
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusConflict, statusCode)
 		assert.Equal(t, errors_domain_user.ErrValidationAlreadyValidated, response)
+
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("validation expired", func(t *testing.T) {
+		t.Parallel()
+
 		mockClient := new(DomainUserService)
-		// Simuler le cas où la validation a expiré
-		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(nil, errors_domain_user.ErrValidationExpired)
+		// The PasswordValidation returns ErrValidationExpired
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).
+			Return(nil, errors_domain_user.ErrValidationExpired)
 
 		validationDTO := &transfert.Validation{
-			Token: luhn.Pointer().PointerString(),
+			Token: luhn.PointerString(),
 		}
-
 		credentialDTO := &transfert.Credential{
 			Email:    aws.String("test@example.com"),
 			Password: aws.String("ValidP@ssw0rd"),
@@ -229,18 +334,22 @@ func TestCredentialUpdate(t *testing.T) {
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusGone, statusCode)
 		assert.Equal(t, errors_domain_user.ErrValidationExpired, response)
+
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("successful password update", func(t *testing.T) {
+		t.Parallel()
+
 		mockClient := new(DomainUserService)
-		// Simuler une mise à jour réussie du mot de passe
-		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(&entities.Validation{}, nil)
+		// Simulate successful password validation and update
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).
+			Return(&entities.Validation{}, nil)
 		mockClient.On("PasswordUpdate", mock.Anything).Return(nil)
 
 		validationDTO := &transfert.Validation{
-			Token: luhn.Pointer().PointerString(),
+			Token: luhn.PointerString(),
 		}
-
 		credentialDTO := &transfert.Credential{
 			Email:    aws.String("test@example.com"),
 			Password: aws.String("ValidP@ssw0rd"),
@@ -249,18 +358,23 @@ func TestCredentialUpdate(t *testing.T) {
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusOK, statusCode)
 		assert.NotNil(t, response)
+
+		mockClient.AssertExpectations(t)
 	})
 
 	t.Run("error during password update", func(t *testing.T) {
+		t.Parallel()
+
 		mockClient := new(DomainUserService)
-		// Simuler une erreur lors de la mise à jour du mot de passe
-		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).Return(&entities.Validation{}, nil)
-		mockClient.On("PasswordUpdate", mock.Anything).Return(errors.ErrInternalServer)
+		// PasswordValidation ok, but PasswordUpdate fails
+		mockClient.On("PasswordValidation", mock.Anything, mock.Anything).
+			Return(&entities.Validation{}, nil)
+		mockClient.On("PasswordUpdate", mock.Anything).
+			Return(errors.ErrInternalServer)
 
 		validationDTO := &transfert.Validation{
-			Token: luhn.Pointer().PointerString(),
+			Token: luhn.PointerString(),
 		}
-
 		credentialDTO := &transfert.Credential{
 			Email:    aws.String("test@example.com"),
 			Password: aws.String("ValidP@ssw0rd"),
@@ -268,6 +382,14 @@ func TestCredentialUpdate(t *testing.T) {
 
 		statusCode, response := services.CredentialUpdate(mockClient, validationDTO, credentialDTO)
 		assert.Equal(t, fiber.StatusInternalServerError, statusCode)
-		assert.Error(t, response.(*errors.Error))
+
+		errObj, ok := response.(*errors.Error)
+		assert.True(t, ok, "response should be of type *errors.Error")
+		if ok {
+			assert.Error(t, errObj)
+			assert.Equal(t, errors.ErrInternalServer, errObj)
+		}
+
+		mockClient.AssertExpectations(t)
 	})
 }
