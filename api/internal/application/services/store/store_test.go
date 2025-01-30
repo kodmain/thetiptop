@@ -65,7 +65,7 @@ func TestGetStoreByID(t *testing.T) {
 
 		// Assertions
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Error(t, response.(*errors.Error))
+		assert.Error(t, response.(errors.Errors))
 	})
 
 	t.Run("validation error - invalid ID format", func(t *testing.T) {
@@ -81,7 +81,7 @@ func TestGetStoreByID(t *testing.T) {
 
 		// Assertions
 		assert.Equal(t, fiber.StatusBadRequest, statusCode)
-		assert.Error(t, response.(*errors.Error))
+		assert.Error(t, response.(errors.Errors))
 	})
 
 	t.Run("service error - store not found", func(t *testing.T) {
