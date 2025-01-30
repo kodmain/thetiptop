@@ -96,13 +96,13 @@ func MailValidation(service services.UserServiceInterface, dtoValidation *transf
 	if err := dtoValidation.Check(data.Validator{
 		"token": {validator.Required, validator.Luhn},
 	}); err != nil {
-		return fiber.StatusBadRequest, err.Error()
+		return fiber.StatusBadRequest, err
 	}
 
 	if err := dtoCredential.Check(data.Validator{
 		"email": {validator.Required, validator.Email},
 	}); err != nil {
-		return fiber.StatusBadRequest, err.Error()
+		return fiber.StatusBadRequest, err
 	}
 
 	validation, err := service.MailValidation(dtoValidation, dtoCredential)
