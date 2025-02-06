@@ -72,7 +72,7 @@ func TestNewError(t *testing.T) {
 	assert.Equal(t, "not.found", err.Error())
 
 	errs := errors.ListErrors()
-	assert.Equal(t, 41, len(errs))
+	assert.Equal(t, 42, len(errs))
 
 	err.Log(fmt.Errorf("error"))
 }
