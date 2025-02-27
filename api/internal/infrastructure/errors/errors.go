@@ -2,10 +2,12 @@ package errors
 
 import (
 	"net/http"
+	"sync"
 )
 
 var (
 	registredErrors = make(map[string]*Error)
+	mu              = &sync.Mutex{}
 
 	// Common errors
 	ErrNoDto          = New(http.StatusBadRequest, "common.no_dto")
