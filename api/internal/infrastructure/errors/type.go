@@ -106,11 +106,15 @@ func New(code int, message string) *Error {
 		message: message,
 	}
 
+	mu.Lock()
 	registredErrors[message] = err
+	mu.Unlock()
 
 	return err
 }
 
 func ListErrors() map[string]*Error {
+	mu.Lock()
+	defer mu.Unlock()
 	return registredErrors
 }
