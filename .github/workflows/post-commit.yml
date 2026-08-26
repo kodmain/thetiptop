@@ -1,0 +1,36 @@
+# post-commit — mandatory merge gate.
+#
+# No AI attribution anywhere in the history, conventional commit subjects,
+# no credentials added. Every rule lives in kodflow/post-commit and is
+# pinned to @main on purpose: a fix or a new rule there is live here on the
+# next run with no change to this file. Pinning a SHA would freeze this
+# repo out of every future fix, which is the opposite of the design — do
+# not pin it, and do not copy the logic into this repo.
+#
+# The job MUST stay named `post-commit`: that is the status the branch
+# ruleset requires, so renaming or deleting this file leaves the required
+# status unreported and blocks every merge.
+name: post-commit
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  post-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: kodflow/post-commit@main
+        with:
+          # Every commit in this repository must carry a GitHub account,
+          # not a personal identity. This repo differs from the rest of the
+          # fleet on purpose: it has a second contributor, so Gui-D is
+          # allowed here alongside the owning account rather than having
+          # their commits re-authored onto someone else's name.
+          authors: kodflow Gui-D
