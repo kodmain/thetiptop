@@ -19,7 +19,7 @@ dependencies:
   riverpod_annotation: ^2.3.5
 
   # UX-UI
-  flutter_svg: ^2.0.10+1
+  flutter_svg: ^2.3.0
   rive: ^0.13.9
   flutter_screenutil: ^5.9.0
 
