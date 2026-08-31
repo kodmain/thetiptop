@@ -40,7 +40,7 @@ dev_dependencies:
   json_serializable: ^6.7.1
 
   # Riverpod
-  custom_lint: ^0.7.0
+  custom_lint: ^0.7.3
   riverpod_lint: ^2.3.10
   riverpod_generator: ^2.4.0
 
