@@ -4,10 +4,16 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/" # Ajustez le chemin si go.mod n'est pas à la racine du repo
     schedule:
-      interval: "weekly"
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Europe/Paris
 
   # Configuration pour les dépendances Flutter/Dart
   - package-ecosystem: "pub"
     directory: "/app" # Ajustez le chemin si pubspec.yaml n'est pas à la racine du repo
     schedule:
-      interval: "weekly"
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Europe/Paris
